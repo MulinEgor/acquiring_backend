@@ -1,0 +1,98 @@
+# MARK: Base
+x-db-base: &db-base
+  image: postgres:16
+  restart: always
+  healthcheck:
+    test:
+      - CMD-SHELL
+      - pg_isready -U postgres
+    interval: 10s
+    timeout: 5s
+    retries: 5
+
+x-api-base: &api-base
+  build:
+    context: ./
+  restart: always
+
+# MARK: Dev
+services:
+  db-dev:
+    profiles: [ "dev" ]
+    container_name: "db-dev"
+    <<: *db-base
+    ports:
+      - 5432:5432
+    env_file:
+      - ./.env
+    expose:
+      - 5432
+    volumes:
+      - ./docker/postgres/docker-entrypoint-initdb.d/:/docker-entrypoint-initdb.d/
+      - pgdata-dev:/var/lib/postgresql/data
+    networks:
+      - dev
+
+  api-dev:
+    profiles: [ "dev" ]
+    container_name: "api-dev"
+    <<: *api-base
+    command: uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+    volumes:
+      - ./:/app
+      - /app/.venv
+    env_file:
+      - ./.env
+    ports:
+      - 8000:8000
+    expose:
+      - 8000
+    depends_on:
+      db-dev:
+        condition: service_healthy
+    networks:
+      - dev
+
+  # MARK: Test
+  db-test:
+    profiles: [ "test" ]
+    container_name: "db-test"
+    <<: *db-base
+    env_file:
+      - ./.env.test
+    networks:
+      - test
+
+  api-test:
+    profiles: [ "test" ]
+    container_name: "api-test"
+    build:
+      context: ./
+      args:
+        ENV: test
+    command: sh -c "
+      alembic upgrade heads &&
+      coverage run --source='.' \
+      -m pytest \
+      --dist loadscope \
+      -s -r A \
+      --rootdir=/app/ \
+      --disable-pytest-warnings && \
+      coverage html"
+    env_file:
+      - ./.env.test
+    volumes:
+      - ./:/app
+      - /app/.venv
+    depends_on:
+      db-test:
+        condition: service_healthy
+    networks:
+      - test
+
+volumes:
+  pgdata-dev:
+
+networks:
+  dev:
+  test:
