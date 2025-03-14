@@ -7,7 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import src.auth.schemas as auth_schemas
 import src.users.schemas as user_schemas
 from src import constants
-from src.roles.models import RoleEnum
 from src.users.models import UserModel
 from src.users.repository import UserRepository
 from src.users.router import users_router
@@ -100,7 +99,6 @@ class TestUserRouter(BaseTestRouter):
     async def test_get_users_by_admin_query(
         self,
         router_client: httpx.AsyncClient,
-        session: AsyncSession,
         user_db: UserModel,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
@@ -109,14 +107,13 @@ class TestUserRouter(BaseTestRouter):
         пользователей с учетом учета фильтрации.
         """
 
-        params = user_schemas.UsersPaginationSchema(role_name=RoleEnum.MERCHANT.value)
+        params = user_schemas.UsersPaginationSchema(role_name="merchant")
 
         response = await router_client.get(
             url="/users",
             params=params.model_dump(exclude_unset=True),
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
         )
-        print(response.json())
         assert response.status_code == status.HTTP_200_OK
 
         users_data = user_schemas.UsersListGetSchema(**response.json())

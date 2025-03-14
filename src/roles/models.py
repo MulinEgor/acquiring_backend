@@ -2,21 +2,12 @@
 
 import uuid
 from datetime import datetime, timezone
-from enum import Enum
 
 from sqlalchemy import TIMESTAMP, UUID
-from sqlalchemy import Enum as SQLAlchemyEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database import Base
-from src.roles_permissions.models import RolesPermissions
-
-
-class RoleEnum(str, Enum):
-    MERCHANT = "merchant"
-    TRADER = "trader"
-    SUPPORT = "support"
-    ADMIN = "admin"
+from src.roles_permissions.models import RolesPermissionsModel
 
 
 class RoleModel(Base):
@@ -30,8 +21,7 @@ class RoleModel(Base):
         primary_key=True,
         comment="ID роли.",
     )
-    name: Mapped[RoleEnum] = mapped_column(
-        SQLAlchemyEnum(RoleEnum),
+    name: Mapped[str] = mapped_column(
         unique=True,
         comment="Название роли.",
     )
@@ -45,7 +35,7 @@ class RoleModel(Base):
         onupdate=datetime.now(timezone.utc),
     )
 
-    roles_permissions: Mapped[list[RolesPermissions]] = relationship(
+    roles_permissions: Mapped[list[RolesPermissionsModel]] = relationship(
         back_populates="role",
     )
     users: Mapped[list["UserModel"]] = relationship(

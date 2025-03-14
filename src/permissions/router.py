@@ -2,7 +2,8 @@
 
 import uuid
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import dependencies
 from src.permissions import schemas
@@ -20,8 +21,9 @@ permissions_router = APIRouter(prefix="/permissions", tags=["Разрешени�
 )
 async def create_route(
     data: schemas.PermissionCreateSchema,
+    session: AsyncSession = Depends(dependencies.get_session),
 ):
-    return await PermissionService.create(data)
+    return await PermissionService.create(session, data)
 
 
 # MARK: Get
@@ -33,8 +35,9 @@ async def create_route(
 )
 async def get_route(
     id: uuid.UUID,
+    session: AsyncSession = Depends(dependencies.get_session),
 ):
-    return await PermissionService.get_by_id(id)
+    return await PermissionService.get_by_id(session, id)
 
 
 @permissions_router.get(
@@ -44,9 +47,10 @@ async def get_route(
     dependencies=[Depends(dependencies.get_current_admin)],
 )
 async def get_all_route(
-    query_params: schemas.PermissionPaginationSchema,
+    query_params: schemas.PermissionPaginationSchema = Query(),
+    session: AsyncSession = Depends(dependencies.get_session),
 ):
-    return await PermissionService.get_all(query_params)
+    return await PermissionService.get_all(session, query_params)
 
 
 # MARK: Update
@@ -59,8 +63,9 @@ async def get_all_route(
 async def update_route(
     id: uuid.UUID,
     data: schemas.PermissionCreateSchema,
+    session: AsyncSession = Depends(dependencies.get_session),
 ):
-    return await PermissionService.update(id, data)
+    return await PermissionService.update(session, id, data)
 
 
 # MARK: Delete
@@ -72,5 +77,6 @@ async def update_route(
 )
 async def delete_route(
     id: uuid.UUID,
+    session: AsyncSession = Depends(dependencies.get_session),
 ):
-    return await PermissionService.delete(id)
+    return await PermissionService.delete(session, id)

@@ -8,7 +8,7 @@ from alembic import context
 from src.database import Base
 from src.permissions.models import PermissionModel
 from src.roles.models import RoleModel
-from src.roles_permissions.models import RolesPermissions
+from src.roles_permissions.models import RolesPermissionsModel
 from src.settings import settings
 from src.users.models import UserModel
 

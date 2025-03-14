@@ -35,7 +35,7 @@ def upgrade() -> None:
         sa.Column("id", sa.UUID(), nullable=False, comment="ID роли."),
         sa.Column(
             "name",
-            sa.Enum("MERCHANT", "TRADER", "SUPPORT", "ADMIN", name="roleenum"),
+            sa.String(),
             nullable=False,
             comment="Название роли.",
         ),

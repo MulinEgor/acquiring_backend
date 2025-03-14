@@ -9,7 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database import Base
 
 
-class RolesPermissions(Base):
+class RolesPermissionsModel(Base):
     """Модель для связи ролей и разрешений."""
 
     __tablename__ = "roles_permissions"

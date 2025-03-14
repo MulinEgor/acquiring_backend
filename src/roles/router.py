@@ -2,7 +2,8 @@
 
 import uuid
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import dependencies
 from src.roles import schemas
@@ -20,8 +21,9 @@ roles_router = APIRouter(prefix="/roles", tags=["Роли"])
 )
 async def create_route(
     data: schemas.RoleCreateSchema,
+    session: AsyncSession = Depends(dependencies.get_session),
 ):
-    return await RoleService.create(data)
+    return await RoleService.create(session, data)
 
 
 # MARK: Get
@@ -33,8 +35,9 @@ async def create_route(
 )
 async def get_route(
     id: uuid.UUID,
+    session: AsyncSession = Depends(dependencies.get_session),
 ):
-    return await RoleService.get_by_id(id)
+    return await RoleService.get_by_id(session, id)
 
 
 @roles_router.get(
@@ -44,9 +47,10 @@ async def get_route(
     dependencies=[Depends(dependencies.get_current_admin)],
 )
 async def get_all_route(
-    query_params: schemas.RolePaginationSchema,
+    query_params: schemas.RolePaginationSchema = Query(),
+    session: AsyncSession = Depends(dependencies.get_session),
 ):
-    return await RoleService.get_all(query_params)
+    return await RoleService.get_all(session, query_params)
 
 
 # MARK: Update
@@ -59,10 +63,11 @@ async def get_all_route(
 async def update_route(
     id: uuid.UUID,
     data: schemas.RoleCreateSchema,
+    session: AsyncSession = Depends(dependencies.get_session),
 ):
     """Обновить роль по ID."""
 
-    return await RoleService.update(id, data)
+    return await RoleService.update(session, id, data)
 
 
 # MARK: Delete
@@ -74,7 +79,8 @@ async def update_route(
 )
 async def delete_route(
     id: uuid.UUID,
+    session: AsyncSession = Depends(dependencies.get_session),
 ):
     """Удалить роль по ID."""
 
-    return await RoleService.delete(id)
+    return await RoleService.delete(session, id)

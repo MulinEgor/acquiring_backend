@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_serializer
 
 from src.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
 from src.permissions.schemas import PermissionGetSchema
@@ -15,6 +15,10 @@ class RolesPermissionsCreateSchema(BaseModel):
 
     role_id: uuid.UUID = Field(description="ID роли.")
     permission_id: uuid.UUID = Field(description="ID разрешения.")
+
+    @model_serializer
+    def serialize_model(self) -> dict[str, str]:
+        return {"role_id": str(self.role_id), "permission_id": str(self.permission_id)}
 
 
 class RolesPermissionsGetSchema(BaseModel):

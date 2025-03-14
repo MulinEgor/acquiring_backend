@@ -2,7 +2,7 @@
 
 import uuid
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import dependencies
@@ -57,7 +57,7 @@ async def get_route(
     dependencies=[Depends(dependencies.get_current_admin)],
 )
 async def get_all_route(
-    query_params: schemas.RolesPermissionsPaginationSchema,
+    query_params: schemas.RolesPermissionsPaginationSchema = Query(),
     session: AsyncSession = Depends(get_session),
 ):
     return await RolesPermissionsService.get_all(session, query_params)

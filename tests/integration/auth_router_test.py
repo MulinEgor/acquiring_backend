@@ -24,7 +24,7 @@ class TestAuthRouter(BaseTestRouter):
         self,
         router_client: httpx.AsyncClient,
         session: AsyncSession,
-        role_merchant_db: RoleModel,
+        merchant_role_db: RoleModel,
     ):
         """Проверка авторизации пользователя."""
 
@@ -34,7 +34,7 @@ class TestAuthRouter(BaseTestRouter):
             obj_in=user_schemas.UserCreateRepositorySchema(
                 email=email,
                 hashed_password=utils.get_hash(password),
-                role_id=role_merchant_db.id,
+                role_id=merchant_role_db.id,
             ),
         )
 

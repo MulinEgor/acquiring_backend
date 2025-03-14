@@ -7,13 +7,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src import exceptions
 from src.base.service import BaseService
 from src.roles_permissions import schemas
-from src.roles_permissions.models import RolesPermissions
+from src.roles_permissions.models import RolesPermissionsModel
 from src.roles_permissions.repository import RolesPermissionsRepository
 
 
 class RolesPermissionsService(
     BaseService[
-        RolesPermissions,
+        RolesPermissionsModel,
         schemas.RolesPermissionsCreateSchema,
         schemas.RolesPermissionsGetSchema,
         schemas.RolesPermissionsPaginationSchema,
@@ -36,8 +36,8 @@ class RolesPermissionsService(
 
         role_permission = await cls.repository.get_one_or_none(
             session,
-            RolesPermissions.role_id == role_id,
-            RolesPermissions.permission_id == permission_id,
+            RolesPermissionsModel.role_id == role_id,
+            RolesPermissionsModel.permission_id == permission_id,
         )
 
         if not role_permission:

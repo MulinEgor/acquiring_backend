@@ -2,15 +2,12 @@
 
 import uuid
 
-from fastapi import HTTPException, status
 from pydantic import (
     BaseModel,
     Field,
-    field_validator,
 )
 
 from src.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
-from src.roles.models import RoleEnum
 from src.roles.schemas import RoleGetSchema
 
 
@@ -37,7 +34,7 @@ class UserCreateSchema(BaseModel):
     """Pydantic схема для создания пользователя."""
 
     email: str = Field(description="Электронная почта пользователя.")
-    role_name: RoleEnum = Field(description="Название роли пользователя.")
+    role_name: str = Field(description="Название роли пользователя.")
 
 
 class UserCreatedGetSchema(UserGetSchema):
@@ -65,7 +62,7 @@ class UserUpdateSchema(BaseModel):
         default=None,
         description="Пароль пользователя.",
     )
-    role_name: RoleEnum | None = Field(
+    role_name: str | None = Field(
         default=None,
         description="Название роли пользователя.",
     )
@@ -121,15 +118,3 @@ class UsersPaginationSchema(PaginationBaseSchema):
             "По умолчанию — от новых к старым."
         ),
     )
-
-    @field_validator("role_name")
-    def role_validator(cls, v: str) -> str:
-        """Валидация названия роли пользователя."""
-
-        if v not in [role.value for role in RoleEnum]:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Неверное название роли пользователя",
-            )
-
-        return v
