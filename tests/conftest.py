@@ -26,7 +26,7 @@ from src.permissions.repository import PermissionRepository
 from src.settings import settings
 from src.users.models import UserModel
 from src.users_permissions.repository import UsersPermissionsRepository
-from src.utils import hash as utils
+from utils.hash_service import HashService
 
 faker = Faker()
 
@@ -157,7 +157,7 @@ async def user_db(session: AsyncSession) -> UserModel:
     user_db = UserModel(
         id=str(uuid.uuid4()),
         email=faker.email(),
-        hashed_password=utils.get_hash(faker.password()),
+        hashed_password=HashService.generate(faker.password()),
     )
     session.add(user_db)
     await session.commit()
@@ -190,7 +190,7 @@ async def user_admin_db(
     user_admin = UserModel(
         id=str(uuid.uuid4()),
         email=faker.email(),
-        hashed_password=utils.get_hash(faker.password()),
+        hashed_password=HashService.generate(faker.password()),
     )
     session.add(user_admin)
 

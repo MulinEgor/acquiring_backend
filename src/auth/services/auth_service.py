@@ -7,7 +7,7 @@ import src.users.schemas as user_schemas
 from src import exceptions
 from src.auth.services.jwt_service import JWTService
 from src.users.repository import UserRepository
-from src.utils import hash as utils
+from utils.hash_service import HashService
 
 
 class AuthService:
@@ -35,7 +35,7 @@ class AuthService:
         """
 
         # Хэширование пароля
-        hashed_password = utils.get_hash(schema.password)
+        hashed_password = HashService.generate(schema.password)
 
         # Поиск пользователя в БД
         user = await UserRepository.get_one_or_none(

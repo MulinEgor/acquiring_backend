@@ -6,14 +6,14 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import src.users.schemas as schemas
-import src.utils.hash as utils
 from src import exceptions
 from src.base.service import BaseService
 from src.permissions.service import PermissionService
 from src.users.models import UserModel
 from src.users.repository import UserRepository
 from src.users_permissions.service import UsersPermissionsService
-from src.utils.password import PasswordGenerator
+from utils.hash_service import HashService
+from utils.password_service import PasswordService
 
 
 class UserService(
@@ -62,8 +62,8 @@ class UserService(
             )
 
         # Генерация и хэширование пароля
-        password = PasswordGenerator.generate_password()
-        hashed_password = utils.get_hash(password)
+        password = PasswordService.generate()
+        hashed_password = HashService.generate(password)
 
         db_data = schemas.UserCreateRepositorySchema(
             email=data.email,
@@ -133,7 +133,7 @@ class UserService(
 
         hashed_password = None
         if data.password:
-            hashed_password = utils.get_hash(data.password)
+            hashed_password = HashService.generate(data.password)
 
         # Обновление пользователя в БД
         try:

@@ -8,9 +8,9 @@ import src.auth.schemas as auth_schemas
 import src.users.schemas as user_schemas
 from src.auth.router import auth_router
 from src.users.repository import UserRepository
-from src.utils import hash as utils
 from tests.conftest import faker
 from tests.integration.conftest import BaseTestRouter
+from utils.hash_service import HashService
 
 
 class TestAuthRouter(BaseTestRouter):
@@ -31,7 +31,7 @@ class TestAuthRouter(BaseTestRouter):
             session=session,
             obj_in=user_schemas.UserCreateRepositorySchema(
                 email=email,
-                hashed_password=utils.get_hash(password),
+                hashed_password=HashService.generate(password),
             ),
         )
 

@@ -4,11 +4,11 @@ import random
 import string
 
 
-class PasswordGenerator:
+class PasswordService:
     """Класс для генерации случайного пароля."""
 
-    @classmethod
-    def generate_password(cls) -> str:
+    @staticmethod
+    def generate() -> str:
         """
         Генерирует случайный пароль.
 
