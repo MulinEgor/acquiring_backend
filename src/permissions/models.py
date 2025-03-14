@@ -7,7 +7,7 @@ from sqlalchemy import TIMESTAMP, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database import Base
-from src.roles_permissions.models import RolesPermissionsModel
+from src.users_permissions.models import UsersPermissionsModel
 
 
 class PermissionModel(Base):
@@ -35,6 +35,7 @@ class PermissionModel(Base):
         onupdate=datetime.now(timezone.utc),
     )
 
-    roles_permissions: Mapped[list[RolesPermissionsModel]] = relationship(
+    users_permissions: Mapped[list[UsersPermissionsModel]] = relationship(
         back_populates="permission",
+        lazy="selectin",
     )

@@ -8,8 +8,6 @@ from src.auth.router import auth_router
 from src.constants import CORS_HEADERS, CORS_METHODS
 from src.healthcheck.router import health_check_router
 from src.permissions.router import permissions_router
-from src.roles.router import roles_router
-from src.roles_permissions.router import roles_permissions_router
 from src.settings import settings
 from src.users.router import users_router
 
@@ -32,9 +30,7 @@ available_routers = [
     health_check_router,
     auth_router,
     users_router,
-    roles_router,
     permissions_router,
-    roles_permissions_router,
 ]
 
 for router in available_routers:

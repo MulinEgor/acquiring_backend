@@ -3,11 +3,12 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import TIMESTAMP, UUID, ForeignKey
+from sqlalchemy import TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src import constants
 from src.database import Base
+from src.users_permissions.models import UsersPermissionsModel
 
 
 class UserModel(Base):
@@ -27,11 +28,6 @@ class UserModel(Base):
     hashed_password: Mapped[str] = mapped_column(
         comment="Хэшированный пароль пользователя.",
     )
-    role_id: Mapped[uuid.UUID] = mapped_column(
-        UUID,
-        ForeignKey("roles.id"),
-        comment="ID роли пользователя.",
-    )
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True),
         server_default=constants.CURRENT_TIMESTAMP_UTC,
@@ -42,7 +38,7 @@ class UserModel(Base):
         onupdate=constants.CURRENT_TIMESTAMP_UTC,
     )
 
-    role: Mapped["RoleModel"] = relationship(
-        back_populates="users",
+    users_permissions: Mapped[list[UsersPermissionsModel]] = relationship(
+        back_populates="user",
         lazy="selectin",
     )

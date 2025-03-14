@@ -9,9 +9,10 @@ import src.users.schemas as schemas
 import src.utils.hash as utils
 from src import exceptions
 from src.base.service import BaseService
-from src.roles.service import RoleService
+from src.permissions.service import PermissionService
 from src.users.models import UserModel
 from src.users.repository import UserRepository
+from src.users_permissions.service import UsersPermissionsService
 from src.utils.password import PasswordGenerator
 
 
@@ -51,41 +52,46 @@ class UserService(
             ConflictException: Пользователь уже существует.
         """
 
-        # Поиск роли
-        try:
-            role = await RoleService.get_by_name(
-                session=session,
-                name=data.role_name,
-            )
-        except exceptions.NotFoundException:
+        # Проверка существования разрешений
+        if not await PermissionService.check_all_exist(
+            session=session,
+            ids=data.permissions_ids,
+        ):
             raise exceptions.NotFoundException(
-                message="Роль не найдена.",
+                message="Какие то разрешения не найдены.",
             )
 
         # Генерация и хэширование пароля
         password = PasswordGenerator.generate_password()
         hashed_password = utils.get_hash(password)
 
-        data = schemas.UserCreateRepositorySchema(
+        db_data = schemas.UserCreateRepositorySchema(
             email=data.email,
             hashed_password=hashed_password,
-            role_id=role.id,
         )
 
         try:
             # Добавление пользователя в БД
             user = await cls.repository.create(
                 session=session,
-                obj_in=data,
+                obj_in=db_data,
+            )
+
+            # Добавление разрешений пользователю
+            await UsersPermissionsService.add_permissions_to_user(
+                session=session,
+                user_id=user.id,
+                permission_ids=data.permissions_ids,
             )
 
             await session.commit()
+            await session.refresh(user)
 
         except IntegrityError as ex:
             raise exceptions.ConflictException(exc=ex)
 
         return schemas.UserCreatedGetSchema(
-            **user.__dict__,
+            **schemas.UserGetSchema.model_validate(user).model_dump(),
             password=password,
         )
 
@@ -114,14 +120,15 @@ class UserService(
         """
 
         # Поиск пользователя в БД
-        user = await cls.get_by_id(session, user_id)
+        await cls.get_by_id(session, user_id)
 
-        # Проверка роли
-        role = None
-        if data.role_name:
-            role = await RoleService.get_by_name(
-                session=session,
-                name=data.role_name,
+        # Проверка существования разрешений
+        if data.permissions_ids and not await PermissionService.check_all_exist(
+            session=session,
+            ids=data.permissions_ids,
+        ):
+            raise exceptions.NotFoundException(
+                message="Какие то разрешения не найдены.",
             )
 
         hashed_password = None
@@ -136,10 +143,18 @@ class UserService(
                 obj_in=schemas.UserUpdateRepositorySchema(
                     email=data.email,
                     hashed_password=hashed_password,
-                    role_id=role.id if role else user.role.id,
                 ),
             )
+
+            # Обновление разрешений пользователя
+            if data.permissions_ids:
+                updated_user.permissions = await PermissionService.get_all_by_ids(
+                    session=session,
+                    ids=data.permissions_ids,
+                )
+
             await session.commit()
+            await session.refresh(updated_user)
 
         except IntegrityError as ex:
             raise exceptions.ConflictException(exc=ex)

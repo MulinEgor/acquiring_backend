@@ -5,10 +5,12 @@ import uuid
 from pydantic import (
     BaseModel,
     Field,
+    model_serializer,
 )
 
 from src.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
-from src.roles.schemas import RoleGetSchema
+from src.database import Base
+from src.permissions.schemas import PermissionGetSchema
 
 
 class UserGetSchema(BaseModel):
@@ -16,11 +18,36 @@ class UserGetSchema(BaseModel):
 
     id: uuid.UUID = Field(description="ID пользователя.")
     email: str = Field(description="Электронная почта пользователя.")
-    role: RoleGetSchema = Field(description="Роль пользователя.")
+    permissions: list[PermissionGetSchema] = Field(
+        description="Разрешения пользователя."
+    )
 
     class Config:
         json_encoders = {uuid.UUID: str}
         from_attributes = True
+
+    @classmethod
+    def model_validate(cls, obj: dict | Base) -> "UserGetSchema":
+        """
+        Пользовательская валидация модели.
+
+        Args:
+            obj: Входные данные для валидации
+
+        Returns:
+            UserGetSchema: Валидированный объект схемы
+        """
+        # Здесь можно добавить любую дополнительную логику валидации
+        if not isinstance(obj, dict):
+            obj = obj.__dict__
+
+        obj["permissions"] = [
+            PermissionGetSchema.model_validate(user_permission.permission)
+            for user_permission in obj["users_permissions"]
+        ]
+
+        # Вызов стандартной валидации
+        return super().model_validate(obj)
 
 
 class UserLoginSchema(BaseModel):
@@ -34,7 +61,16 @@ class UserCreateSchema(BaseModel):
     """Pydantic схема для создания пользователя."""
 
     email: str = Field(description="Электронная почта пользователя.")
-    role_name: str = Field(description="Название роли пользователя.")
+    permissions_ids: list[uuid.UUID] = Field(description="ID разрешений пользователя.")
+
+    @model_serializer
+    def serialize_model(self) -> dict[str, str]:
+        return {
+            "email": self.email,
+            "permissions_ids": [
+                str(permission_id) for permission_id in self.permissions_ids
+            ],
+        }
 
 
 class UserCreatedGetSchema(UserGetSchema):
@@ -48,7 +84,6 @@ class UserCreateRepositorySchema(BaseModel):
 
     email: str = Field(description="Электронная почта пользователя.")
     hashed_password: str = Field(description="Хэшированный пароль пользователя.")
-    role_id: uuid.UUID = Field(description="ID роли пользователя.")
 
 
 class UserUpdateSchema(BaseModel):
@@ -62,9 +97,9 @@ class UserUpdateSchema(BaseModel):
         default=None,
         description="Пароль пользователя.",
     )
-    role_name: str | None = Field(
+    permissions_ids: list[uuid.UUID] | None = Field(
         default=None,
-        description="Название роли пользователя.",
+        description="ID разрешений пользователя.",
     )
 
 
@@ -78,10 +113,6 @@ class UserUpdateRepositorySchema(BaseModel):
     hashed_password: str | None = Field(
         default=None,
         description="Хэшированный пароль пользователя.",
-    )
-    role_id: uuid.UUID | None = Field(
-        default=None,
-        description="ID роли пользователя.",
     )
 
 
@@ -107,9 +138,9 @@ class UsersPaginationSchema(PaginationBaseSchema):
         default=None,
         description="Электронная почта пользователя.",
     )
-    role_name: str | None = Field(
+    permissions_ids: list[uuid.UUID] | None = Field(
         default=None,
-        description="Название роли пользователя.",
+        description="ID разрешений пользователя.",
     )
     asc: bool = Field(
         default=False,

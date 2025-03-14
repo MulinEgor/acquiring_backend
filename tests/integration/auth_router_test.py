@@ -7,7 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import src.auth.schemas as auth_schemas
 import src.users.schemas as user_schemas
 from src.auth.router import auth_router
-from src.roles.models import RoleModel
 from src.users.repository import UserRepository
 from src.utils import hash as utils
 from tests.conftest import faker
@@ -24,7 +23,6 @@ class TestAuthRouter(BaseTestRouter):
         self,
         router_client: httpx.AsyncClient,
         session: AsyncSession,
-        merchant_role_db: RoleModel,
     ):
         """Проверка авторизации пользователя."""
 
@@ -34,7 +32,6 @@ class TestAuthRouter(BaseTestRouter):
             obj_in=user_schemas.UserCreateRepositorySchema(
                 email=email,
                 hashed_password=utils.get_hash(password),
-                role_id=merchant_role_db.id,
             ),
         )
 

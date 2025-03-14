@@ -6,7 +6,6 @@ from sqlalchemy import Select, select
 
 import src.users.schemas as schemas
 from src.base.repository import BaseRepository
-from src.roles.models import RoleModel
 from src.users.models import UserModel
 
 
@@ -47,13 +46,8 @@ class UserRepository(
         if query_params.email:
             stmt = stmt.where(UserModel.email.ilike(f"%{query_params.email}%"))
 
-        if query_params.role_name:
-            stmt = stmt.where(
-                UserModel.role_id
-                == (
-                    select(RoleModel.id).where(RoleModel.name == query_params.role_name)
-                )
-            )
+        if query_params.permissions_ids:
+            raise NotImplementedError("Фильтрация по разрешениям не реализована.")
 
         # Сортировка по дате создания.
         if not query_params.asc:
