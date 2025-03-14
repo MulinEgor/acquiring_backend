@@ -20,9 +20,12 @@ import src.auth.schemas as auth_schemas
 import src.users.schemas as user_schemas
 from src.auth.services.jwt_service import JWTService
 from src.permissions import schemas as permission_schemas
+from src.permissions.enums import PermissionEnum
 from src.permissions.models import PermissionModel
+from src.permissions.repository import PermissionRepository
 from src.settings import settings
 from src.users.models import UserModel
+from src.users_permissions.repository import UsersPermissionsRepository
 from src.utils import hash as utils
 
 faker = Faker()
@@ -159,6 +162,22 @@ async def user_db(session: AsyncSession) -> UserModel:
     session.add(user_db)
     await session.commit()
 
+    user_permissions = [PermissionEnum.GET_MY_USER]
+    for permission in user_permissions:
+        permission_db = await PermissionRepository.get_one_or_none(
+            session=session,
+            name=permission.value,
+        )
+        await UsersPermissionsRepository.create(
+            session=session,
+            obj_in={
+                "user_id": user_db.id,
+                "permission_id": permission_db.id,
+            },
+        )
+
+    await session.commit()
+
     return user_db
 
 
@@ -174,6 +193,21 @@ async def user_admin_db(
         hashed_password=utils.get_hash(faker.password()),
     )
     session.add(user_admin)
+
+    await session.commit()
+
+    permissions = await PermissionRepository.get_all(session)
+    await UsersPermissionsRepository.create_bulk(
+        session=session,
+        data=[
+            {
+                "user_id": user_admin.id,
+                "permission_id": permission.id,
+            }
+            for permission in permissions
+        ],
+    )
+
     await session.commit()
 
     return user_admin

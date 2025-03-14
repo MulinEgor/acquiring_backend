@@ -16,12 +16,12 @@ class UsersPermissionsModel(Base):
 
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID,
-        ForeignKey("users.id"),
+        ForeignKey("users.id", ondelete="CASCADE"),
         primary_key=True,
     )
     permission_id: Mapped[uuid.UUID] = mapped_column(
         UUID,
-        ForeignKey("permissions.id"),
+        ForeignKey("permissions.id", ondelete="CASCADE"),
         primary_key=True,
     )
     created_at: Mapped[datetime.datetime] = mapped_column(

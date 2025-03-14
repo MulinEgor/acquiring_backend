@@ -139,7 +139,6 @@ class TestUserRouter(BaseTestRouter):
         assert response.status_code == status.HTTP_201_CREATED
 
         created_user = user_schemas.UserCreatedGetSchema(**response.json())
-        print(created_user)
         assert created_user.email == user_create_data.email
 
         created_user_db = await UserRepository.get_one_or_none(

@@ -38,4 +38,5 @@ class PermissionModel(Base):
     users_permissions: Mapped[list[UsersPermissionsModel]] = relationship(
         back_populates="permission",
         lazy="selectin",
+        cascade="all, delete",
     )

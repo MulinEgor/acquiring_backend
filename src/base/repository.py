@@ -222,9 +222,9 @@ class BaseRepository(
     async def get_all_with_pagination_from_stmt(
         cls,
         session: AsyncSession,
-        limit: int | None,
-        offset: int | None,
         stmt: Select[Tuple[types.ModelType]],
+        limit: int | None = None,
+        offset: int | None = None,
     ) -> list[types.ModelType]:
         """
         Применить пагинацию к финальному выражению

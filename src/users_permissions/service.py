@@ -2,11 +2,14 @@
 
 import uuid
 
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import exceptions
+from src.permissions.models import PermissionModel
 from src.users_permissions import schemas
+from src.users_permissions.models import UsersPermissionsModel
 from src.users_permissions.repository import UsersPermissionsRepository
 
 
@@ -52,3 +55,30 @@ class UsersPermissionsService:
             )
         except IntegrityError as e:
             raise exceptions.ConflictException(exc=e)
+
+    # MARK: Get
+    @classmethod
+    async def get_user_permissions(
+        cls,
+        session: AsyncSession,
+        user_id: uuid.UUID,
+    ) -> list[PermissionModel]:
+        """
+        Получить разрешения пользователя.
+
+        Args:
+            session (AsyncSession): Сессия для работы с базой данных.
+            user_id (uuid.UUID): ID пользователя.
+
+        Returns:
+            list[PermissionModel]: Список разрешений.
+        """
+
+        user_permissions = await cls.repository.get_all_with_pagination_from_stmt(
+            session,
+            stmt=select(UsersPermissionsModel).where(
+                UsersPermissionsModel.user_id == user_id,
+            ),
+        )
+
+        return [permission.permission for permission in user_permissions]
