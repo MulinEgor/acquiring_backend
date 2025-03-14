@@ -65,7 +65,7 @@ class ForbiddenException(HTTPException):
     Основной класс исключений при недостаточных
     правах для выполнения запроса.
 
-    Код ответа - `HTTP_400_BAD_REQUEST`.
+    Код ответа - `HTTP_403_FORBIDDEN`.
     """
 
     default_message = "Недостаточно привилегий для выполнения запроса."

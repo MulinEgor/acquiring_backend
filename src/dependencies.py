@@ -54,6 +54,7 @@ async def get_current_user_or_none(
         InvalidTokenException: Невалидный токен `HTTP_401_UNAUTHORIZED`.
         TokenExpiredException: Время действия токена истекло `HTTP_401_UNAUTHORIZED`.
         NotFoundException: Пользователь не найден `HTTP_404_NOT_FOUND`.
+        ForbiddenException: Пользователь заблокирован `HTTP_403_FORBIDDEN`.
     """
 
     if not header_value:
@@ -83,6 +84,9 @@ async def get_current_user_or_none(
 
     if user_db is None:
         raise exceptions.NotFoundException()
+
+    if not user_db.is_active:
+        raise exceptions.ForbiddenException("Ваш аккаунт заблокирован.")
 
     return user_db
 

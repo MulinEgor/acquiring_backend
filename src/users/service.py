@@ -120,7 +120,7 @@ class UserService(
         """
 
         # Поиск пользователя в БД
-        await cls.get_by_id(session, user_id)
+        user = await cls.get_by_id(session, user_id)
 
         # Проверка существования разрешений
         if data.permissions_ids and not await PermissionService.check_all_exist(
@@ -143,6 +143,9 @@ class UserService(
                 obj_in=schemas.UserUpdateRepositorySchema(
                     email=data.email,
                     hashed_password=hashed_password,
+                    is_active=data.is_active
+                    if data.is_active is not None
+                    else user.is_active,
                 ),
             )
 

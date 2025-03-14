@@ -28,6 +28,18 @@ class UserModel(Base):
     hashed_password: Mapped[str] = mapped_column(
         comment="Хэшированный пароль пользователя.",
     )
+    balance: Mapped[int] = mapped_column(
+        default=0,
+        comment="Баланс пользователя.",
+    )
+    amount_frozen: Mapped[int] = mapped_column(
+        default=0,
+        comment="Замороженные средства пользователя.",
+    )
+    is_active: Mapped[bool] = mapped_column(
+        default=True,
+        comment="Является ли аккаунт пользователя активным.",
+    )
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True),
         server_default=constants.CURRENT_TIMESTAMP_UTC,

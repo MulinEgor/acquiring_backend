@@ -55,4 +55,8 @@ class UserRepository(
         else:
             stmt = stmt.order_by(UserModel.created_at)
 
+        # Фильтрация по флагу активности.
+        if query_params.is_active is not None:
+            stmt = stmt.where(UserModel.is_active == query_params.is_active)
+
         return stmt

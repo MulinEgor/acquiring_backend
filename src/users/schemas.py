@@ -18,6 +18,9 @@ class UserGetSchema(BaseModel):
 
     id: uuid.UUID = Field(description="ID пользователя.")
     email: str = Field(description="Электронная почта пользователя.")
+    balance: int = Field(description="Баланс пользователя.")
+    amount_frozen: int = Field(description="Замороженные средства пользователя.")
+    is_active: bool = Field(description="Является ли аккаунт пользователя активным.")
     permissions: list[PermissionGetSchema] = Field(
         description="Разрешения пользователя."
     )
@@ -101,6 +104,10 @@ class UserUpdateSchema(BaseModel):
         default=None,
         description="ID разрешений пользователя.",
     )
+    is_active: bool | None = Field(
+        default=None,
+        description="Является ли аккаунт пользователя активным.",
+    )
 
 
 class UserUpdateRepositorySchema(BaseModel):
@@ -113,6 +120,10 @@ class UserUpdateRepositorySchema(BaseModel):
     hashed_password: str | None = Field(
         default=None,
         description="Хэшированный пароль пользователя.",
+    )
+    is_active: bool | None = Field(
+        default=None,
+        description="Является ли аккаунт пользователя активным.",
     )
 
 
@@ -141,6 +152,10 @@ class UsersPaginationSchema(PaginationBaseSchema):
     permissions_ids: list[uuid.UUID] | None = Field(
         default=None,
         description="ID разрешений пользователя.",
+    )
+    is_active: bool | None = Field(
+        default=None,
+        description="Является ли аккаунт пользователя активным.",
     )
     asc: bool = Field(
         default=False,
