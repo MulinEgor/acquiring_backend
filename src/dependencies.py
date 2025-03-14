@@ -105,9 +105,12 @@ def check_user_permissions(
     """
 
     async def wrapper(
-        user: UserModel = Depends(get_current_user_or_none),
+        user: UserModel | None = Depends(get_current_user_or_none),
         session: AsyncSession = Depends(get_session),
     ):
+        if not user:
+            raise exceptions.ForbiddenException()
+
         user_permissions = await UsersPermissionsService.get_user_permissions(
             session,
             user.id,
