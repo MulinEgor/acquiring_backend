@@ -12,7 +12,7 @@ from src.settings import settings
 from src.users.router import users_router
 
 app = FastAPI(
-    title="FastAPI Template",
+    title="Бэкенд для системы эквайринга",
     version=settings.APP_VERSION,
 )
 
@@ -49,10 +49,10 @@ def home():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>FastAPI Auth Template</title>
+        <title>Бэкенд для системы эквайринга</title>
     </head>
     <body>
-        <h1>FastAPI Auth Template in {settings.MODE} mode</h1>
+        <h1>API в {settings.MODE} режиме</h1>
         <ul>
             <li><a href="/docs">Документация Swagger</a></li>
             <li><a href="/redoc">Документация ReDoc</a></li>
