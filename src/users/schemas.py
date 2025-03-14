@@ -2,20 +2,24 @@
 
 import uuid
 
+from fastapi import HTTPException, status
 from pydantic import (
     BaseModel,
     Field,
+    field_validator,
 )
 
-from src.base.schemas import DataListReadBaseSchema, PaginationBaseSchema
+from src.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
+from src.roles.models import RoleEnum
+from src.roles.schemas import RoleGetSchema
 
 
-# MARK: User
 class UserGetSchema(BaseModel):
     """Pydantic схема для получения пользователя."""
 
     id: uuid.UUID = Field(description="ID пользователя.")
     email: str = Field(description="Электронная почта пользователя.")
+    role: RoleGetSchema = Field(description="Роль пользователя.")
 
     class Config:
         json_encoders = {uuid.UUID: str}
@@ -33,7 +37,13 @@ class UserCreateSchema(BaseModel):
     """Pydantic схема для создания пользователя."""
 
     email: str = Field(description="Электронная почта пользователя.")
-    password: str = Field(description="Пароль пользователя.")
+    role_name: RoleEnum = Field(description="Название роли пользователя.")
+
+
+class UserCreatedGetSchema(UserGetSchema):
+    """Pydantic схема для получения созданного пользователя."""
+
+    password: str = Field(description="Сгенерированный пароль пользователя.")
 
 
 class UserCreateRepositorySchema(BaseModel):
@@ -41,6 +51,7 @@ class UserCreateRepositorySchema(BaseModel):
 
     email: str = Field(description="Электронная почта пользователя.")
     hashed_password: str = Field(description="Хэшированный пароль пользователя.")
+    role_id: uuid.UUID = Field(description="ID роли пользователя.")
 
 
 class UserUpdateSchema(BaseModel):
@@ -53,6 +64,10 @@ class UserUpdateSchema(BaseModel):
     password: str | None = Field(
         default=None,
         description="Пароль пользователя.",
+    )
+    role_name: RoleEnum | None = Field(
+        default=None,
+        description="Название роли пользователя.",
     )
 
 
@@ -67,63 +82,21 @@ class UserUpdateRepositorySchema(BaseModel):
         default=None,
         description="Хэшированный пароль пользователя.",
     )
-
-
-# MARK: Admin
-class UserGetAdminSchema(UserGetSchema):
-    """
-    Pydantic схема для отображения
-    пользователя в запросах администратора.
-    """
-
-    is_admin: bool = Field(
-        description="Является ли пользователь администратором.",
-    )
-
-
-class UserCreateAdminSchema(UserCreateSchema):
-    """Pydantic схема для создания пользователя администратором."""
-
-    is_admin: bool = Field(
-        description="Является ли пользователь администратором.",
-    )
-
-
-class UserCreateRepositoryAdminSchema(UserCreateRepositorySchema):
-    """Pydantic схема для создания пользователя администратором в БД."""
-
-    is_admin: bool = Field(
-        description="Является ли пользователь администратором.",
-    )
-
-
-class UserUpdateAdminSchema(UserUpdateSchema):
-    """Pydantic схема для обновления данных пользователя администратором."""
-
-    is_admin: bool = Field(
-        description="Является ли пользователь администратором.",
-    )
-
-
-class UserUpdateRepositoryAdminSchema(UserUpdateRepositorySchema):
-    """Pydantic схема для обновления данных пользователя администратором в БД."""
-
-    is_admin: bool | None = Field(
+    role_id: uuid.UUID | None = Field(
         default=None,
-        description="Является ли пользователь администратором.",
+        description="ID роли пользователя.",
     )
 
 
-class UserListGetSchema(DataListReadBaseSchema):
+class UsersListGetSchema(DataListGetBaseSchema):
     """Pydantic схема для получения списка пользователя."""
 
-    data: list[UserGetAdminSchema] = Field(
+    data: list[UserGetSchema] = Field(
         description="Список пользователей, соответствующих query параметрам.",
     )
 
 
-# MARK: Query
-class UsersQuerySchema(PaginationBaseSchema):
+class UsersPaginationSchema(PaginationBaseSchema):
     """
     Основная схема query параметров для запроса
     списка пользователей от имени администратора.
@@ -137,9 +110,9 @@ class UsersQuerySchema(PaginationBaseSchema):
         default=None,
         description="Электронная почта пользователя.",
     )
-    is_admin: bool | None = Field(
+    role_name: str | None = Field(
         default=None,
-        description="Является ли пользователь администратором.",
+        description="Название роли пользователя.",
     )
     asc: bool = Field(
         default=False,
@@ -149,5 +122,14 @@ class UsersQuerySchema(PaginationBaseSchema):
         ),
     )
 
-    class Config:
-        extra = "forbid"
+    @field_validator("role_name")
+    def role_validator(cls, v: str) -> str:
+        """Валидация названия роли пользователя."""
+
+        if v not in [role.value for role in RoleEnum]:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Неверное название роли пользователя",
+            )
+
+        return v

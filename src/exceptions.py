@@ -33,12 +33,12 @@ class NotFoundException(HTTPException):
 
     default_message = "Данные не найдены."
 
-    def __init__(self):
+    def __init__(self, message: str | None = None):
         status_code = status.HTTP_404_NOT_FOUND
 
         super().__init__(
             status_code=status_code,
-            detail=self.default_message,
+            detail=message or self.default_message,
         )
 
 
@@ -51,12 +51,12 @@ class BadRequestException(HTTPException):
 
     default_message = "Некорректный запрос."
 
-    def __init__(self):
+    def __init__(self, message: str | None = None):
         status_code = status.HTTP_400_BAD_REQUEST
 
         super().__init__(
             status_code=status_code,
-            detail=self.default_message,
+            detail=message or self.default_message,
         )
 
 
@@ -70,12 +70,12 @@ class ForbiddenException(HTTPException):
 
     default_message = "Недостаточно привилегий для выполнения запроса."
 
-    def __init__(self):
+    def __init__(self, message: str | None = None):
         status_code = status.HTTP_403_FORBIDDEN
 
         super().__init__(
             status_code=status_code,
-            detail=self.default_message,
+            detail=message or self.default_message,
         )
 
 

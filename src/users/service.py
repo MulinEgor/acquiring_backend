@@ -6,19 +6,22 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import src.users.schemas as schemas
-from src import exceptions, utils
-from src.base import BaseService
+import src.utils.hash as utils
+from src import exceptions
+from src.base.service import BaseService
+from src.roles.service import RoleService
 from src.users.models import UserModel
 from src.users.repository import UserRepository
+from src.utils.password import PasswordGenerator
 
 
 class UserService(
     BaseService[
         UserModel,
         schemas.UserCreateSchema,
-        schemas.UserGetAdminSchema,
-        schemas.UsersQuerySchema,
-        schemas.UserListGetSchema,
+        schemas.UserGetSchema,
+        schemas.UsersPaginationSchema,
+        schemas.UsersListGetSchema,
         schemas.UserUpdateSchema,
     ],
 ):
@@ -31,41 +34,60 @@ class UserService(
     async def create(
         cls,
         session: AsyncSession,
-        data: schemas.UserCreateSchema | schemas.UserCreateAdminSchema,
-    ) -> schemas.UserGetAdminSchema:
+        data: schemas.UserCreateSchema,
+    ) -> schemas.UserCreatedGetSchema:
         """
         Создать пользователя в БД.
 
         Args:
             session (AsyncSession): Сессия для работы с базой данных.
-            data (UserCreateSchema | UserCreateAdminSchema):
-                Данные для создания пользователя.
+            data (UserCreateSchema): Данные для создания пользователя.
 
         Returns:
-            UserReadAdminSchema: Добавленный пользователь.
+            UserCreatedGetSchema: Добавленный пользователь.
 
         Raises:
+            NotFoundException: Роль не найдена.
             ConflictException: Пользователь уже существует.
         """
 
+        # Поиск роли
         try:
-            # Хэширование пароля
-            hashed_password = utils.get_hash(data.password)
-            data = schemas.UserCreateRepositorySchema(
-                email=data.email,
-                hashed_password=hashed_password,
+            role = await RoleService.get_by_name(
+                session=session,
+                name=data.role_name,
+            )
+        except exceptions.NotFoundException:
+            raise exceptions.NotFoundException(
+                message="Роль не найдена.",
             )
 
+        # Генерация и хэширование пароля
+        password = PasswordGenerator.generate_password()
+        hashed_password = utils.get_hash(password)
+
+        data = schemas.UserCreateRepositorySchema(
+            email=data.email,
+            hashed_password=hashed_password,
+            role_id=role.id,
+        )
+
+        try:
             # Добавление пользователя в БД
             user = await cls.repository.create(
                 session=session,
                 obj_in=data,
             )
+
             await session.commit()
-            return schemas.UserGetAdminSchema.model_validate(user)
 
         except IntegrityError as ex:
             raise exceptions.ConflictException(exc=ex)
+
+        return schemas.UserCreatedGetSchema(
+            **user.__dict__,
+            password=password,
+        )
 
     # MARK: Update
     @classmethod
@@ -73,19 +95,18 @@ class UserService(
         cls,
         session: AsyncSession,
         user_id: uuid.UUID,
-        data: schemas.UserUpdateSchema | schemas.UserUpdateAdminSchema,
-    ) -> schemas.UserGetAdminSchema:
+        data: schemas.UserUpdateSchema,
+    ) -> schemas.UserGetSchema:
         """
         Обновить данные пользователя.
 
         Args:
             session (AsyncSession): Сессия для работы с базой данных.
             user_id (uuid.UUID): ID пользователя.
-            data (UserUpdateSchema | UserUpdateAdminSchema):
-                Данные для обновления пользователя.
+            data (UserUpdateSchema): Данные для обновления пользователя.
 
         Returns:
-            UserReadAdminSchema: Обновленный пользователь.
+            UserGetSchema: Обновленный пользователь.
 
         Raises:
             NotFoundException: Пользователь не найден.
@@ -93,7 +114,15 @@ class UserService(
         """
 
         # Поиск пользователя в БД
-        await cls.get_by_id(session, user_id)
+        user = await cls.get_by_id(session, user_id)
+
+        # Проверка роли
+        role = None
+        if data.role_name:
+            role = await RoleService.get_by_name(
+                session=session,
+                name=data.role_name,
+            )
 
         hashed_password = None
         if data.password:
@@ -104,12 +133,10 @@ class UserService(
             updated_user = await UserRepository.update(
                 UserModel.id == user_id,
                 session=session,
-                obj_in=schemas.UserUpdateRepositoryAdminSchema(
+                obj_in=schemas.UserUpdateRepositorySchema(
                     email=data.email,
                     hashed_password=hashed_password,
-                    is_admin=data.is_admin
-                    if isinstance(data, schemas.UserUpdateAdminSchema)
-                    else None,
+                    role_id=role.id if role else user.role.id,
                 ),
             )
             await session.commit()
@@ -117,4 +144,4 @@ class UserService(
         except IntegrityError as ex:
             raise exceptions.ConflictException(exc=ex)
 
-        return schemas.UserGetAdminSchema.model_validate(updated_user)
+        return schemas.UserGetSchema.model_validate(updated_user)

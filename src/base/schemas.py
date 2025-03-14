@@ -18,7 +18,7 @@ class PaginationBaseSchema(BaseModel):
     )
 
 
-class DataListReadBaseSchema(BaseModel):
+class DataListGetBaseSchema(BaseModel):
     """Базовая схема для отображения списка сущностей."""
 
     count: int = Field(

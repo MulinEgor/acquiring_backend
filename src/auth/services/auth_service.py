@@ -4,42 +4,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import src.auth.schemas as auth_schemas
 import src.users.schemas as user_schemas
-from src import exceptions, utils
+from src import exceptions
 from src.auth.services.jwt_service import JWTService
-from src.users import UserRepository, UserService
+from src.users.repository import UserRepository
+from src.utils import hash as utils
 
 
 class AuthService:
     """Сервис для работы с авторизацией пользователей"""
-
-    # MARK: Register
-    @classmethod
-    async def register(
-        cls,
-        session: AsyncSession,
-        schema: user_schemas.UserCreateSchema,
-    ) -> auth_schemas.JWTGetSchema:
-        """
-        Зарегистрировать нового пользователя.
-
-        Args:
-            session (AsyncSession): Сессия для работы с базой данных.
-            schema (UserCreateSchema): данные для создания пользователя.
-
-        Returns:
-            JWTGetSchema: access и refresh токены пользователя.
-
-        Raises:
-            UserAlreadyExistsException: Пользователь с такими данными уже существует.
-        """
-
-        # Создание пользователя
-        user = await UserService.create(session, schema)
-
-        # Создание токенов
-        tokens = await JWTService.create_tokens(user_id=user.id)
-
-        return tokens
 
     # MARK: Login
     @classmethod

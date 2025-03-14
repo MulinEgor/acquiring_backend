@@ -6,9 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import src.auth.schemas as auth_schemas
 import src.users.schemas as user_schemas
-from src import utils
-from src.auth import auth_router
-from src.users import UserRepository
+from src.auth.router import auth_router
+from src.roles.models import RoleModel
+from src.users.repository import UserRepository
+from src.utils import hash as utils
 from tests.conftest import faker
 from tests.integration.conftest import BaseTestRouter
 
@@ -18,44 +19,12 @@ class TestAuthRouter(BaseTestRouter):
 
     router = auth_router
 
-    # MARK: Post
-    async def test_register(
-        self,
-        router_client: httpx.AsyncClient,
-        session: AsyncSession,
-    ):
-        """Проверка регистрации пользователя."""
-
-        schema = user_schemas.UserCreateSchema(
-            email=faker.email(),
-            password=faker.password(),
-        )
-
-        response = await router_client.post(
-            url="/auth/register",
-            json=schema.model_dump(),
-        )
-
-        assert response.status_code == status.HTTP_201_CREATED
-
-        tokens = auth_schemas.JWTGetSchema.model_validate(response.json())
-
-        assert tokens.access_token is not None
-        assert tokens.refresh_token is not None
-        assert tokens.expires_at is not None
-        assert tokens.token_type == "Bearer"
-
-        user_db = await UserRepository.get_one_or_none(
-            session=session,
-            email=schema.email,
-        )
-        assert user_db is not None
-
     # MARK: Patch
     async def test_login(
         self,
         router_client: httpx.AsyncClient,
         session: AsyncSession,
+        role_merchant_db: RoleModel,
     ):
         """Проверка авторизации пользователя."""
 
@@ -65,6 +34,7 @@ class TestAuthRouter(BaseTestRouter):
             obj_in=user_schemas.UserCreateRepositorySchema(
                 email=email,
                 hashed_password=utils.get_hash(password),
+                role_id=role_merchant_db.id,
             ),
         )
 

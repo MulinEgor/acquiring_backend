@@ -6,6 +6,9 @@ from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 from src.database import Base
+from src.permissions.models import PermissionModel
+from src.roles.models import RoleModel
+from src.roles_permissions.models import RolesPermissions
 from src.settings import settings
 from src.users.models import UserModel
 

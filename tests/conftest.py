@@ -18,10 +18,14 @@ from sqlalchemy.ext.asyncio import (
 
 import src.auth.schemas as auth_schemas
 import src.users.schemas as user_schemas
-from src import utils
-from src.auth import JWTService
+from src.auth.services.jwt_service import JWTService
+from src.permissions import schemas as permission_schemas
+from src.permissions.models import PermissionModel
+from src.roles import schemas as role_schemas
+from src.roles.models import RoleEnum, RoleModel
 from src.settings import settings
-from src.users import UserModel
+from src.users.models import UserModel
+from src.utils import hash as utils
 
 faker = Faker()
 
@@ -121,15 +125,105 @@ def output_to_stdout():
     sys.stdout = sys.stderr
 
 
+# MARK: Roles
+@pytest_asyncio.fixture
+async def role_merchant_db(session: AsyncSession) -> RoleModel:
+    """Добавить роль merchant в БД."""
+
+    role_merchant = RoleModel(
+        id=str(uuid.uuid4()),
+        name=RoleEnum.MERCHANT,
+    )
+    session.add(role_merchant)
+    await session.commit()
+
+    return role_merchant
+
+
+@pytest_asyncio.fixture
+async def role_trader_db(session: AsyncSession) -> RoleModel:
+    """Добавить роль trader в БД."""
+
+    role_trader = RoleModel(
+        id=str(uuid.uuid4()),
+        name=RoleEnum.TRADER,
+    )
+    session.add(role_trader)
+    await session.commit()
+
+    return role_trader
+
+
+@pytest_asyncio.fixture
+async def role_support_db(session: AsyncSession) -> RoleModel:
+    """Добавить роль support в БД."""
+
+    role_support = RoleModel(
+        id=str(uuid.uuid4()),
+        name=RoleEnum.SUPPORT,
+    )
+    session.add(role_support)
+    await session.commit()
+
+    return role_support
+
+
+@pytest_asyncio.fixture
+async def role_admin_db(session: AsyncSession) -> RoleModel:
+    """Добавить роль admin в БД."""
+
+    role_admin = RoleModel(
+        id=str(uuid.uuid4()),
+        name=RoleEnum.ADMIN,
+    )
+    session.add(role_admin)
+    await session.commit()
+
+    return role_admin
+
+
+@pytest.fixture
+def role_create_data() -> role_schemas.RoleCreateSchema:
+    """Подготовленные данные для создания роли в БД."""
+
+    return role_schemas.RoleCreateSchema(
+        name=faker.word(),
+    )
+
+
+# MARK: Permissions
+@pytest_asyncio.fixture
+async def permission_db(session: AsyncSession) -> PermissionModel:
+    """Добавить разрешение в БД."""
+
+    permission = PermissionModel(
+        name=faker.word(),
+    )
+    session.add(permission)
+    await session.commit()
+
+    return permission
+
+
+@pytest_asyncio.fixture
+async def permission_create_data() -> permission_schemas.PermissionCreateSchema:
+    """Подготовленные данные для создания разрешения в БД."""
+
+    return permission_schemas.PermissionCreateSchema(
+        name=faker.word(),
+    )
+
+
 # MARK: Users
 @pytest_asyncio.fixture
-async def user_db(session: AsyncSession) -> UserModel:
+async def user_db(session: AsyncSession, role_merchant_db: RoleModel) -> UserModel:
     """Добавить пользователя в БД."""
 
     user_db = UserModel(
         id=str(uuid.uuid4()),
         email=faker.email(),
         hashed_password=utils.get_hash(faker.password()),
+        role_id=role_merchant_db.id,
     )
     session.add(user_db)
     await session.commit()
@@ -138,14 +232,17 @@ async def user_db(session: AsyncSession) -> UserModel:
 
 
 @pytest_asyncio.fixture
-async def user_admin_db(session: AsyncSession) -> UserModel:
+async def user_admin_db(
+    session: AsyncSession,
+    role_admin_db: RoleModel,
+) -> UserModel:
     """Добавить пользователя-администратора в БД."""
 
     user_admin = UserModel(
         id=str(uuid.uuid4()),
         email=faker.email(),
         hashed_password=utils.get_hash(faker.password()),
-        is_admin=True,
+        role_id=role_admin_db.id,
     )
     session.add(user_admin)
     await session.commit()
@@ -154,30 +251,33 @@ async def user_admin_db(session: AsyncSession) -> UserModel:
 
 
 @pytest_asyncio.fixture
-async def user_create_data() -> user_schemas.UserGetAdminSchema:
+async def user_create_data(
+    role_merchant_db: RoleModel,
+) -> user_schemas.UserCreateSchema:
     """
     Подготовленные данные для создания
     пользователя в БД администратором.
     """
 
-    return user_schemas.UserCreateAdminSchema(
+    return user_schemas.UserCreateSchema(
         email=faker.email(),
-        password=faker.password(),
-        is_admin=False,
+        role_name=role_merchant_db.name,
     )
 
 
 @pytest_asyncio.fixture
-async def user_update_data() -> user_schemas.UserUpdateAdminSchema:
+async def user_update_data(
+    role_merchant_db: RoleModel,
+) -> user_schemas.UserUpdateSchema:
     """
     Подготовленные данные для обновления
     пользователя в БД администратором.
     """
 
-    return user_schemas.UserUpdateAdminSchema(
+    return user_schemas.UserUpdateSchema(
         email=faker.email(),
         password=faker.password(),
-        is_admin=True,
+        role_name=role_merchant_db.name,
     )
 
 

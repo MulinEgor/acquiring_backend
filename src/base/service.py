@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import src.base.types as types
 from src import exceptions
-from src.base import BaseRepository
+from src.base.repository import BaseRepository
 
 
 class BaseService(
@@ -17,7 +17,7 @@ class BaseService(
         types.ModelType,
         types.CreateSchemaType,
         types.GetSchemaType,
-        types.GetQuerySchemaType,
+        types.PaginationSchemaType,
         types.GetListSchemaType,
         types.UpdateSchemaType,
     ],
@@ -37,7 +37,7 @@ class BaseService(
 
     # MARK: Utils
     @classmethod
-    async def get_schema_class_by_type(cls, type_var: TypeVar) -> type[BaseModel]:
+    async def _get_schema_class_by_type(cls, type_var: TypeVar) -> type[BaseModel]:
         """
         Получить класс схемы по типу.
 
@@ -88,7 +88,7 @@ class BaseService(
             )
             await session.commit()
 
-            schema_class = await cls.get_schema_class_by_type(types.GetSchemaType)
+            schema_class = await cls._get_schema_class_by_type(types.GetSchemaType)
 
             return schema_class.model_validate(obj_db)
 
@@ -122,14 +122,14 @@ class BaseService(
         if obj_db is None:
             raise exceptions.NotFoundException()
 
-        schema_class = await cls.get_schema_class_by_type(types.GetSchemaType)
+        schema_class = await cls._get_schema_class_by_type(types.GetSchemaType)
         return schema_class.model_validate(obj_db)
 
     @classmethod
     async def get_all(
         cls,
         session: AsyncSession,
-        query_params: types.GetQuerySchemaType,
+        query_params: types.PaginationSchemaType,
     ) -> types.GetListSchemaType:
         """
         Получить список объектов и их общее количество
@@ -165,12 +165,12 @@ class BaseService(
         )
 
         # Получаем класс схемы для одного объекта
-        item_schema_class = await cls.get_schema_class_by_type(types.GetSchemaType)
+        item_schema_class = await cls._get_schema_class_by_type(types.GetSchemaType)
         # Преобразуем каждый объект в схему
         objects_schema = [item_schema_class.model_validate(obj) for obj in objects_db]
 
         # Получаем класс схемы для списка и создаем его экземпляр
-        list_schema_class = await cls.get_schema_class_by_type(types.GetListSchemaType)
+        list_schema_class = await cls._get_schema_class_by_type(types.GetListSchemaType)
         return list_schema_class(
             count=objects_count,
             data=objects_schema,
@@ -215,7 +215,7 @@ class BaseService(
         except IntegrityError as ex:
             raise exceptions.ConflictException(exc=ex)
 
-        schema_class = await cls.get_schema_class_by_type(types.GetSchemaType)
+        schema_class = await cls._get_schema_class_by_type(types.GetSchemaType)
         return schema_class.model_validate(updated_obj)
 
     # MARK: Delete

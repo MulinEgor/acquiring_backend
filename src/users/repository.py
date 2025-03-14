@@ -5,7 +5,8 @@ from typing import Tuple
 from sqlalchemy import Select, select
 
 import src.users.schemas as schemas
-from src.base import BaseRepository
+from src.base.repository import BaseRepository
+from src.roles.models import RoleModel
 from src.users.models import UserModel
 
 
@@ -26,7 +27,7 @@ class UserRepository(
     @classmethod
     async def get_stmt_by_query(
         cls,
-        query_params: schemas.UsersQuerySchema,
+        query_params: schemas.UsersPaginationSchema,
     ) -> Select[Tuple[UserModel]]:
         """
         Создать подготовленное выражение для запроса в БД,
@@ -34,7 +35,7 @@ class UserRepository(
         для получения списка пользователей.
 
         Args:
-            query_params (UsersQuerySchema): параметры для запроса.
+            query_params (UsersPaginationSchema): параметры для запроса.
 
         Returns:
             stmt: Подготовленное выражение для запроса в БД.
@@ -42,16 +43,17 @@ class UserRepository(
 
         stmt = select(UserModel)
 
-        # Фильтрация по username с использованием ilike.
+        # Фильтрация по строковым полям.
         if query_params.email:
             stmt = stmt.where(UserModel.email.ilike(f"%{query_params.email}%"))
 
-        # Фильтрация статусу пользователя на платформе.
-        if query_params.is_admin is not None:
-            if query_params.is_admin:
-                stmt = stmt.where(UserModel.is_admin.is_(True))
-            else:
-                stmt = stmt.where(UserModel.is_admin.is_(False))
+        if query_params.role_name:
+            stmt = stmt.where(
+                UserModel.role_id
+                == (
+                    select(RoleModel.id).where(RoleModel.name == query_params.role_name)
+                )
+            )
 
         # Сортировка по дате создания.
         if not query_params.asc:

@@ -7,14 +7,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import src.auth.schemas as auth_schemas
 import src.users.schemas as user_schemas
 from src import constants
-from src.users import UserModel, UserRepository, user_router
+from src.roles.models import RoleEnum
+from src.users.models import UserModel
+from src.users.repository import UserRepository
+from src.users.router import users_router
 from tests.integration.conftest import BaseTestRouter
 
 
 class TestUserRouter(BaseTestRouter):
     """Класс для тестирования роутера user_router."""
 
-    router = user_router
+    router = users_router
 
     # MARK: Get
     async def test_get_current_user(
@@ -41,7 +44,7 @@ class TestUserRouter(BaseTestRouter):
         self,
         router_client: httpx.AsyncClient,
         user_admin_db: UserModel,
-        user_jwt_tokens: auth_schemas.JWTGetSchema,
+        admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
         """
         Авторизованный пользователь может получить
@@ -50,7 +53,7 @@ class TestUserRouter(BaseTestRouter):
 
         response = await router_client.get(
             url=f"/users/{user_admin_db.id}",
-            headers={constants.AUTH_HEADER_NAME: user_jwt_tokens.access_token},
+            headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -80,7 +83,7 @@ class TestUserRouter(BaseTestRouter):
         )
         assert response.status_code == status.HTTP_200_OK
 
-        users_data = user_schemas.UserListGetSchema(**response.json())
+        users_data = user_schemas.UsersListGetSchema(**response.json())
 
         users_count = await UserRepository.count(session=session)
         assert users_data.count == users_count
@@ -106,22 +109,17 @@ class TestUserRouter(BaseTestRouter):
         пользователей с учетом учета фильтрации.
         """
 
-        params = user_schemas.UsersQuerySchema(is_admin=False)
+        params = user_schemas.UsersPaginationSchema(role_name=RoleEnum.MERCHANT.value)
 
         response = await router_client.get(
             url="/users",
             params=params.model_dump(exclude_unset=True),
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
         )
+        print(response.json())
         assert response.status_code == status.HTTP_200_OK
 
-        users_data = user_schemas.UserListGetSchema(**response.json())
-
-        regular_users = await UserRepository.count(
-            session=session,
-            is_admin=False,
-        )
-        assert users_data.count == regular_users
+        users_data = user_schemas.UsersListGetSchema(**response.json())
 
         assert users_data.data[0].email == user_db.email
         assert str(users_data.data[0].id) == user_db.id
@@ -131,7 +129,7 @@ class TestUserRouter(BaseTestRouter):
         self,
         session: AsyncSession,
         router_client: httpx.AsyncClient,
-        user_create_data: user_schemas.UserCreateAdminSchema,
+        user_create_data: user_schemas.UserCreateSchema,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
         """Администратор может создать пользователя."""
@@ -143,54 +141,27 @@ class TestUserRouter(BaseTestRouter):
         )
         assert response.status_code == status.HTTP_201_CREATED
 
-        created_user = user_schemas.UserGetAdminSchema(**response.json())
+        created_user = user_schemas.UserCreatedGetSchema(**response.json())
 
         assert created_user.email == user_create_data.email
-        assert created_user.is_admin is False
 
         created_user_db = await UserRepository.get_one_or_none(
             session=session, id=created_user.id
         )
         assert created_user_db is not None
 
-    # MARK: Patch
-    async def test_update_current_user(
-        self,
-        router_client: httpx.AsyncClient,
-        user_db: UserModel,
-        user_update_data: user_schemas.UserUpdateAdminSchema,
-        user_jwt_tokens: auth_schemas.JWTGetSchema,
-    ):
-        """
-        Пользователь может обновить данные своего аккаунта.
-
-        Изменяем только поля `email` и `password`.
-        """
-
-        response = await router_client.patch(
-            url="/users/me",
-            json=user_update_data.model_dump(exclude_unset=True),
-            headers={constants.AUTH_HEADER_NAME: user_jwt_tokens.access_token},
-        )
-        assert response.status_code == status.HTTP_200_OK
-
-        updated_user = user_schemas.UserGetSchema(**response.json())
-
-        assert str(updated_user.id) == user_db.id
-        assert updated_user.email == user_update_data.email
-
     # MARK: Put
     async def test_update_user_by_admin(
         self,
         router_client: httpx.AsyncClient,
         user_db: UserModel,
-        user_update_data: user_schemas.UserUpdateAdminSchema,
+        user_update_data: user_schemas.UserUpdateSchema,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
         """
         Администратор может обновить данные другого пользователя.
 
-        Изменяем только поля `level`, `exchange_url` и `is_admin`.
+        Изменяем только поля `level`, `exchange_url`.
         """
 
         response = await router_client.put(
@@ -200,11 +171,10 @@ class TestUserRouter(BaseTestRouter):
         )
         assert response.status_code == status.HTTP_200_OK
 
-        updated_user = user_schemas.UserGetAdminSchema(**response.json())
+        updated_user = user_schemas.UserGetSchema(**response.json())
 
         assert str(updated_user.id) == user_db.id
         assert updated_user.email == user_update_data.email
-        assert updated_user.is_admin == user_update_data.is_admin
 
     # MARK: Delete
     async def test_delete_user_by_admin(

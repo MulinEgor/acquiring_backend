@@ -37,5 +37,6 @@ extend-select = ["E"]
 
 [tool.ruff.lint.per-file-ignores]
 "env.py" = ["F401", "F811"]
-"src/users/models/user.py" = ["F821"]
+"**/models.py**" = ["F821"]
 "**/__init__.py" = ["F403"]
+"src/users/schemas.py" = ["F821"]
