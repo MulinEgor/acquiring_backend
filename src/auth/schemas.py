@@ -30,3 +30,10 @@ class TwoFactorCodeSendSchema(BaseModel):
     """Pydantic схема для отправки кода 2FA."""
 
     email: EmailStr = Field(description="Email пользователя.")
+
+
+class Redis2FAValueSchema(BaseModel):
+    """Pydantic схема для значения 2FA в Redis."""
+
+    code_hash: str = Field(description="Хэш кода 2FA.")
+    tries: int = Field(default=0, description="Количество попыток ввода кода 2FA.")

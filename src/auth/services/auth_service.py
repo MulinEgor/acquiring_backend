@@ -1,5 +1,7 @@
 """Модуль для работы с авторизацией пользователей"""
 
+import json
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import src.auth.schemas as auth_schemas
@@ -47,7 +49,12 @@ class AuthService:
         # Сгенерировать код и сохранить его хэш в Redis
         code = RandomService.generate_str()
         code_hash = HashService.generate(code)
-        await RedisService.set(redis_key_hash, code_hash)
+        await RedisService.set(
+            redis_key_hash,
+            json.dumps(
+                auth_schemas.Redis2FAValueSchema(code_hash=code_hash).model_dump()
+            ),
+        )
 
         # Отправить письмо с кодом подтверждения на почту
         try:
@@ -82,14 +89,29 @@ class AuthService:
         """
 
         redis_key_hash = HashService.generate(f"2fa_code:{user.id}")
-        code_hash = await RedisService.get(redis_key_hash)
+        raw_redis_value = await RedisService.get(redis_key_hash)
 
-        if not code_hash:
+        if not raw_redis_value:
             raise exceptions.BadRequestException(
                 "Нет действующих кодов подтверждения, отправьте новый код."
             )
 
-        if HashService.generate(code) != code_hash:
+        redis_value_schema = auth_schemas.Redis2FAValueSchema(
+            **json.loads(raw_redis_value)
+        )
+        # Проверить количество попыток ввода кода
+        if redis_value_schema.tries >= constants.TWO_FACTOR_MAX_CODE_TRIES:
+            raise exceptions.BadRequestException(
+                "Превышено количество попыток ввода кода."
+            )
+
+        # Если код неверный, увеличить количество попыток и вернуть ошибку
+        if HashService.generate(code) != redis_value_schema.code_hash:
+            redis_value_schema.tries += 1
+            await RedisService.set(
+                redis_key_hash,
+                json.dumps(redis_value_schema.model_dump()),
+            )
             raise exceptions.BadRequestException("Неверный код.")
 
         # Удалить код из Redis

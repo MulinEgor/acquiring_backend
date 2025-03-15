@@ -44,3 +44,4 @@ SMTP_PORT: int = 587
 # MARK: 2FA
 TWO_FACTOR_LOGIN_CONFIRM_SUBJECT: str = "Код подтверждения системы эквайринга"
 TWO_FACTOR_LOGIN_CONFIRM_MESSAGE: str = "Здравствуйте! Ваш код подтверждения: {code}"
+TWO_FACTOR_MAX_CODE_TRIES: int = 3
