@@ -33,3 +33,14 @@ DB_NAMING_CONVENTION = {
 CURRENT_TIMESTAMP_UTC: TextClause = text("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC')")
 DEFAULT_QUERY_OFFSET: int = 0
 DEFAULT_QUERY_LIMIT: int = 100
+
+# MARK: Redis
+REDIS_EXPIRE_SECONDS: int = 60 * 15  # 15 минут
+
+# MARK: SMTP
+SMTP_SERVER: str = "smtp.gmail.com"
+SMTP_PORT: int = 587
+
+# MARK: 2FA
+TWO_FACTOR_LOGIN_CONFIRM_SUBJECT: str = "Код подтверждения системы эквайринга"
+TWO_FACTOR_LOGIN_CONFIRM_MESSAGE: str = "Здравствуйте! Ваш код подтверждения: {code}"

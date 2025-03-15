@@ -7,10 +7,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import src.auth.schemas as auth_schemas
 import src.users.schemas as user_schemas
 from src.auth.router import auth_router
+from src.services.hash_service import HashService
+from src.users.models import UserModel
 from src.users.repository import UserRepository
 from tests.conftest import faker
 from tests.integration.conftest import BaseTestRouter
-from utils.hash_service import HashService
 
 
 class TestAuthRouter(BaseTestRouter):
@@ -19,7 +20,7 @@ class TestAuthRouter(BaseTestRouter):
     router = auth_router
 
     # MARK: Patch
-    async def test_login(
+    async def test_login_without_2fa(
         self,
         router_client: httpx.AsyncClient,
         session: AsyncSession,
@@ -53,6 +54,127 @@ class TestAuthRouter(BaseTestRouter):
         assert tokens.refresh_token is not None
         assert tokens.expires_at is not None
         assert tokens.token_type == "Bearer"
+
+    async def test_login_with_2fa(
+        self, router_client: httpx.AsyncClient, session: AsyncSession, mocker
+    ):
+        """Проверка авторизации пользователя с 2FA, должен вернуться словарь."""
+
+        mocker.patch(
+            "src.auth.services.auth_service.AuthService._send_2fa_code",
+            return_value={
+                "message": "Письмо с кодом подтверждения отправлено на почту."
+            },
+        )
+
+        email, password = faker.email(), faker.password()
+        user = await UserRepository.create(
+            session=session,
+            obj_in=user_schemas.UserCreateRepositorySchema(
+                email=email,
+                hashed_password=HashService.generate(password),
+            ),
+        )
+        user.is_2fa_enabled = True
+        await session.commit()
+
+        schema = user_schemas.UserLoginSchema(
+            email=email,
+            password=password,
+        )
+
+        response = await router_client.patch(
+            url="/auth/login",
+            json=schema.model_dump(),
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+
+        assert isinstance(response.json(), dict)
+
+    async def test_confirm_login_with_2fa(
+        self,
+        router_client: httpx.AsyncClient,
+        user_db_2fa: UserModel,
+        mocker,
+    ):
+        """Проверка подтверждения авторизации пользователя с 2FA."""
+
+        mocker.patch(
+            "src.auth.services.auth_service.AuthService._check_and_delete_2fa_code",
+            return_value=None,
+        )
+
+        schema = auth_schemas.TwoFactorCodeCheckSchema(
+            email=user_db_2fa.email,
+            code="123456",
+        )
+
+        response = await router_client.patch(
+            url="/auth/2fa/login",
+            json=schema.model_dump(),
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+
+        tokens = auth_schemas.JWTGetSchema.model_validate(response.json())
+
+        assert tokens.access_token is not None
+        assert tokens.refresh_token is not None
+
+    async def test_enable_2fa(
+        self,
+        router_client: httpx.AsyncClient,
+        user_db_2fa: UserModel,
+        mocker,
+    ):
+        """Проверка включения 2FA."""
+
+        mocker.patch(
+            "src.auth.services.auth_service.AuthService._check_and_delete_2fa_code",
+            return_value=None,
+        )
+
+        schema = auth_schemas.TwoFactorCodeCheckSchema(
+            email=user_db_2fa.email,
+            code="123456",
+        )
+
+        response = await router_client.patch(
+            url="/auth/2fa/enable",
+            json=schema.model_dump(),
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        assert isinstance(response.json(), dict)
+
+    async def test_enable_2fa_with_disabled_2fa(
+        self,
+        router_client: httpx.AsyncClient,
+        user_db: UserModel,
+        mocker,
+    ):
+        """Проверка включения 2FA."""
+
+        mocker.patch(
+            "src.auth.services.auth_service.AuthService._check_and_delete_2fa_code",
+            return_value=None,
+        )
+
+        schema = auth_schemas.TwoFactorCodeCheckSchema(
+            email=user_db.email,
+            code="123456",
+        )
+
+        response = await router_client.patch(
+            url="/auth/2fa/enable",
+            json=schema.model_dump(),
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+
+        assert isinstance(response.json(), dict)
 
     async def test_refresh_tokens(
         self,

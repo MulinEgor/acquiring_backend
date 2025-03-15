@@ -9,6 +9,7 @@ dependencies = [
     "fastapi[all]>=0.115.6",
     "sqlalchemy>=2.0.37",
     "pyjwt>=2.10.1",
+    "redis>=5.2.1",
 ]
 
 [dependency-groups]

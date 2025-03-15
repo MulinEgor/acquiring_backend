@@ -23,10 +23,10 @@ from src.permissions import schemas as permission_schemas
 from src.permissions.enums import PermissionEnum
 from src.permissions.models import PermissionModel
 from src.permissions.repository import PermissionRepository
+from src.services.hash_service import HashService
 from src.settings import settings
 from src.users.models import UserModel
 from src.users_permissions.repository import UsersPermissionsRepository
-from utils.hash_service import HashService
 
 faker = Faker()
 
@@ -176,6 +176,16 @@ async def user_db(session: AsyncSession) -> UserModel:
             },
         )
 
+    await session.commit()
+
+    return user_db
+
+
+@pytest_asyncio.fixture
+async def user_db_2fa(session: AsyncSession, user_db: UserModel) -> UserModel:
+    """Добавить пользователя в БД с 2FA."""
+
+    user_db.is_2fa_enabled = True
     await session.commit()
 
     return user_db

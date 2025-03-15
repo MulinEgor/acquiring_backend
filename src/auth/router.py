@@ -21,13 +21,91 @@ auth_router = APIRouter(prefix="/auth", tags=["Авторизация"])
 async def login_route(
     schema: user_schemas.UserLoginSchema,
     session: AsyncSession = Depends(dependencies.get_session),
-):
+) -> auth_schemas.JWTGetSchema | dict[str, str]:
     """
-    Авторизоваться.
+    Войти в систему.
+    Если у пользователя включена 2FA, то после вызова будет отправлен код на почту,
+    который необходимо будет ввести в ендпоинт `/2fa/login/confirm`.
 
-    Требуется разрешение: `войти`.
+    Не требуется разрешений.
     """
     return await AuthService.login(session, schema)
+
+
+@auth_router.patch(
+    "/2fa/login",
+    summary="Ввести код после попытки входа.",
+    status_code=status.HTTP_200_OK,
+)
+async def login_2fa_route(
+    code_schema: auth_schemas.TwoFactorCodeCheckSchema,
+    session: AsyncSession = Depends(dependencies.get_session),
+) -> auth_schemas.JWTGetSchema:
+    """
+    Ввести код после попытки входа.
+
+    Не требуется разрешений.
+    """
+    return await AuthService.login_2fa(session, code_schema)
+
+
+@auth_router.patch(
+    "/2fa/send",
+    summary="Отправить код для 2FA.",
+    status_code=status.HTTP_200_OK,
+)
+async def send_2fa_code_route(
+    schema: auth_schemas.TwoFactorCodeSendSchema,
+    session: AsyncSession = Depends(dependencies.get_session),
+):
+    """
+    Отправить код для 2FA.
+    Можно отправить вне зависимости от того, включена 2FA или нет.
+    Используется для включения, выключения 2FA или входа.
+
+    Не требуется разрешений.
+    """
+    return await AuthService.send_2fa_code(session, schema.email)
+
+
+@auth_router.patch(
+    "/2fa/enable",
+    summary="Включить 2FA.",
+    status_code=status.HTTP_200_OK,
+)
+async def enable_2fa_confirm_route(
+    code_schema: auth_schemas.TwoFactorCodeCheckSchema,
+    session: AsyncSession = Depends(dependencies.get_session),
+):
+    """
+    Чтобы включить 2FA, нужно сначала отправить код на почту,
+    после чего передать его в эндпоинт.
+
+    Не требуется разрешений.
+    """
+    return await AuthService.enable_or_disable_2fa(
+        session, code_schema, should_enable=True
+    )
+
+
+@auth_router.patch(
+    "/2fa/disable",
+    summary="Выключить 2FA.",
+    status_code=status.HTTP_200_OK,
+)
+async def disable_2fa_confirm_route(
+    code_schema: auth_schemas.TwoFactorCodeCheckSchema,
+    session: AsyncSession = Depends(dependencies.get_session),
+):
+    """
+    Чтобы выключить 2FA, нужно сначала отправить код на почту,
+    после чего передать его в эндпоинт.
+
+    Не требуется разрешений.
+    """
+    return await AuthService.enable_or_disable_2fa(
+        session, code_schema, should_enable=False
+    )
 
 
 @auth_router.patch(
@@ -36,12 +114,12 @@ async def login_route(
     status_code=status.HTTP_200_OK,
 )
 async def refresh_tokens_route(
-    tokens_data: auth_schemas.JWTRefreshSchema,
+    token_schema: auth_schemas.JWTRefreshSchema,
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """
     Обновить access_token и refresh_token.
 
-    Требуется разрешение: `обновить refresh_token`.
+    Не требуется разрешений.
     """
-    return await JWTService.refresh_tokens(session, tokens_data)
+    return await JWTService.refresh_tokens(session, token_schema)

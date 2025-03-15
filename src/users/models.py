@@ -40,6 +40,10 @@ class UserModel(Base):
         default=True,
         comment="Является ли аккаунт пользователя активным.",
     )
+    is_2fa_enabled: Mapped[bool] = mapped_column(
+        default=False,
+        comment="Является ли 2FA включенным.",
+    )
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True),
         server_default=constants.CURRENT_TIMESTAMP_UTC,

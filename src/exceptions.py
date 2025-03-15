@@ -79,6 +79,24 @@ class ForbiddenException(HTTPException):
         )
 
 
+class InternalServerErrorException(HTTPException):
+    """
+    Основной класс исключений при внутренней ошибке сервера.
+
+    Код ответа - `HTTP_500_INTERNAL_SERVER_ERROR`.
+    """
+
+    default_message = "Внутренняя ошибка сервера."
+
+    def __init__(self, message: str | None = None):
+        status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+        super().__init__(
+            status_code=status_code,
+            detail=message or self.default_message,
+        )
+
+
 # MARK: JWT
 class TokenExpiredException(HTTPException):
     """Возникает, если время действия токена истекло"""

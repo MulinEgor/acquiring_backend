@@ -107,7 +107,7 @@ class TestUserRouter(BaseTestRouter):
         пользователей с учетом учета фильтрации.
         """
 
-        params = user_schemas.UsersPaginationSchema(email=user_db.email[:2])
+        params = user_schemas.UsersPaginationSchema(email=user_db.email)
 
         response = await router_client.get(
             url="/users",

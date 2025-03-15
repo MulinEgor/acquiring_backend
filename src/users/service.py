@@ -9,11 +9,11 @@ import src.users.schemas as schemas
 from src import exceptions
 from src.base.service import BaseService
 from src.permissions.service import PermissionService
+from src.services.hash_service import HashService
+from src.services.random_service import RandomService
 from src.users.models import UserModel
 from src.users.repository import UserRepository
 from src.users_permissions.service import UsersPermissionsService
-from utils.hash_service import HashService
-from utils.password_service import PasswordService
 
 
 class UserService(
@@ -62,7 +62,7 @@ class UserService(
             )
 
         # Генерация и хэширование пароля
-        password = PasswordService.generate()
+        password = RandomService.generate_str()
         hashed_password = HashService.generate(password)
 
         db_data = schemas.UserCreateRepositorySchema(

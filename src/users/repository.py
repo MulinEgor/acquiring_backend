@@ -59,4 +59,8 @@ class UserRepository(
         if query_params.is_active is not None:
             stmt = stmt.where(UserModel.is_active == query_params.is_active)
 
+        # Фильтрация по флагу 2FA.
+        if query_params.is_2fa_enabled is not None:
+            stmt = stmt.where(UserModel.is_2fa_enabled == query_params.is_2fa_enabled)
+
         return stmt

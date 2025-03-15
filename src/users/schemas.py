@@ -4,6 +4,7 @@ import uuid
 
 from pydantic import (
     BaseModel,
+    EmailStr,
     Field,
     model_serializer,
 )
@@ -17,13 +18,14 @@ class UserGetSchema(BaseModel):
     """Pydantic схема для получения пользователя."""
 
     id: uuid.UUID = Field(description="ID пользователя.")
-    email: str = Field(description="Электронная почта пользователя.")
+    email: EmailStr = Field(description="Электронная почта пользователя.")
     balance: int = Field(description="Баланс пользователя.")
     amount_frozen: int = Field(description="Замороженные средства пользователя.")
     is_active: bool = Field(description="Является ли аккаунт пользователя активным.")
     permissions: list[PermissionGetSchema] = Field(
         description="Разрешения пользователя."
     )
+    is_2fa_enabled: bool = Field(description="Является ли 2FA включенным.")
 
     class Config:
         json_encoders = {uuid.UUID: str}
@@ -56,14 +58,14 @@ class UserGetSchema(BaseModel):
 class UserLoginSchema(BaseModel):
     """Pydantic схема для авторизации пользователя."""
 
-    email: str = Field(description="Электронная почта пользователя.")
+    email: EmailStr = Field(description="Электронная почта пользователя.")
     password: str = Field(description="Пароль пользователя.")
 
 
 class UserCreateSchema(BaseModel):
     """Pydantic схема для создания пользователя."""
 
-    email: str = Field(description="Электронная почта пользователя.")
+    email: EmailStr = Field(description="Электронная почта пользователя.")
     permissions_ids: list[uuid.UUID] = Field(description="ID разрешений пользователя.")
 
     @model_serializer
@@ -85,14 +87,14 @@ class UserCreatedGetSchema(UserGetSchema):
 class UserCreateRepositorySchema(BaseModel):
     """Pydantic схема для создания пользователя в БД."""
 
-    email: str = Field(description="Электронная почта пользователя.")
+    email: EmailStr = Field(description="Электронная почта пользователя.")
     hashed_password: str = Field(description="Хэшированный пароль пользователя.")
 
 
 class UserUpdateSchema(BaseModel):
     """Pydantic схема для обновления данных пользователя."""
 
-    email: str | None = Field(
+    email: EmailStr | None = Field(
         default=None,
         description="Электронная почта пользователя.",
     )
@@ -113,7 +115,7 @@ class UserUpdateSchema(BaseModel):
 class UserUpdateRepositorySchema(BaseModel):
     """Pydantic схема для обновления данных пользователя в БД."""
 
-    email: str | None = Field(
+    email: EmailStr | None = Field(
         default=None,
         description="Электронная почта пользователя.",
     )
@@ -145,7 +147,7 @@ class UsersPaginationSchema(PaginationBaseSchema):
         default=None,
         description="ID пользователя.",
     )
-    email: str | None = Field(
+    email: EmailStr | None = Field(
         default=None,
         description="Электронная почта пользователя.",
     )
@@ -156,6 +158,10 @@ class UsersPaginationSchema(PaginationBaseSchema):
     is_active: bool | None = Field(
         default=None,
         description="Является ли аккаунт пользователя активным.",
+    )
+    is_2fa_enabled: bool | None = Field(
+        default=None,
+        description="Является ли 2FA включенным.",
     )
     asc: bool = Field(
         default=False,
