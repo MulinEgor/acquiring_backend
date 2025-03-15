@@ -27,6 +27,14 @@ class Settings(BaseSettings):
     JWT_ACCESS_EXPIRE_MINUTES: int
     JWT_REFRESH_EXPIRE_MINUTES: int
 
+    # Redis
+    REDIS_HOST: str
+    REDIS_PORT: str
+
+    # SMTP
+    SMTP_SENDER_EMAIL: str
+    SMTP_SENDER_PASSWORD: str
+
     @property
     def DATABASE_URL(self):
         return (

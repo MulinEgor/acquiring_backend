@@ -4,14 +4,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 
-from src.auth import auth_router
+from src.auth.router import auth_router
 from src.constants import CORS_HEADERS, CORS_METHODS
-from src.healthcheck import health_check_router
+from src.healthcheck.router import health_check_router
+from src.permissions.router import permissions_router
 from src.settings import settings
-from src.users import user_router
+from src.users.router import users_router
 
 app = FastAPI(
-    title="FastAPI Template",
+    title="Бэкенд для системы эквайринга",
     version=settings.APP_VERSION,
 )
 
@@ -28,7 +29,8 @@ app.add_middleware(
 available_routers = [
     health_check_router,
     auth_router,
-    user_router,
+    users_router,
+    permissions_router,
 ]
 
 for router in available_routers:
@@ -47,10 +49,10 @@ def home():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>FastAPI Auth Template</title>
+        <title>Бэкенд для системы эквайринга</title>
     </head>
     <body>
-        <h1>FastAPI Auth Template in {settings.MODE} mode</h1>
+        <h1>API в {settings.MODE} режиме</h1>
         <ul>
             <li><a href="/docs">Документация Swagger</a></li>
             <li><a href="/redoc">Документация ReDoc</a></li>

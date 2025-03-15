@@ -6,7 +6,7 @@ import httpx
 import pytest_asyncio
 from fastapi import APIRouter, FastAPI
 
-from src.dependencies import get_session
+from src import dependencies
 
 
 class BaseTestRouter:
@@ -27,7 +27,7 @@ class BaseTestRouter:
 
         app.include_router(self.router)
 
-        app.dependency_overrides[get_session] = lambda: session
+        app.dependency_overrides[dependencies.get_session] = lambda: session
 
         transport = httpx.ASGITransport(app=app)
         async with httpx.AsyncClient(

@@ -6,19 +6,23 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import src.users.schemas as schemas
-from src import exceptions, utils
-from src.base import BaseService
+from src import exceptions
+from src.base.service import BaseService
+from src.permissions.service import PermissionService
+from src.services.hash_service import HashService
+from src.services.random_service import RandomService
 from src.users.models import UserModel
 from src.users.repository import UserRepository
+from src.users_permissions.service import UsersPermissionsService
 
 
 class UserService(
     BaseService[
         UserModel,
         schemas.UserCreateSchema,
-        schemas.UserGetAdminSchema,
-        schemas.UsersQuerySchema,
-        schemas.UserListGetSchema,
+        schemas.UserGetSchema,
+        schemas.UsersPaginationSchema,
+        schemas.UsersListGetSchema,
         schemas.UserUpdateSchema,
     ],
 ):
@@ -31,41 +35,65 @@ class UserService(
     async def create(
         cls,
         session: AsyncSession,
-        data: schemas.UserCreateSchema | schemas.UserCreateAdminSchema,
-    ) -> schemas.UserGetAdminSchema:
+        data: schemas.UserCreateSchema,
+    ) -> schemas.UserCreatedGetSchema:
         """
         Создать пользователя в БД.
 
         Args:
             session (AsyncSession): Сессия для работы с базой данных.
-            data (UserCreateSchema | UserCreateAdminSchema):
-                Данные для создания пользователя.
+            data (UserCreateSchema): Данные для создания пользователя.
 
         Returns:
-            UserReadAdminSchema: Добавленный пользователь.
+            UserCreatedGetSchema: Добавленный пользователь.
 
         Raises:
+            NotFoundException: Роль не найдена.
             ConflictException: Пользователь уже существует.
         """
 
-        try:
-            # Хэширование пароля
-            hashed_password = utils.get_hash(data.password)
-            data = schemas.UserCreateRepositorySchema(
-                email=data.email,
-                hashed_password=hashed_password,
+        # Проверка существования разрешений
+        if not await PermissionService.check_all_exist(
+            session=session,
+            ids=data.permissions_ids,
+        ):
+            raise exceptions.NotFoundException(
+                message="Какие то разрешения не найдены.",
             )
 
+        # Генерация и хэширование пароля
+        password = RandomService.generate_str()
+        hashed_password = HashService.generate(password)
+
+        db_data = schemas.UserCreateRepositorySchema(
+            email=data.email,
+            hashed_password=hashed_password,
+        )
+
+        try:
             # Добавление пользователя в БД
             user = await cls.repository.create(
                 session=session,
-                obj_in=data,
+                obj_in=db_data,
             )
+
+            # Добавление разрешений пользователю
+            await UsersPermissionsService.add_permissions_to_user(
+                session=session,
+                user_id=user.id,
+                permission_ids=data.permissions_ids,
+            )
+
             await session.commit()
-            return schemas.UserGetAdminSchema.model_validate(user)
+            await session.refresh(user)
 
         except IntegrityError as ex:
             raise exceptions.ConflictException(exc=ex)
+
+        return schemas.UserCreatedGetSchema(
+            **schemas.UserGetSchema.model_validate(user).model_dump(),
+            password=password,
+        )
 
     # MARK: Update
     @classmethod
@@ -73,19 +101,18 @@ class UserService(
         cls,
         session: AsyncSession,
         user_id: uuid.UUID,
-        data: schemas.UserUpdateSchema | schemas.UserUpdateAdminSchema,
-    ) -> schemas.UserGetAdminSchema:
+        data: schemas.UserUpdateSchema,
+    ) -> schemas.UserGetSchema:
         """
         Обновить данные пользователя.
 
         Args:
             session (AsyncSession): Сессия для работы с базой данных.
             user_id (uuid.UUID): ID пользователя.
-            data (UserUpdateSchema | UserUpdateAdminSchema):
-                Данные для обновления пользователя.
+            data (UserUpdateSchema): Данные для обновления пользователя.
 
         Returns:
-            UserReadAdminSchema: Обновленный пользователь.
+            UserGetSchema: Обновленный пользователь.
 
         Raises:
             NotFoundException: Пользователь не найден.
@@ -93,28 +120,46 @@ class UserService(
         """
 
         # Поиск пользователя в БД
-        await cls.get_by_id(session, user_id)
+        user = await cls.get_by_id(session, user_id)
+
+        # Проверка существования разрешений
+        if data.permissions_ids and not await PermissionService.check_all_exist(
+            session=session,
+            ids=data.permissions_ids,
+        ):
+            raise exceptions.NotFoundException(
+                message="Какие то разрешения не найдены.",
+            )
 
         hashed_password = None
         if data.password:
-            hashed_password = utils.get_hash(data.password)
+            hashed_password = HashService.generate(data.password)
 
         # Обновление пользователя в БД
         try:
             updated_user = await UserRepository.update(
                 UserModel.id == user_id,
                 session=session,
-                obj_in=schemas.UserUpdateRepositoryAdminSchema(
+                obj_in=schemas.UserUpdateRepositorySchema(
                     email=data.email,
                     hashed_password=hashed_password,
-                    is_admin=data.is_admin
-                    if isinstance(data, schemas.UserUpdateAdminSchema)
-                    else None,
+                    is_active=data.is_active
+                    if data.is_active is not None
+                    else user.is_active,
                 ),
             )
+
+            # Обновление разрешений пользователя
+            if data.permissions_ids:
+                updated_user.permissions = await PermissionService.get_all_by_ids(
+                    session=session,
+                    ids=data.permissions_ids,
+                )
+
             await session.commit()
+            await session.refresh(updated_user)
 
         except IntegrityError as ex:
             raise exceptions.ConflictException(exc=ex)
 
-        return schemas.UserGetAdminSchema.model_validate(updated_user)
+        return schemas.UserGetSchema.model_validate(updated_user)

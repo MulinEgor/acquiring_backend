@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 
 
 # MARK: JWT
@@ -16,3 +16,24 @@ class JWTGetSchema(JWTRefreshSchema):
     access_token: str = Field(description="access_token")
     expires_at: datetime = Field(description="Время действия `access_token`.")
     token_type: str = Field(default="Bearer", description="Тип `access_token`.")
+
+
+# MARK: 2FA
+class TwoFactorCodeCheckSchema(BaseModel):
+    """Pydantic схема для получения кода 2FA."""
+
+    email: EmailStr = Field(description="Email пользователя.")
+    code: str = Field(description="Код 2FA.")
+
+
+class TwoFactorCodeSendSchema(BaseModel):
+    """Pydantic схема для отправки кода 2FA."""
+
+    email: EmailStr = Field(description="Email пользователя.")
+
+
+class Redis2FAValueSchema(BaseModel):
+    """Pydantic схема для значения 2FA в Redis."""
+
+    code_hash: str = Field(description="Хэш кода 2FA.")
+    tries: int = Field(default=0, description="Количество попыток ввода кода 2FA.")

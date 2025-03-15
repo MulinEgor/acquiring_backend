@@ -6,53 +6,106 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import src.auth.schemas as auth_schemas
 import src.users.schemas as user_schemas
 from src import dependencies
-from src.auth.services import AuthService, JWTService
+from src.auth.services.auth_service import AuthService
+from src.auth.services.jwt_service import JWTService
 
 auth_router = APIRouter(prefix="/auth", tags=["Авторизация"])
-
-
-# MARK: Post
-@auth_router.post(
-    "/register",
-    summary="Зарегистрировать пользователя.",
-    status_code=status.HTTP_201_CREATED,
-)
-async def register_route(
-    schema: user_schemas.UserCreateSchema,
-    session: AsyncSession = Depends(dependencies.get_session),
-) -> auth_schemas.JWTGetSchema:
-    """
-    Зарегистрировать пользователя.
-
-    Доступно неавторизованному пользователю.
-
-    Raises:
-        UserAlreadyExistsException: Пользователь уже существует.
-    """
-
-    return await AuthService.register(session, schema)
 
 
 # MARK: Patch
 @auth_router.patch(
     "/login",
-    summary="Авторизовать пользователя.",
+    summary="Авторизоваться.",
     status_code=status.HTTP_200_OK,
 )
 async def login_route(
     schema: user_schemas.UserLoginSchema,
     session: AsyncSession = Depends(dependencies.get_session),
+) -> auth_schemas.JWTGetSchema | dict[str, str]:
+    """
+    Войти в систему.
+    Если у пользователя включена 2FA, то после вызова будет отправлен код на почту,
+    который необходимо будет ввести в ендпоинт `/2fa/login/confirm`.
+
+    Не требуется разрешений.
+    """
+    return await AuthService.login(session, schema)
+
+
+@auth_router.patch(
+    "/2fa/login",
+    summary="Ввести код после попытки входа.",
+    status_code=status.HTTP_200_OK,
+)
+async def login_2fa_route(
+    code_schema: auth_schemas.TwoFactorCodeCheckSchema,
+    session: AsyncSession = Depends(dependencies.get_session),
 ) -> auth_schemas.JWTGetSchema:
     """
-    Авторизовать пользователя.
+    Ввести код после попытки входа.
 
-    Доступно неавторизованному пользователю.
-
-    Raises:
-        UserNotFoundException: Пользователь не найден.
+    Не требуется разрешений.
     """
+    return await AuthService.login_2fa(session, code_schema)
 
-    return await AuthService.login(session, schema)
+
+@auth_router.patch(
+    "/2fa/send",
+    summary="Отправить код для 2FA.",
+    status_code=status.HTTP_200_OK,
+)
+async def send_2fa_code_route(
+    schema: auth_schemas.TwoFactorCodeSendSchema,
+    session: AsyncSession = Depends(dependencies.get_session),
+):
+    """
+    Отправить код для 2FA.
+    Можно отправить вне зависимости от того, включена 2FA или нет.
+    Используется для включения, выключения 2FA или входа.
+
+    Не требуется разрешений.
+    """
+    return await AuthService.send_2fa_code(session, schema.email)
+
+
+@auth_router.patch(
+    "/2fa/enable",
+    summary="Включить 2FA.",
+    status_code=status.HTTP_200_OK,
+)
+async def enable_2fa_confirm_route(
+    code_schema: auth_schemas.TwoFactorCodeCheckSchema,
+    session: AsyncSession = Depends(dependencies.get_session),
+):
+    """
+    Чтобы включить 2FA, нужно сначала отправить код на почту,
+    после чего передать его в эндпоинт.
+
+    Не требуется разрешений.
+    """
+    return await AuthService.enable_or_disable_2fa(
+        session, code_schema, should_enable=True
+    )
+
+
+@auth_router.patch(
+    "/2fa/disable",
+    summary="Выключить 2FA.",
+    status_code=status.HTTP_200_OK,
+)
+async def disable_2fa_confirm_route(
+    code_schema: auth_schemas.TwoFactorCodeCheckSchema,
+    session: AsyncSession = Depends(dependencies.get_session),
+):
+    """
+    Чтобы выключить 2FA, нужно сначала отправить код на почту,
+    после чего передать его в эндпоинт.
+
+    Не требуется разрешений.
+    """
+    return await AuthService.enable_or_disable_2fa(
+        session, code_schema, should_enable=False
+    )
 
 
 @auth_router.patch(
@@ -61,18 +114,12 @@ async def login_route(
     status_code=status.HTTP_200_OK,
 )
 async def refresh_tokens_route(
-    tokens_data: auth_schemas.JWTRefreshSchema,
+    token_schema: auth_schemas.JWTRefreshSchema,
     session: AsyncSession = Depends(dependencies.get_session),
-) -> auth_schemas.JWTGetSchema:
+):
     """
-    Получить `access_token` и `refresh_token`, передав верный `refresh_token`.
+    Обновить access_token и refresh_token.
 
-    Доступно неавторизованному пользователю.
-
-    Raises:
-        InvalidTokenException: Невалидный токен `HTTP_401_UNAUTHORIZED`.
-        TokenExpiredException: Время действия токена истекло `HTTP_401_UNAUTHORIZED`.
-        UserNotFoundException: Пользователь не найден.
+    Не требуется разрешений.
     """
-
-    return await JWTService.refresh_tokens(session, tokens_data)
+    return await JWTService.refresh_tokens(session, token_schema)

@@ -4,7 +4,9 @@ from fastapi import APIRouter, status
 
 from src.healthcheck.schemas import HealthCheckSchema
 
-health_check_router = APIRouter(prefix="/health_check", tags=["Health Check"])
+health_check_router = APIRouter(
+    prefix="/health_check", tags=["Проверка состояния работы API"]
+)
 
 
 @health_check_router.get(

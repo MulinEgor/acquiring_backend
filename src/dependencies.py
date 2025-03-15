@@ -11,9 +11,11 @@ import src.exceptions as exceptions
 from src import constants
 from src.constants import AUTH_HEADER_NAME
 from src.database import SessionLocal
+from src.permissions.enums import PermissionEnum
 from src.settings import settings
-from src.users import UserModel
+from src.users.models import UserModel
 from src.users.repository import UserRepository
+from src.users_permissions.service import UsersPermissionsService
 
 oauth2_scheme = APIKeyHeader(name=AUTH_HEADER_NAME, auto_error=False)
 
@@ -38,21 +40,25 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
 
 
 # MARK: Auth
-async def get_current_user(
-    header_value: str = Depends(oauth2_scheme),
+async def get_current_user_or_none(
+    header_value: str | None = Depends(oauth2_scheme),
     session: AsyncSession = Depends(get_session),
-) -> UserModel:
+) -> UserModel | None:
     """
     Вернуть текущего пользователя, если передан верный `access_token`.
 
     Returns:
-        UserModel: модель пользователя.
+        UserModel | None: модель пользователя.
 
     Raises:
         InvalidTokenException: Невалидный токен `HTTP_401_UNAUTHORIZED`.
         TokenExpiredException: Время действия токена истекло `HTTP_401_UNAUTHORIZED`.
-        UserNotFoundException: Пользователь не найден `HTTP_404_NOT_FOUND`.
+        NotFoundException: Пользователь не найден `HTTP_404_NOT_FOUND`.
+        ForbiddenException: Пользователь заблокирован `HTTP_403_FORBIDDEN`.
     """
+
+    if not header_value:
+        return None
 
     token = header_value.removeprefix("Bearer ")
 
@@ -64,12 +70,12 @@ async def get_current_user(
         )
         user_id = payload.get("id")
         if not user_id:
-            raise exceptions.InvalidTokenException
+            raise exceptions.InvalidTokenException()
     except Exception as e:
         if isinstance(e, jwt.ExpiredSignatureError):
-            raise exceptions.TokenExpiredException
+            raise exceptions.TokenExpiredException()
         else:
-            raise exceptions.InvalidTokenException
+            raise exceptions.InvalidTokenException()
 
     user_db = await UserRepository.get_one_or_none(
         session=session,
@@ -77,52 +83,43 @@ async def get_current_user(
     )
 
     if user_db is None:
-        raise exceptions.UserNotFoundException
+        raise exceptions.NotFoundException()
+
+    if not user_db.is_active:
+        raise exceptions.ForbiddenException("Ваш аккаунт заблокирован.")
 
     return user_db
 
 
-async def get_current_admin(
-    user: UserModel = Depends(get_current_user),
-) -> UserModel:
+def check_user_permissions(
+    permissions: list[PermissionEnum],
+):
     """
-    Проверяет, является ли пользователь администратором.
+    Декоратор для проверки наличия разрешений у пользователя.
 
-    Returns:
-        UserModel: модель пользователя.
+    Args:
+        permissions: Список разрешений.
 
     Raises:
-        InvalidTokenException: Невалидный токен `HTTP_401_UNAUTHORIZED`.
-        TokenExpiredException: Время действия токена истекло `HTTP_401_UNAUTHORIZED`.
-        UserNotFoundException: Пользователь не найден `HTTP_404_NOT_FOUND`.
-        BaseForbiddenException: Недостаточно привилегий для выполнения запроса.
+        ForbiddenException: Пользователь не имеет необходимых разрешений.
     """
 
-    if not user.is_admin:
-        raise exceptions.ForbiddenException
-    return user
+    async def wrapper(
+        user: UserModel | None = Depends(get_current_user_or_none),
+        session: AsyncSession = Depends(get_session),
+    ):
+        if not user:
+            raise exceptions.ForbiddenException()
 
-
-async def get_current_user_or_none(
-    header_value: str = Depends(oauth2_scheme),
-    session: AsyncSession = Depends(get_session),
-) -> UserModel | None:
-    """
-    Вернуть текущего пользователя, если передан `access_token`
-    или None, если `access_token` не был передан в заголовке.
-    Используется для опциональной авторизации.
-
-    Returns:
-        UserModel|None: модель пользователя или None.
-
-    Raises:
-        InvalidTokenException: Невалидный токен `HTTP_401_UNAUTHORIZED`.
-        TokenExpiredException: Время действия токена истекло `HTTP_401_UNAUTHORIZED`.
-        UserNotFoundException: Пользователь не найден `HTTP_404_NOT_FOUND`.
-    """
-
-    if header_value:
-        return await get_current_user(
-            header_value=header_value,
-            session=session,
+        user_permissions = await UsersPermissionsService.get_user_permissions(
+            session,
+            user.id,
         )
+        user_permissions_names = {permission.name for permission in user_permissions}
+
+        if not set([permission.value for permission in permissions]).issubset(
+            user_permissions_names
+        ):
+            raise exceptions.ForbiddenException()
+
+    return wrapper

@@ -3,7 +3,8 @@
 import httpx
 from fastapi import status
 
-from src.healthcheck import HealthCheckSchema, health_check_router
+from src.healthcheck.router import health_check_router
+from src.healthcheck.schemas import HealthCheckSchema
 from src.settings import settings
 from tests.integration.conftest import BaseTestRouter
 

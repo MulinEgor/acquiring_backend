@@ -4,10 +4,11 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import TIMESTAMP
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src import constants
 from src.database import Base
+from src.users_permissions.models import UsersPermissionsModel
 
 
 class UserModel(Base):
@@ -27,9 +28,21 @@ class UserModel(Base):
     hashed_password: Mapped[str] = mapped_column(
         comment="Хэшированный пароль пользователя.",
     )
-    is_admin: Mapped[bool] = mapped_column(
+    balance: Mapped[int] = mapped_column(
+        default=0,
+        comment="Баланс пользователя.",
+    )
+    amount_frozen: Mapped[int] = mapped_column(
+        default=0,
+        comment="Замороженные средства пользователя.",
+    )
+    is_active: Mapped[bool] = mapped_column(
+        default=True,
+        comment="Является ли аккаунт пользователя активным.",
+    )
+    is_2fa_enabled: Mapped[bool] = mapped_column(
         default=False,
-        comment="Является ли пользователь администратором.",
+        comment="Является ли 2FA включенным.",
     )
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True),
@@ -39,4 +52,10 @@ class UserModel(Base):
         TIMESTAMP(timezone=True),
         server_default=constants.CURRENT_TIMESTAMP_UTC,
         onupdate=constants.CURRENT_TIMESTAMP_UTC,
+    )
+
+    users_permissions: Mapped[list[UsersPermissionsModel]] = relationship(
+        back_populates="user",
+        lazy="selectin",
+        cascade="all, delete",
     )

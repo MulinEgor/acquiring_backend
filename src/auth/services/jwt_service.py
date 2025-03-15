@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import src.auth.schemas as schemas
 from src import constants, exceptions
 from src.settings import settings
-from src.users import UserRepository
+from src.users.repository import UserRepository
 
 
 class JWTService:

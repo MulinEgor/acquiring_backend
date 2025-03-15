@@ -18,10 +18,15 @@ from sqlalchemy.ext.asyncio import (
 
 import src.auth.schemas as auth_schemas
 import src.users.schemas as user_schemas
-from src import utils
-from src.auth import JWTService
+from src.auth.services.jwt_service import JWTService
+from src.permissions import schemas as permission_schemas
+from src.permissions.enums import PermissionEnum
+from src.permissions.models import PermissionModel
+from src.permissions.repository import PermissionRepository
+from src.services.hash_service import HashService
 from src.settings import settings
-from src.users import UserModel
+from src.users.models import UserModel
+from src.users_permissions.repository import UsersPermissionsRepository
 
 faker = Faker()
 
@@ -121,6 +126,29 @@ def output_to_stdout():
     sys.stdout = sys.stderr
 
 
+# MARK: Permissions
+@pytest_asyncio.fixture
+async def permission_db(session: AsyncSession) -> PermissionModel:
+    """Добавить разрешение в БД."""
+
+    permission = PermissionModel(
+        name=faker.word(),
+    )
+    session.add(permission)
+    await session.commit()
+
+    return permission
+
+
+@pytest_asyncio.fixture
+async def permission_create_data() -> permission_schemas.PermissionCreateSchema:
+    """Подготовленные данные для создания разрешения в БД."""
+
+    return permission_schemas.PermissionCreateSchema(
+        name=faker.word(),
+    )
+
+
 # MARK: Users
 @pytest_asyncio.fixture
 async def user_db(session: AsyncSession) -> UserModel:
@@ -129,55 +157,97 @@ async def user_db(session: AsyncSession) -> UserModel:
     user_db = UserModel(
         id=str(uuid.uuid4()),
         email=faker.email(),
-        hashed_password=utils.get_hash(faker.password()),
+        hashed_password=HashService.generate(faker.password()),
     )
     session.add(user_db)
+    await session.commit()
+
+    user_permissions = [PermissionEnum.GET_MY_USER]
+    for permission in user_permissions:
+        permission_db = await PermissionRepository.get_one_or_none(
+            session=session,
+            name=permission.value,
+        )
+        await UsersPermissionsRepository.create(
+            session=session,
+            obj_in={
+                "user_id": user_db.id,
+                "permission_id": permission_db.id,
+            },
+        )
+
     await session.commit()
 
     return user_db
 
 
 @pytest_asyncio.fixture
-async def user_admin_db(session: AsyncSession) -> UserModel:
+async def user_db_2fa(session: AsyncSession, user_db: UserModel) -> UserModel:
+    """Добавить пользователя в БД с 2FA."""
+
+    user_db.is_2fa_enabled = True
+    await session.commit()
+
+    return user_db
+
+
+@pytest_asyncio.fixture
+async def user_admin_db(
+    session: AsyncSession,
+) -> UserModel:
     """Добавить пользователя-администратора в БД."""
 
     user_admin = UserModel(
         id=str(uuid.uuid4()),
         email=faker.email(),
-        hashed_password=utils.get_hash(faker.password()),
-        is_admin=True,
+        hashed_password=HashService.generate(faker.password()),
     )
     session.add(user_admin)
+
+    await session.commit()
+
+    permissions = await PermissionRepository.get_all(session)
+    await UsersPermissionsRepository.create_bulk(
+        session=session,
+        data=[
+            {
+                "user_id": user_admin.id,
+                "permission_id": permission.id,
+            }
+            for permission in permissions
+        ],
+    )
+
     await session.commit()
 
     return user_admin
 
 
 @pytest_asyncio.fixture
-async def user_create_data() -> user_schemas.UserGetAdminSchema:
+async def user_create_data(
+    permission_db: PermissionModel,
+) -> user_schemas.UserCreateSchema:
     """
     Подготовленные данные для создания
     пользователя в БД администратором.
     """
 
-    return user_schemas.UserCreateAdminSchema(
+    return user_schemas.UserCreateSchema(
         email=faker.email(),
-        password=faker.password(),
-        is_admin=False,
+        permissions_ids=[permission_db.id],
     )
 
 
 @pytest_asyncio.fixture
-async def user_update_data() -> user_schemas.UserUpdateAdminSchema:
+async def user_update_data() -> user_schemas.UserUpdateSchema:
     """
     Подготовленные данные для обновления
     пользователя в БД администратором.
     """
 
-    return user_schemas.UserUpdateAdminSchema(
+    return user_schemas.UserUpdateSchema(
         email=faker.email(),
         password=faker.password(),
-        is_admin=True,
     )
 
 
