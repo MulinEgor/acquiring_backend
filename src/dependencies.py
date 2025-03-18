@@ -1,31 +1,27 @@
 """Зависимости эндпоинтов API."""
 
+from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 import jwt
-from fastapi import Depends
-from fastapi.security import APIKeyHeader
+import sanic
+from sanic import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import src.exceptions as exceptions
-from src import constants
-from src.constants import AUTH_HEADER_NAME
+from src import constants, exceptions
 from src.database import SessionLocal
-from src.permissions.enums import PermissionEnum
 from src.settings import settings
 from src.users.models import UserModel
 from src.users.repository import UserRepository
-from src.users_permissions.service import UsersPermissionsService
-
-oauth2_scheme = APIKeyHeader(name=AUTH_HEADER_NAME, auto_error=False)
 
 
 # MARK: Database
-async def get_session() -> AsyncGenerator[AsyncSession, None]:
+@asynccontextmanager
+async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     """
-    AsyncGenerator экземпляра `AsyncSession`.
+    Получить сессию для работы с базой данных.
 
-    Выполняет `rollback` текущей транзакции, в случае любого исключения.
+    Выполнить `rollback` текущей транзакции, в случае любого исключения.
     Сессия закрывается внутри контекстного менеджера автоматически.
 
     **Коммит транзакции должен быть выполнен явно.**
@@ -40,27 +36,25 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
 
 
 # MARK: Auth
-async def get_current_user_or_none(
-    header_value: str | None = Depends(oauth2_scheme),
-    session: AsyncSession = Depends(get_session),
-) -> UserModel | None:
+async def get_current_user(request: Request) -> UserModel:
     """
     Вернуть текущего пользователя, если передан верный `access_token`.
 
     Returns:
-        UserModel | None: модель пользователя.
+        UserModel: модель пользователя.
 
     Raises:
-        InvalidTokenException: Невалидный токен `HTTP_401_UNAUTHORIZED`.
-        TokenExpiredException: Время действия токена истекло `HTTP_401_UNAUTHORIZED`.
-        NotFoundException: Пользователь не найден `HTTP_404_NOT_FOUND`.
-        ForbiddenException: Пользователь заблокирован `HTTP_403_FORBIDDEN`.
+        InvalidToken: Невалидный токен `HTTP_401_UNAUTHORIZED`.
+        TokenExpired: Время действия токена истекло `HTTP_401_UNAUTHORIZED`.
+        NotFound: Пользователь не найден `HTTP_404_NOT_FOUND`.
+        Forbidden: Пользователь заблокирован `HTTP_403_FORBIDDEN`.
     """
+    raw_token = request.headers.get(constants.AUTH_HEADER_NAME)
 
-    if not header_value:
-        return None
+    if not raw_token:
+        raise sanic.exceptions.Unauthorized()
 
-    token = header_value.removeprefix("Bearer ")
+    token = raw_token.removeprefix("Bearer ")
 
     try:
         payload = jwt.decode(
@@ -70,56 +64,58 @@ async def get_current_user_or_none(
         )
         user_id = payload.get("id")
         if not user_id:
-            raise exceptions.InvalidTokenException()
+            raise sanic.exceptions.Unauthorized()
+
     except Exception as e:
         if isinstance(e, jwt.ExpiredSignatureError):
-            raise exceptions.TokenExpiredException()
+            raise exceptions.TokenExpired()
         else:
-            raise exceptions.InvalidTokenException()
+            raise exceptions.InvalidToken()
 
-    user_db = await UserRepository.get_one_or_none(
-        session=session,
-        id=user_id,
-    )
+    async with request.app.ctx.get_db_session() as session:
+        user_db = await UserRepository.get_one_or_none(
+            session=session,
+            id=user_id,
+        )
 
     if user_db is None:
-        raise exceptions.NotFoundException()
+        raise sanic.exceptions.NotFound()
 
     if not user_db.is_active:
-        raise exceptions.ForbiddenException("Ваш аккаунт заблокирован.")
+        raise sanic.exceptions.Forbidden("Ваш аккаунт заблокирован.")
 
     return user_db
 
 
-def check_user_permissions(
-    permissions: list[PermissionEnum],
-):
-    """
-    Декоратор для проверки наличия разрешений у пользователя.
+# def check_user_permissions(
+#     permissions: list[PermissionEnum],
+# ):
+#     """
+#     Декоратор для проверки наличия разрешений у пользователя.
 
-    Args:
-        permissions: Список разрешений.
+#     Args:
+#         permissions: Список разрешений.
 
-    Raises:
-        ForbiddenException: Пользователь не имеет необходимых разрешений.
-    """
+#     Raises:
+#         ForbiddenException: Пользователь не имеет необходимых разрешений.
+#     """
 
-    async def wrapper(
-        user: UserModel | None = Depends(get_current_user_or_none),
-        session: AsyncSession = Depends(get_session),
-    ):
-        if not user:
-            raise exceptions.ForbiddenException()
+#     async def wrapper(
+#         user: UserModel | None = Depends(get_current_user_or_none),
+#         session: AsyncSession = Depends(get_session),
+#     ):
+#         if not user:
+#             raise exceptions.ForbiddenException()
 
-        user_permissions = await UsersPermissionsService.get_user_permissions(
-            session,
-            user.id,
-        )
-        user_permissions_names = {permission.name for permission in user_permissions}
+#         user_permissions = await UsersPermissionsService.get_user_permissions(
+#             session,
+#             user.id,
+#         )
+#         user_permissions_names = {permission.name for permission in user_permissions}
 
-        if not set([permission.value for permission in permissions]).issubset(
-            user_permissions_names
-        ):
-            raise exceptions.ForbiddenException()
+#         if not set([permission.value for permission in permissions]).issubset(
+#             user_permissions_names
+#         ):
+#             raise exceptions.ForbiddenException()
 
-    return wrapper
+#     return wrapper

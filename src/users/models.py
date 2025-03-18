@@ -1,6 +1,5 @@
 """Модуль для SQLAlchemy моделей пользователей."""
 
-import uuid
 from datetime import datetime
 
 from sqlalchemy import TIMESTAMP
@@ -16,8 +15,8 @@ class UserModel(Base):
 
     __tablename__ = "users"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        default=uuid.uuid4,
+    id: Mapped[int] = mapped_column(
+        autoincrement=True,
         primary_key=True,
         comment="Уникальный идентификатор пользователя.",
     )

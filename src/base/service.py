@@ -3,12 +3,12 @@
 import uuid
 from typing import Generic, TypeVar
 
+import sanic
 from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import src.base.types as types
-from src import exceptions
 from src.base.repository import BaseRepository
 
 
@@ -77,7 +77,7 @@ class BaseService(
             GetSchemaType: Добавленный объект.
 
         Raises:
-            ConflictException: Конфликт при создании.
+            BadRequest: Конфликт при создании.
         """
 
         try:
@@ -92,8 +92,8 @@ class BaseService(
 
             return schema_class.model_validate(obj_db)
 
-        except IntegrityError as ex:
-            raise exceptions.ConflictException(exc=ex)
+        except IntegrityError:
+            raise sanic.exceptions.BadRequest()
 
     # MARK: Get
     @classmethod
@@ -113,14 +113,14 @@ class BaseService(
             GetSchemaType: Найденный объект.
 
         Raises:
-            NotFoundException: Объект не найден.
+            NotFound: Объект не найден.
         """
 
         # Поиск объекта в БД
         obj_db = await cls.repository.get_one_or_none(session=session, id=id)
 
         if obj_db is None:
-            raise exceptions.NotFoundException()
+            raise sanic.exceptions.NotFound()
 
         schema_class = await cls._get_schema_class_by_type(types.GetSchemaType)
         return schema_class.model_validate(obj_db)
@@ -143,7 +143,7 @@ class BaseService(
             GetListSchemaType: список объектов и их общее количество.
 
         Raises:
-            NotFoundException: Объекты не найдены.
+            NotFound: Объекты не найдены.
         """
 
         base_stmt = await cls.repository.get_stmt_by_query(
@@ -157,7 +157,7 @@ class BaseService(
         )
 
         if not objects_db:
-            raise exceptions.NotFoundException()
+            raise sanic.exceptions.NotFound()
 
         objects_count = await cls.repository.count_subquery(
             session=session,
@@ -196,8 +196,8 @@ class BaseService(
             GetSchemaType: Обновленный объект.
 
         Raises:
-            NotFoundException: Объект не найден.
-            ConflictException: Объект с такими данными уже существует.
+            NotFound: Объект не найден.
+            BadRequest: Объект с такими данными уже существует.
         """
 
         # Поиск объекта в БД
@@ -212,8 +212,8 @@ class BaseService(
             )
             await session.commit()
 
-        except IntegrityError as ex:
-            raise exceptions.ConflictException(exc=ex)
+        except IntegrityError:
+            raise sanic.exceptions.BadRequest()
 
         schema_class = await cls._get_schema_class_by_type(types.GetSchemaType)
         return schema_class.model_validate(updated_obj)
@@ -233,7 +233,7 @@ class BaseService(
             id (int | uuid.UUID): ID объекта.
 
         Raises:
-            NotFoundException: Объект не найден.
+            NotFound: Объект не найден.
         """
 
         # Поиск объекта в БД

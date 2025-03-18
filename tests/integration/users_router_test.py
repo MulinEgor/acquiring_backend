@@ -9,14 +9,14 @@ import src.users.schemas as user_schemas
 from src import constants
 from src.users.models import UserModel
 from src.users.repository import UserRepository
-from src.users.router import users_router
 from tests.integration.conftest import BaseTestRouter
+from users.blueprint import bp
 
 
 class TestUserRouter(BaseTestRouter):
     """Класс для тестирования роутера user_router."""
 
-    router = users_router
+    router = bp
 
     # MARK: Get
     async def test_get_current_user(

@@ -1,6 +1,5 @@
 """Модулья для Pydantic схем для работы с разрешениями."""
 
-import uuid
 from datetime import datetime
 
 from pydantic import BaseModel, Field
@@ -17,7 +16,7 @@ class PermissionCreateSchema(BaseModel):
 class PermissionGetSchema(BaseModel):
     """Схема для получения разрешения."""
 
-    id: uuid.UUID = Field(description="ID разрешения.")
+    id: int = Field(description="ID разрешения.")
     name: str = Field(description="Название разрешения.")
     created_at: datetime = Field(description="Дата создания разрешения.")
     updated_at: datetime = Field(description="Дата обновления разрешения.")

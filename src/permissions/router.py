@@ -1,7 +1,5 @@
 """Модуль для роутера для работы с разрешениями."""
 
-import uuid
-
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -25,7 +23,7 @@ async def create_route(
     _: UserModel = Depends(
         dependencies.check_user_permissions([PermissionEnum.CREATE_PERMISSION])
     ),
-    session: AsyncSession = Depends(dependencies.get_session),
+    session: AsyncSession = Depends(dependencies.get_db_session),
 ):
     """
     Создать новое разрешение.
@@ -42,11 +40,11 @@ async def create_route(
     status_code=status.HTTP_200_OK,
 )
 async def get_route(
-    id: uuid.UUID,
+    id: int,
     _: UserModel = Depends(
         dependencies.check_user_permissions([PermissionEnum.GET_PERMISSION])
     ),
-    session: AsyncSession = Depends(dependencies.get_session),
+    session: AsyncSession = Depends(dependencies.get_db_session),
 ):
     """
     Получить разрешение по ID.
@@ -66,7 +64,7 @@ async def get_all_route(
     _: UserModel = Depends(
         dependencies.check_user_permissions([PermissionEnum.GET_PERMISSION])
     ),
-    session: AsyncSession = Depends(dependencies.get_session),
+    session: AsyncSession = Depends(dependencies.get_db_session),
 ):
     """
     Получить все разрешения с фильтрацией и пагинацией.
@@ -83,12 +81,12 @@ async def get_all_route(
     status_code=status.HTTP_202_ACCEPTED,
 )
 async def update_route(
-    id: uuid.UUID,
+    id: int,
     data: schemas.PermissionCreateSchema,
     _: UserModel = Depends(
         dependencies.check_user_permissions([PermissionEnum.UPDATE_PERMISSION])
     ),
-    session: AsyncSession = Depends(dependencies.get_session),
+    session: AsyncSession = Depends(dependencies.get_db_session),
 ):
     """
     Обновить разрешение по ID.
@@ -105,11 +103,11 @@ async def update_route(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_route(
-    id: uuid.UUID,
+    id: int,
     _: UserModel = Depends(
         dependencies.check_user_permissions([PermissionEnum.DELETE_PERMISSION])
     ),
-    session: AsyncSession = Depends(dependencies.get_session),
+    session: AsyncSession = Depends(dependencies.get_db_session),
 ):
     """
     Удалить разрешение по ID.

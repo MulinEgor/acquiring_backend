@@ -1,24 +1,22 @@
 """Модуль для Pydantic схем пользователей."""
 
-import uuid
-
 from pydantic import (
-    BaseModel,
-    EmailStr,
     Field,
-    model_serializer,
 )
 
-from src.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
+from src.base.schemas import (
+    DataListGetBaseSchema,
+    EmailBaseSchema,
+    OptionalEmailBaseSchema,
+)
 from src.database import Base
 from src.permissions.schemas import PermissionGetSchema
 
 
-class UserGetSchema(BaseModel):
+class UserGetSchema(EmailBaseSchema):
     """Pydantic схема для получения пользователя."""
 
-    id: uuid.UUID = Field(description="ID пользователя.")
-    email: EmailStr = Field(description="Электронная почта пользователя.")
+    id: int = Field(description="ID пользователя.")
     balance: int = Field(description="Баланс пользователя.")
     amount_frozen: int = Field(description="Замороженные средства пользователя.")
     is_active: bool = Field(description="Является ли аккаунт пользователя активным.")
@@ -28,7 +26,6 @@ class UserGetSchema(BaseModel):
     is_2fa_enabled: bool = Field(description="Является ли 2FA включенным.")
 
     class Config:
-        json_encoders = {uuid.UUID: str}
         from_attributes = True
 
     @classmethod
@@ -51,31 +48,19 @@ class UserGetSchema(BaseModel):
             for user_permission in obj["users_permissions"]
         ]
 
-        # Вызов стандартной валидации
         return super().model_validate(obj)
 
 
-class UserLoginSchema(BaseModel):
+class UserLoginSchema(EmailBaseSchema):
     """Pydantic схема для авторизации пользователя."""
 
-    email: EmailStr = Field(description="Электронная почта пользователя.")
     password: str = Field(description="Пароль пользователя.")
 
 
-class UserCreateSchema(BaseModel):
+class UserCreateSchema(EmailBaseSchema):
     """Pydantic схема для создания пользователя."""
 
-    email: EmailStr = Field(description="Электронная почта пользователя.")
-    permissions_ids: list[uuid.UUID] = Field(description="ID разрешений пользователя.")
-
-    @model_serializer
-    def serialize_model(self) -> dict[str, str]:
-        return {
-            "email": self.email,
-            "permissions_ids": [
-                str(permission_id) for permission_id in self.permissions_ids
-            ],
-        }
+    permissions_ids: list[int] = Field(description="ID разрешений пользователя.")
 
 
 class UserCreatedGetSchema(UserGetSchema):
@@ -84,25 +69,20 @@ class UserCreatedGetSchema(UserGetSchema):
     password: str = Field(description="Сгенерированный пароль пользователя.")
 
 
-class UserCreateRepositorySchema(BaseModel):
+class UserCreateRepositorySchema(EmailBaseSchema):
     """Pydantic схема для создания пользователя в БД."""
 
-    email: EmailStr = Field(description="Электронная почта пользователя.")
     hashed_password: str = Field(description="Хэшированный пароль пользователя.")
 
 
-class UserUpdateSchema(BaseModel):
+class UserUpdateSchema(OptionalEmailBaseSchema):
     """Pydantic схема для обновления данных пользователя."""
 
-    email: EmailStr | None = Field(
-        default=None,
-        description="Электронная почта пользователя.",
-    )
     password: str | None = Field(
         default=None,
         description="Пароль пользователя.",
     )
-    permissions_ids: list[uuid.UUID] | None = Field(
+    permissions_ids: list[int] | None = Field(
         default=None,
         description="ID разрешений пользователя.",
     )
@@ -112,13 +92,9 @@ class UserUpdateSchema(BaseModel):
     )
 
 
-class UserUpdateRepositorySchema(BaseModel):
+class UserUpdateRepositorySchema(OptionalEmailBaseSchema):
     """Pydantic схема для обновления данных пользователя в БД."""
 
-    email: EmailStr | None = Field(
-        default=None,
-        description="Электронная почта пользователя.",
-    )
     hashed_password: str | None = Field(
         default=None,
         description="Хэшированный пароль пользователя.",
@@ -137,21 +113,17 @@ class UsersListGetSchema(DataListGetBaseSchema):
     )
 
 
-class UsersPaginationSchema(PaginationBaseSchema):
+class UsersPaginationSchema(OptionalEmailBaseSchema):
     """
     Основная схема query параметров для запроса
     списка пользователей от имени администратора.
     """
 
-    id: uuid.UUID | None = Field(
+    id: int | None = Field(
         default=None,
         description="ID пользователя.",
     )
-    email: EmailStr | None = Field(
-        default=None,
-        description="Электронная почта пользователя.",
-    )
-    permissions_ids: list[uuid.UUID] | None = Field(
+    permissions_ids: list[int] | None = Field(
         default=None,
         description="ID разрешений пользователя.",
     )

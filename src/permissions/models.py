@@ -1,9 +1,8 @@
 """Модулья для SQLAlchemy моделей для работы с разрешениями."""
 
-import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import TIMESTAMP, UUID
+from sqlalchemy import TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database import Base
@@ -15,9 +14,8 @@ class PermissionModel(Base):
 
     __tablename__ = "permissions"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID,
-        default=uuid.uuid4,
+    id: Mapped[int] = mapped_column(
+        autoincrement=True,
         primary_key=True,
         comment="ID разрешения.",
     )

@@ -27,7 +27,7 @@ class BaseTestRouter:
 
         app.include_router(self.router)
 
-        app.dependency_overrides[dependencies.get_session] = lambda: session
+        app.dependency_overrides[dependencies.get_db_session] = lambda: session
 
         transport = httpx.ASGITransport(app=app)
         async with httpx.AsyncClient(

@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Literal
 
 import jwt
+import sanic
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import src.auth.schemas as schemas
@@ -42,14 +43,14 @@ class JWTService:
             user_id = payload.get("id")
 
             if not user_id:
-                raise exceptions.InvalidTokenException()
+                raise exceptions.InvalidToken()
 
             return user_id
         except Exception as e:
             if isinstance(e, jwt.ExpiredSignatureError):
-                raise exceptions.TokenExpiredException()
+                raise exceptions.TokenExpired()
             else:
-                raise exceptions.InvalidTokenException()
+                raise exceptions.InvalidToken()
 
     # MARK: Create
     @classmethod
@@ -135,10 +136,10 @@ class JWTService:
             schemas.JWTGetSchema: Схема с access и refresh токенами.
 
         Raises:
-            InvalidTokenException: Невалидный токен `HTTP_401_UNAUTHORIZED`.
-            TokenExpiredException: Время действия токена истекло
+            InvalidToken: Невалидный токен `HTTP_401_UNAUTHORIZED`.
+            TokenExpired: Время действия токена истекло
                 `HTTP_401_UNAUTHORIZED`.
-            NotFoundException: Пользователь не найден.
+            NotFound: Пользователь не найден.
         """
 
         refresh_token = tokens_data.refresh_token.removeprefix("Bearer ")
@@ -151,6 +152,6 @@ class JWTService:
         )
 
         if user_db is None:
-            raise exceptions.NotFoundException()
+            raise sanic.exceptions.NotFound()
 
         return await cls.create_tokens(user_id=user_id)

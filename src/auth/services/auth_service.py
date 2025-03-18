@@ -2,11 +2,12 @@
 
 import json
 
+import sanic
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import src.auth.schemas as auth_schemas
 import src.users.schemas as user_schemas
-from src import constants, exceptions
+from src import constants
 from src.auth.services.jwt_service import JWTService
 from src.services.email_service import EmailService
 from src.services.hash_service import HashService
@@ -65,7 +66,7 @@ class AuthService:
             )
 
         except Exception as e:
-            raise exceptions.InternalServerErrorException(
+            raise sanic.exceptions.ServiceUnavailable(
                 "Не удалось отправить письмо на почту."
             ) from e
 
@@ -85,14 +86,14 @@ class AuthService:
             user (UserModel): модель пользователя.
 
         Raises:
-            BadRequestException: Нет действующих кодов подтверждения или код неверен.
+            BadRequest: Нет действующих кодов подтверждения или код неверен.
         """
 
         redis_key_hash = HashService.generate(f"2fa_code:{user.id}")
         raw_redis_value = await RedisService.get(redis_key_hash)
 
         if not raw_redis_value:
-            raise exceptions.BadRequestException(
+            raise sanic.exceptions.BadRequest(
                 "Нет действующих кодов подтверждения, отправьте новый код."
             )
 
@@ -101,7 +102,7 @@ class AuthService:
         )
         # Проверить количество попыток ввода кода
         if redis_value_schema.tries >= constants.TWO_FACTOR_MAX_CODE_TRIES:
-            raise exceptions.BadRequestException(
+            raise sanic.exceptions.BadRequest(
                 "Превышено количество попыток ввода кода."
             )
 
@@ -112,7 +113,7 @@ class AuthService:
                 redis_key_hash,
                 json.dumps(redis_value_schema.model_dump()),
             )
-            raise exceptions.BadRequestException("Неверный код.")
+            raise sanic.exceptions.BadRequest("Неверный код.")
 
         # Удалить код из Redis
         await RedisService.delete(redis_key_hash)
@@ -136,7 +137,7 @@ class AuthService:
             или сообщение о включении 2FA.
 
         Raises:
-            NotFoundException: Пользователь не найден.
+            NotFound: Пользователь не найден.
         """
 
         # Хэширование пароля
@@ -150,7 +151,7 @@ class AuthService:
         )
 
         if user is None:
-            raise exceptions.NotFoundException()
+            raise sanic.exceptions.NotFound()
 
         if user.is_2fa_enabled:
             return await cls._send_2fa_code(user)
@@ -178,8 +179,8 @@ class AuthService:
             JWTGetSchema: access и refresh токены пользователя.
 
         Raises:
-            NotFoundException: Пользователь не найден.
-            BadRequestException: 2FA не включена,
+            NotFound: Пользователь не найден.
+            BadRequest: 2FA не включена,
                 нет действующих кодов подтверждения или код неверен.
         """
 
@@ -189,10 +190,10 @@ class AuthService:
         )
 
         if user is None:
-            raise exceptions.NotFoundException()
+            raise sanic.exceptions.NotFound()
 
         if not user.is_2fa_enabled:
-            raise exceptions.BadRequestException("2FA не включено.")
+            raise sanic.exceptions.BadRequest("2FA не включено.")
 
         await cls._check_and_delete_2fa_code(code_schema.code, user)
 
@@ -218,6 +219,9 @@ class AuthService:
         Returns:
             dict[str, str]: Сообщение о включении 2FA или о том,
                 что письмо с кодом подтверждения уже отправлено.
+
+        Raises:
+            NotFound: Пользователь не найден.
         """
 
         user = await UserRepository.get_one_or_none(
@@ -226,7 +230,7 @@ class AuthService:
         )
 
         if user is None:
-            raise exceptions.NotFoundException()
+            raise sanic.exceptions.NotFound()
 
         return await cls._send_2fa_code(user)
 
@@ -250,8 +254,8 @@ class AuthService:
             dict[str, str]: Сообщение о включении или выключении 2FA.
 
         Raises:
-            NotFoundException: Пользователь не найден.
-            BadRequestException: 2FA не включено, нет действующих кодов подтверждения,
+            NotFound: Пользователь не найден.
+            BadRequest: 2FA не включено, нет действующих кодов подтверждения,
                 или код неверен.
         """
 
@@ -261,10 +265,10 @@ class AuthService:
         )
 
         if not user:
-            raise exceptions.NotFoundException()
+            raise sanic.exceptions.NotFound()
 
         if user.is_2fa_enabled == should_enable:
-            raise exceptions.BadRequestException(
+            raise sanic.exceptions.BadRequest(
                 f"2FA уже {'включено' if should_enable else 'выключено'}."
             )
 

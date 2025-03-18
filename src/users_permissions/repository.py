@@ -1,7 +1,5 @@
 """Модуль для репозитория с разрешениями пользователей."""
 
-import uuid
-
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -26,14 +24,14 @@ class UsersPermissionsRepository(
     async def delete_bulk(
         cls,
         session: AsyncSession,
-        user_id: uuid.UUID,
+        user_id: int,
     ):
         """
         Удалить все разрешения пользователя.
 
         Args:
             session (AsyncSession): Сессия для работы с базой данных.
-            user_id (uuid.UUID): ID пользователя.
+            user_id (int): ID пользователя.
         """
 
         await session.execute(

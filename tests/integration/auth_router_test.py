@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import src.auth.schemas as auth_schemas
 import src.users.schemas as user_schemas
-from src.auth.router import auth_router
+from auth.blueprint import auth_router
 from src.services.hash_service import HashService
 from src.users.models import UserModel
 from src.users.repository import UserRepository

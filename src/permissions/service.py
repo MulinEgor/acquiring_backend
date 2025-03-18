@@ -1,7 +1,5 @@
 """Модулья для сервисов для работы с разрешениями."""
 
-import uuid
-
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -29,14 +27,14 @@ class PermissionService(
     async def check_all_exist(
         cls,
         session: AsyncSession,
-        ids: list[uuid.UUID],
+        ids: list[int],
     ) -> bool:
         """
         Проверить, существуют ли все разрешения в БД.
 
         Args:
             session (AsyncSession): Сессия для работы с БД.
-            ids (list[uuid.UUID]): Список ID разрешений.
+            ids (list[int]): Список ID разрешений.
 
         Returns:
             bool: True, если все разрешения существуют, False в противном случае.
@@ -51,14 +49,14 @@ class PermissionService(
     async def get_all_by_ids(
         cls,
         session: AsyncSession,
-        ids: list[uuid.UUID],
+        ids: list[int],
     ) -> list[PermissionModel]:
         """
         Получить все разрешения по их ID.
 
         Args:
             session (AsyncSession): Сессия для работы с БД.
-            ids (list[uuid.UUID]): Список ID разрешений.
+            ids (list[int]): Список ID разрешений.
 
         Returns:
             list[PermissionModel]: Список разрешений.

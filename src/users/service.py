@@ -1,12 +1,10 @@
 """Модуль для сервиса пользователей."""
 
-import uuid
-
+from sanic import exceptions
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import src.users.schemas as schemas
-from src import exceptions
 from src.base.service import BaseService
 from src.permissions.service import PermissionService
 from src.services.hash_service import HashService
@@ -100,7 +98,7 @@ class UserService(
     async def update(
         cls,
         session: AsyncSession,
-        user_id: uuid.UUID,
+        user_id: int,
         data: schemas.UserUpdateSchema,
     ) -> schemas.UserGetSchema:
         """
@@ -108,7 +106,7 @@ class UserService(
 
         Args:
             session (AsyncSession): Сессия для работы с базой данных.
-            user_id (uuid.UUID): ID пользователя.
+            user_id (int): ID пользователя.
             data (UserUpdateSchema): Данные для обновления пользователя.
 
         Returns:

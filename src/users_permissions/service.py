@@ -1,12 +1,10 @@
 """Модуль для сервиса с разрешениями пользователей."""
 
-import uuid
-
+import sanic
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src import exceptions
 from src.permissions.models import PermissionModel
 from src.users_permissions import schemas
 from src.users_permissions.models import UsersPermissionsModel
@@ -23,16 +21,19 @@ class UsersPermissionsService:
     async def add_permissions_to_user(
         cls,
         session: AsyncSession,
-        user_id: uuid.UUID,
-        permission_ids: list[uuid.UUID],
+        user_id: int,
+        permission_ids: list[int],
     ):
         """
         Добавить разрешения пользователю, удалив все существующие.
 
         Args:
             session (AsyncSession): Сессия для работы с базой данных.
-            user_id (uuid.UUID): ID пользователя.
-            permission_ids (list[uuid.UUID]): ID разрешений.
+            user_id (int): ID пользователя.
+            permission_ids (list[int]): ID разрешений.
+
+        Raises:
+            BadRequest: Конфликт при добавлении разрешений.
         """
 
         # Удалить все разрешения пользователя
@@ -53,22 +54,22 @@ class UsersPermissionsService:
                     for permission_id in permission_ids
                 ],
             )
-        except IntegrityError as e:
-            raise exceptions.ConflictException(exc=e)
+        except IntegrityError:
+            raise sanic.exceptions.BadRequest()
 
     # MARK: Get
     @classmethod
     async def get_user_permissions(
         cls,
         session: AsyncSession,
-        user_id: uuid.UUID,
+        user_id: int,
     ) -> list[PermissionModel]:
         """
         Получить разрешения пользователя.
 
         Args:
             session (AsyncSession): Сессия для работы с базой данных.
-            user_id (uuid.UUID): ID пользователя.
+            user_id (int): ID пользователя.
 
         Returns:
             list[PermissionModel]: Список разрешений.

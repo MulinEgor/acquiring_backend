@@ -1,62 +1,81 @@
 """Основной модуль для конфигурации FastAPI."""
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from sanic import Sanic
 
-from src.auth.router import auth_router
-from src.constants import CORS_HEADERS, CORS_METHODS
-from src.healthcheck.router import health_check_router
-from src.permissions.router import permissions_router
+from src import constants, dependencies, middlewares
+from src.auth.blueprint import bp as auth_bp
 from src.settings import settings
-from src.users.router import users_router
+from src.users.blueprint import bp as users_bp
 
-app = FastAPI(
-    title="Бэкенд для системы эквайринга",
-    version=settings.APP_VERSION,
+app = Sanic(
+    name="payment-service-backend",
 )
 
 
-app.add_middleware(
-    middleware_class=CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=True,
-    allow_methods=CORS_METHODS,
-    allow_headers=CORS_HEADERS,
-)
+def setup_dependencies(app: Sanic) -> None:
+    """Настроить зависимости для приложения."""
+    app.ctx.get_db_session = dependencies.get_db_session
 
 
-available_routers = [
-    health_check_router,
-    auth_router,
-    users_router,
-    permissions_router,
-]
-
-for router in available_routers:
-    app.include_router(router=router, prefix="/api/v1")
+def setup_cors(app: Sanic) -> None:
+    """Настроить CORS для приложения."""
+    app.config.CORS_ORIGINS = settings.CORS_ORIGINS
+    app.config.CORS_METHODS = constants.CORS_METHODS
+    app.config.CORS_ALLOW_HEADERS = constants.CORS_HEADERS
+    app.config.CORS_SUPPORTS_CREDENTIALS = True
 
 
-@app.get(
-    path="/",
-    response_class=HTMLResponse,
-    tags=["Домашняя страница с ссылками на документацию"],
-)
-def home():
-    return f"""
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Бэкенд для системы эквайринга</title>
-    </head>
-    <body>
-        <h1>API в {settings.MODE} режиме</h1>
-        <ul>
-            <li><a href="/docs">Документация Swagger</a></li>
-            <li><a href="/redoc">Документация ReDoc</a></li>
-        </ul>
-    </body>
-    </html>
-    """
+def setup_middlewares(app: Sanic) -> None:
+    """Настроить middleware для приложения."""
+    app.register_middleware(middlewares.get_db_session_middleware, "request")
+
+
+def setup_auth(app: Sanic) -> None:
+    """Настроить авторизацию по JWT в swagger."""
+    app.ext.openapi.add_security_scheme(
+        "token",
+        "http",
+        scheme="bearer",
+        location="header",
+        bearer_format="JWT",
+    )
+
+
+def setup_blueprints(app: Sanic) -> None:
+    """Настроить blueprints для приложения."""
+    app.blueprint(users_bp)
+    app.blueprint(auth_bp)
+
+
+def setup_swagger(app: Sanic) -> None:
+    """Настроить swagger для приложения."""
+    app.config.API_TITLE = "API Documentation"
+    app.config.API_VERSION = "1.0.0"
+
+    app.config.API_UI = "swagger"
+
+    app.config.SWAGGER_UI_CONFIGURATION = {
+        "docExpansion": "none",
+        "defaultModelsExpandDepth": -1,
+        "defaultModelExpandDepth": 0,
+        "displayRequestDuration": False,
+        "filter": False,
+        "syntaxHighlight": {
+            "activate": False,
+        },
+    }
+
+
+@app.before_server_start
+def setup_app(app: Sanic) -> None:
+    """Настроить приложение."""
+    setup_cors(app)
+    setup_dependencies(app)
+    setup_middlewares(app)
+    setup_blueprints(app)
+    setup_auth(app)
+    setup_swagger(app)
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=80, auto_reload=True)

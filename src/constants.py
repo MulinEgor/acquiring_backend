@@ -3,7 +3,7 @@
 from sqlalchemy import TextClause, text
 
 # MARK: Security
-AUTH_HEADER_NAME: str = "X-Authorization"
+AUTH_HEADER_NAME: str = "Authorization"
 ALGORITHM: str = "HS256"
 
 CORS_HEADERS: list[str] = [
@@ -11,7 +11,7 @@ CORS_HEADERS: list[str] = [
     "Set-Cookie",
     "Access-Control-Allow-Headers",
     "Access-Control-Allow-Origin",
-    "X-Authorization",
+    AUTH_HEADER_NAME,
 ]
 CORS_METHODS: list[str] = [
     "GET",

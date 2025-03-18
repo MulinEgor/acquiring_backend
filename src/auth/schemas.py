@@ -1,6 +1,8 @@
 from datetime import datetime
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
+
+from src.base.schemas import EmailBaseSchema
 
 
 # MARK: JWT
@@ -19,17 +21,16 @@ class JWTGetSchema(JWTRefreshSchema):
 
 
 # MARK: 2FA
-class TwoFactorCodeCheckSchema(BaseModel):
+class TwoFactorCodeCheckSchema(EmailBaseSchema):
     """Pydantic схема для получения кода 2FA."""
 
-    email: EmailStr = Field(description="Email пользователя.")
     code: str = Field(description="Код 2FA.")
 
 
-class TwoFactorCodeSendSchema(BaseModel):
+class TwoFactorCodeSendSchema(EmailBaseSchema):
     """Pydantic схема для отправки кода 2FA."""
 
-    email: EmailStr = Field(description="Email пользователя.")
+    pass
 
 
 class Redis2FAValueSchema(BaseModel):
