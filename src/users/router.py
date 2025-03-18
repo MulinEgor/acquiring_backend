@@ -23,9 +23,7 @@ users_router = APIRouter(
 )
 async def get_current_user_route(
     user: UserModel = Depends(dependencies.get_current_user_or_none),
-    _: UserModel = Depends(
-        dependencies.check_user_permissions([PermissionEnum.GET_MY_USER])
-    ),
+    _=Depends(dependencies.check_user_permissions([PermissionEnum.GET_MY_USER])),
 ):
     """
     Получить данные текущего пользователя.
@@ -42,9 +40,7 @@ async def get_current_user_route(
 )
 async def get_user_by_id_route(
     id: str,
-    _: UserModel = Depends(
-        dependencies.check_user_permissions([PermissionEnum.GET_USER])
-    ),
+    _=Depends(dependencies.check_user_permissions([PermissionEnum.GET_USER])),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """
@@ -62,9 +58,7 @@ async def get_user_by_id_route(
 )
 async def get_users_by_admin_route(
     query_params: schemas.UsersPaginationSchema = Query(),
-    _: UserModel = Depends(
-        dependencies.check_user_permissions([PermissionEnum.GET_USER])
-    ),
+    _=Depends(dependencies.check_user_permissions([PermissionEnum.GET_USER])),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """
@@ -83,9 +77,7 @@ async def get_users_by_admin_route(
 )
 async def create_user_by_admin_route(
     data: schemas.UserCreateSchema,
-    _: UserModel = Depends(
-        dependencies.check_user_permissions([PermissionEnum.CREATE_USER])
-    ),
+    _=Depends(dependencies.check_user_permissions([PermissionEnum.CREATE_USER])),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """
@@ -105,9 +97,7 @@ async def create_user_by_admin_route(
 async def update_user_by_admin_route(
     id: str,
     data: schemas.UserUpdateSchema,
-    _: UserModel = Depends(
-        dependencies.check_user_permissions([PermissionEnum.UPDATE_USER])
-    ),
+    _=Depends(dependencies.check_user_permissions([PermissionEnum.UPDATE_USER])),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """
@@ -126,9 +116,7 @@ async def update_user_by_admin_route(
 )
 async def delete_user_by_admin_route(
     id: str,
-    _: UserModel = Depends(
-        dependencies.check_user_permissions([PermissionEnum.DELETE_USER])
-    ),
+    _=Depends(dependencies.check_user_permissions([PermissionEnum.DELETE_USER])),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """

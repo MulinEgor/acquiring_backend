@@ -1,8 +1,8 @@
 """seeds
 
-Revision ID: 91b745f5bf2c
-Revises: 72657a81baf7
-Create Date: 2025-03-15 12:11:27.138880+00:00
+Revision ID: cd0c0d328985
+Revises: 578db02b3c33
+Create Date: 2025-03-18 09:07:51.575160+00:00
 
 """
 
@@ -19,8 +19,8 @@ from src.users.models import UserModel
 from src.users_permissions.models import UsersPermissionsModel
 
 # revision identifiers, used by Alembic.
-revision: str = "91b745f5bf2c"
-down_revision: Union[str, None] = "72657a81baf7"
+revision: str = "cd0c0d328985"
+down_revision: Union[str, None] = "578db02b3c33"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

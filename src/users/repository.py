@@ -49,12 +49,6 @@ class UserRepository(
         if query_params.permissions_ids:
             raise NotImplementedError("Фильтрация по разрешениям не реализована.")
 
-        # Сортировка по дате создания.
-        if not query_params.asc:
-            stmt = stmt.order_by(UserModel.created_at.desc())
-        else:
-            stmt = stmt.order_by(UserModel.created_at)
-
         # Фильтрация по флагу активности.
         if query_params.is_active is not None:
             stmt = stmt.where(UserModel.is_active == query_params.is_active)
@@ -62,5 +56,11 @@ class UserRepository(
         # Фильтрация по флагу 2FA.
         if query_params.is_2fa_enabled is not None:
             stmt = stmt.where(UserModel.is_2fa_enabled == query_params.is_2fa_enabled)
+
+        # Сортировка по дате создания.
+        if not query_params.asc:
+            stmt = stmt.order_by(UserModel.created_at.desc())
+        else:
+            stmt = stmt.order_by(UserModel.created_at)
 
         return stmt

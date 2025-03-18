@@ -9,6 +9,7 @@ from src.healthcheck.router import health_check_router
 from src.permissions.router import permissions_router
 from src.settings import settings
 from src.users.router import users_router
+from src.wallets.router import wallets_router
 
 app = FastAPI(
     title="Бэкенд для системы эквайринга",
@@ -30,6 +31,7 @@ available_routers = [
     auth_router,
     users_router,
     permissions_router,
+    wallets_router,
 ]
 
 for router in available_routers:

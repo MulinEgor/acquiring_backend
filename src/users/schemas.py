@@ -163,10 +163,3 @@ class UsersPaginationSchema(PaginationBaseSchema):
         default=None,
         description="Является ли 2FA включенным.",
     )
-    asc: bool = Field(
-        default=False,
-        description=(
-            "Порядок сортировки пользователей по дате создания. "
-            "По умолчанию — от новых к старым."
-        ),
-    )

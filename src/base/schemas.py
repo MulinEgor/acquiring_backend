@@ -16,6 +16,10 @@ class PaginationBaseSchema(BaseModel):
         default=constants.DEFAULT_QUERY_LIMIT,
         description="Размер выборки.",
     )
+    asc: bool | None = Field(
+        default=True,
+        description="Сортировка по возрастанию.",
+    )
 
 
 class DataListGetBaseSchema(BaseModel):

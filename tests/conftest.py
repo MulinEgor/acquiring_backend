@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import (
 
 import src.auth.schemas as auth_schemas
 import src.users.schemas as user_schemas
+import src.wallets.schemas as wallet_schemas
 from src.auth.services.jwt_service import JWTService
 from src.permissions import schemas as permission_schemas
 from src.permissions.enums import PermissionEnum
@@ -27,6 +28,7 @@ from src.services.hash_service import HashService
 from src.settings import settings
 from src.users.models import UserModel
 from src.users_permissions.repository import UsersPermissionsRepository
+from src.wallets.models import WalletModel
 
 faker = Faker()
 
@@ -263,3 +265,26 @@ async def admin_jwt_tokens(user_admin_db: UserModel) -> auth_schemas.JWTGetSchem
     """Создать JWT токены  для тестового пользователя-администратора."""
 
     return await JWTService.create_tokens(user_id=user_admin_db.id)
+
+
+# MARK: Wallets
+@pytest_asyncio.fixture
+async def wallet_db(session: AsyncSession) -> WalletModel:
+    """Добавить кошелек в БД."""
+
+    wallet = WalletModel(
+        address="*" * 42,  # тестовая строка с нужной длинойs
+    )
+    session.add(wallet)
+    await session.commit()
+
+    return wallet
+
+
+@pytest_asyncio.fixture
+async def wallet_create_data() -> wallet_schemas.WalletCreateSchema:
+    """Подготовленные данные для создания кошелька в БД."""
+
+    return wallet_schemas.WalletCreateSchema(
+        address="*" * 42,  # тестовая строка с нужной длинойs
+    )

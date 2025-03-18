@@ -1,4 +1,4 @@
-"""Модуль для тестирования роутера src.users.routes.user_routes"""
+"""Модуль для тестирования роутера users_router."""
 
 import httpx
 from fastapi import status
@@ -14,7 +14,7 @@ from tests.integration.conftest import BaseTestRouter
 
 
 class TestUserRouter(BaseTestRouter):
-    """Класс для тестирования роутера user_router."""
+    """Класс для тестирования роутера users_router."""
 
     router = users_router
 

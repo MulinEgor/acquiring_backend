@@ -18,3 +18,8 @@ class PermissionEnum(StrEnum):
     CREATE_PERMISSION = "создать разрешение"
     UPDATE_PERMISSION = "обновить разрешение"
     DELETE_PERMISSION = "удалить разрешение"
+
+    # MARK: Wallet
+    GET_WALLET = "получить кошелек"
+    CREATE_WALLET = "создать кошелек"
+    DELETE_WALLET = "удалить кошелек"

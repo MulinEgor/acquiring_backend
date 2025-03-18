@@ -93,7 +93,7 @@ async def get_current_user_or_none(
 
 def check_user_permissions(
     permissions: list[PermissionEnum],
-):
+) -> None:
     """
     Декоратор для проверки наличия разрешений у пользователя.
 

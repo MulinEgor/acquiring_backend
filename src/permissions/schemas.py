@@ -33,10 +33,6 @@ class PermissionPaginationSchema(PaginationBaseSchema):
         default=None,
         description="Название разрешения.",
     )
-    asc: bool = Field(
-        default=True,
-        description="Сортировка по дате создания.",
-    )
 
 
 class PermissionListGetSchema(DataListGetBaseSchema):
