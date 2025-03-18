@@ -1,6 +1,6 @@
 """Модуль для маршрутов авторизации пользователей."""
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, BackgroundTasks, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import src.auth.schemas as auth_schemas
@@ -20,6 +20,7 @@ auth_router = APIRouter(prefix="/auth", tags=["Авторизация"])
 )
 async def login_route(
     schema: user_schemas.UserLoginSchema,
+    background_tasks: BackgroundTasks,
     session: AsyncSession = Depends(dependencies.get_session),
 ) -> auth_schemas.JWTGetSchema | dict[str, str]:
     """
@@ -29,7 +30,7 @@ async def login_route(
 
     Не требуется разрешений.
     """
-    return await AuthService.login(session, schema)
+    return await AuthService.login(session, background_tasks, schema)
 
 
 @auth_router.patch(
@@ -56,6 +57,7 @@ async def login_2fa_route(
 )
 async def send_2fa_code_route(
     schema: auth_schemas.TwoFactorCodeSendSchema,
+    background_tasks: BackgroundTasks,
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """
@@ -65,7 +67,9 @@ async def send_2fa_code_route(
 
     Не требуется разрешений.
     """
-    return await AuthService.send_2fa_code(session, schema.email)
+    return await AuthService.send_2fa_code(
+        session, background_tasks, email=schema.email
+    )
 
 
 @auth_router.patch(

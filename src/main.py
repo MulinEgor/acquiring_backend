@@ -2,7 +2,6 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
 
 from src.auth.router import auth_router
 from src.constants import CORS_HEADERS, CORS_METHODS
@@ -35,28 +34,3 @@ available_routers = [
 
 for router in available_routers:
     app.include_router(router=router, prefix="/api/v1")
-
-
-@app.get(
-    path="/",
-    response_class=HTMLResponse,
-    tags=["Домашняя страница с ссылками на документацию"],
-)
-def home():
-    return f"""
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Бэкенд для системы эквайринга</title>
-    </head>
-    <body>
-        <h1>API в {settings.MODE} режиме</h1>
-        <ul>
-            <li><a href="/docs">Документация Swagger</a></li>
-            <li><a href="/redoc">Документация ReDoc</a></li>
-        </ul>
-    </body>
-    </html>
-    """

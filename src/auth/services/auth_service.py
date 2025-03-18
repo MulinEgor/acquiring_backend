@@ -2,6 +2,7 @@
 
 import json
 
+from fastapi import BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import src.auth.schemas as auth_schemas
@@ -24,6 +25,7 @@ class AuthService:
     async def _send_2fa_code(
         cls,
         user: UserModel,
+        background_tasks: BackgroundTasks,
     ) -> dict[str, str]:
         """
         Обрабатывает попытку входа с 2FA.
@@ -31,6 +33,8 @@ class AuthService:
 
         Args:
             user (UserModel): Модель пользователя.
+            background_tasks (BackgroundTasks):
+                Задачи для выполнения в фоне (передается из роута).
 
         Returns:
             dict[str, str]: Сообщение о включении 2FA или о том,
@@ -56,18 +60,13 @@ class AuthService:
             ),
         )
 
-        # Отправить письмо с кодом подтверждения на почту
-        try:
-            EmailService.send(
-                user.email,
-                constants.TWO_FACTOR_LOGIN_CONFIRM_SUBJECT,
-                constants.TWO_FACTOR_LOGIN_CONFIRM_MESSAGE.format(code=code),
-            )
-
-        except Exception as e:
-            raise exceptions.InternalServerErrorException(
-                "Не удалось отправить письмо на почту."
-            ) from e
+        # Добавить отправку письма в фоновую задачу
+        background_tasks.add_task(
+            EmailService.send,
+            user.email,
+            constants.TWO_FACTOR_LOGIN_CONFIRM_SUBJECT,
+            constants.TWO_FACTOR_LOGIN_CONFIRM_MESSAGE.format(code=code),
+        )
 
         return {"message": "Письмо с кодом подтверждения отправлено на почту."}
 
@@ -122,6 +121,7 @@ class AuthService:
     async def login(
         cls,
         session: AsyncSession,
+        background_tasks: BackgroundTasks,
         schema: user_schemas.UserLoginSchema,
     ) -> auth_schemas.JWTGetSchema | dict[str, str]:
         """
@@ -129,6 +129,8 @@ class AuthService:
 
         Args:
             session (AsyncSession): Сессия для работы с базой данных.
+            background_tasks (BackgroundTasks):
+                Задачи для выполнения в фоне (передается из роута).
             schema (UserLoginSchema): данные для авторизации пользователя.
 
         Returns:
@@ -153,7 +155,7 @@ class AuthService:
             raise exceptions.NotFoundException()
 
         if user.is_2fa_enabled:
-            return await cls._send_2fa_code(user)
+            return await cls._send_2fa_code(user, background_tasks)
 
         # Создание токенов
         tokens = await JWTService.create_tokens(user_id=user.id)
@@ -206,6 +208,7 @@ class AuthService:
     async def send_2fa_code(
         cls,
         session: AsyncSession,
+        background_tasks: BackgroundTasks,
         email: str,
     ) -> dict[str, str]:
         """
@@ -213,6 +216,8 @@ class AuthService:
 
         Args:
             session (AsyncSession): сессия для работы с базой данных.
+            background_tasks (BackgroundTasks):
+                Задачи для выполнения в фоне (передается из роута).
             email (str): email пользователя.
 
         Returns:
@@ -228,7 +233,7 @@ class AuthService:
         if user is None:
             raise exceptions.NotFoundException()
 
-        return await cls._send_2fa_code(user)
+        return await cls._send_2fa_code(user, background_tasks)
 
     # MARK: Enable/disable 2FA
     @classmethod
