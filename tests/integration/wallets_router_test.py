@@ -4,12 +4,12 @@ import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import src.auth.schemas as auth_schemas
-import src.wallets.schemas as wallet_schemas
-from src import constants
-from src.wallets.models import WalletModel
-from src.wallets.repository import WalletRepository
-from src.wallets.router import wallets_router
+import src.modules.auth.schemas as auth_schemas
+import src.modules.wallets.schemas as wallet_schemas
+from src.core import constants
+from src.modules.wallets.models import WalletModel
+from src.modules.wallets.repository import WalletRepository
+from src.modules.wallets.router import wallets_router
 from tests.integration.conftest import BaseTestRouter
 
 
@@ -29,7 +29,7 @@ class TestWalletsRouter(BaseTestRouter):
         """Тест на создание кошелька."""
 
         mocker.patch(
-            "src.services.tron_scan_service.TronScanService.does_wallet_exist",
+            "src.modules.blockchain.services.tron_service.TronService.does_wallet_exist",
             return_value=True,
         )
 

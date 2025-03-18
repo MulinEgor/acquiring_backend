@@ -16,19 +16,20 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-import src.auth.schemas as auth_schemas
-import src.users.schemas as user_schemas
-import src.wallets.schemas as wallet_schemas
-from src.auth.services.jwt_service import JWTService
-from src.permissions import schemas as permission_schemas
-from src.permissions.enums import PermissionEnum
-from src.permissions.models import PermissionModel
-from src.permissions.repository import PermissionRepository
-from src.services.hash_service import HashService
-from src.settings import settings
-from src.users.models import UserModel
-from src.users_permissions.repository import UsersPermissionsRepository
-from src.wallets.models import WalletModel
+import src.modules.auth.schemas as auth_schemas
+import src.modules.users.schemas as user_schemas
+import src.modules.wallets.schemas as wallet_schemas
+from src.core import constants
+from src.core.settings import settings
+from src.modules.auth.services.jwt_service import JWTService
+from src.modules.blockchain.models import BlockchainTransactionModel, TypeEnum
+from src.modules.permissions import schemas as permission_schemas
+from src.modules.permissions.models import PermissionModel
+from src.modules.permissions.repository import PermissionRepository
+from src.modules.services.hash_service import HashService
+from src.modules.users.models import UserModel
+from src.modules.users_permissions.repository import UsersPermissionsRepository
+from src.modules.wallets.models import WalletModel
 
 faker = Faker()
 
@@ -92,7 +93,7 @@ async def session(engine: AsyncEngine) -> AsyncGenerator[AsyncSession, None]:
 
 
 @pytest.fixture()
-async def task_session(
+def task_session(
     session: AsyncSession,
     mocker,
 ) -> AsyncSession:
@@ -142,8 +143,8 @@ async def permission_db(session: AsyncSession) -> PermissionModel:
     return permission
 
 
-@pytest_asyncio.fixture
-async def permission_create_data() -> permission_schemas.PermissionCreateSchema:
+@pytest.fixture
+def permission_create_data() -> permission_schemas.PermissionCreateSchema:
     """Подготовленные данные для создания разрешения в БД."""
 
     return permission_schemas.PermissionCreateSchema(
@@ -164,7 +165,7 @@ async def user_db(session: AsyncSession) -> UserModel:
     session.add(user_db)
     await session.commit()
 
-    user_permissions = [PermissionEnum.GET_MY_USER]
+    user_permissions = [constants.PermissionEnum.GET_MY_USER]
     for permission in user_permissions:
         permission_db = await PermissionRepository.get_one_or_none(
             session=session,
@@ -226,7 +227,44 @@ async def user_admin_db(
 
 
 @pytest_asyncio.fixture
-async def user_create_data(
+async def user_trader_db(
+    session: AsyncSession,
+) -> UserModel:
+    """Добавить пользователя-трейдера в БД."""
+
+    user_trader = UserModel(
+        id=str(uuid.uuid4()),
+        email=faker.email(),
+        hashed_password=HashService.generate(faker.password()),
+    )
+    session.add(user_trader)
+
+    await session.commit()
+
+    trader_permissions = [
+        constants.PermissionEnum.REQUEST_PAY_IN_TRADER,
+        constants.PermissionEnum.CONFIRM_PAY_IN_TRADER,
+    ]
+    permissions = await PermissionRepository.get_all(session)
+    await UsersPermissionsRepository.create_bulk(
+        session=session,
+        data=[
+            {
+                "user_id": user_trader.id,
+                "permission_id": permission.id,
+            }
+            for permission in permissions
+            if permission.name in trader_permissions
+        ],
+    )
+
+    await session.commit()
+
+    return user_trader
+
+
+@pytest.fixture
+def user_create_data(
     permission_db: PermissionModel,
 ) -> user_schemas.UserCreateSchema:
     """
@@ -240,8 +278,8 @@ async def user_create_data(
     )
 
 
-@pytest_asyncio.fixture
-async def user_update_data() -> user_schemas.UserUpdateSchema:
+@pytest.fixture
+def user_update_data() -> user_schemas.UserUpdateSchema:
     """
     Подготовленные данные для обновления
     пользователя в БД администратором.
@@ -267,6 +305,13 @@ async def admin_jwt_tokens(user_admin_db: UserModel) -> auth_schemas.JWTGetSchem
     return await JWTService.create_tokens(user_id=user_admin_db.id)
 
 
+@pytest_asyncio.fixture
+async def trader_jwt_tokens(user_trader_db: UserModel) -> auth_schemas.JWTGetSchema:
+    """Создать JWT токены  для тестового пользователя-трейдера."""
+
+    return await JWTService.create_tokens(user_id=user_trader_db.id)
+
+
 # MARK: Wallets
 @pytest_asyncio.fixture
 async def wallet_db(session: AsyncSession) -> WalletModel:
@@ -281,10 +326,30 @@ async def wallet_db(session: AsyncSession) -> WalletModel:
     return wallet
 
 
-@pytest_asyncio.fixture
-async def wallet_create_data() -> wallet_schemas.WalletCreateSchema:
+@pytest.fixture
+def wallet_create_data() -> wallet_schemas.WalletCreateSchema:
     """Подготовленные данные для создания кошелька в БД."""
 
     return wallet_schemas.WalletCreateSchema(
         address="*" * 42,  # тестовая строка с нужной длинойs
     )
+
+
+# MARK: Blockchain transactions
+@pytest_asyncio.fixture
+async def blockchain_transaction_db(
+    session: AsyncSession,
+    user_trader_db: UserModel,
+) -> BlockchainTransactionModel:
+    """Добавить транзакцию в БД."""
+
+    transaction = BlockchainTransactionModel(
+        user_id=user_trader_db.id,
+        to_address="*" * 42,  # тестовая строка с нужной длиной
+        amount=100,
+        type=TypeEnum.PAY_IN,
+    )
+    session.add(transaction)
+    await session.commit()
+
+    return transaction

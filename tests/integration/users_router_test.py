@@ -4,12 +4,12 @@ import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import src.auth.schemas as auth_schemas
-import src.users.schemas as user_schemas
-from src import constants
-from src.users.models import UserModel
-from src.users.repository import UserRepository
-from src.users.router import users_router
+import src.modules.auth.schemas as auth_schemas
+import src.modules.users.schemas as user_schemas
+from src.core import constants
+from src.modules.users.models import UserModel
+from src.modules.users.repository import UserRepository
+from src.modules.users.router import users_router
 from tests.integration.conftest import BaseTestRouter
 
 

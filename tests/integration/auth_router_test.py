@@ -4,12 +4,12 @@ import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import src.auth.schemas as auth_schemas
-import src.users.schemas as user_schemas
-from src.auth.router import auth_router
-from src.services.hash_service import HashService
-from src.users.models import UserModel
-from src.users.repository import UserRepository
+import src.modules.auth.schemas as auth_schemas
+import src.modules.users.schemas as user_schemas
+from src.modules.auth.router import auth_router
+from src.modules.services.hash_service import HashService
+from src.modules.users.models import UserModel
+from src.modules.users.repository import UserRepository
 from tests.conftest import faker
 from tests.integration.conftest import BaseTestRouter
 
@@ -61,7 +61,7 @@ class TestAuthRouter(BaseTestRouter):
         """Проверка авторизации пользователя с 2FA, должен вернуться словарь."""
 
         mocker.patch(
-            "src.auth.services.auth_service.AuthService._send_2fa_code",
+            "src.modules.auth.services.auth_service.AuthService._send_2fa_code",
             return_value={
                 "message": "Письмо с кодом подтверждения отправлено на почту."
             },
@@ -101,7 +101,7 @@ class TestAuthRouter(BaseTestRouter):
         """Проверка подтверждения авторизации пользователя с 2FA."""
 
         mocker.patch(
-            "src.auth.services.auth_service.AuthService._check_and_delete_2fa_code",
+            "src.modules.auth.services.auth_service.AuthService._check_and_delete_2fa_code",
             return_value=None,
         )
 
@@ -131,7 +131,7 @@ class TestAuthRouter(BaseTestRouter):
         """Проверка включения 2FA."""
 
         mocker.patch(
-            "src.auth.services.auth_service.AuthService._check_and_delete_2fa_code",
+            "src.modules.auth.services.auth_service.AuthService._check_and_delete_2fa_code",
             return_value=None,
         )
 
@@ -158,7 +158,7 @@ class TestAuthRouter(BaseTestRouter):
         """Проверка включения 2FA."""
 
         mocker.patch(
-            "src.auth.services.auth_service.AuthService._check_and_delete_2fa_code",
+            "src.modules.auth.services.auth_service.AuthService._check_and_delete_2fa_code",
             return_value=None,
         )
 
