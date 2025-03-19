@@ -1,13 +1,14 @@
 """Модуль для моделей транзакций на блокчейне."""
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 
 from sqlalchemy import TIMESTAMP, UUID, ForeignKey, Integer, String
 from sqlalchemy import Enum as SQLAlchemyEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from src.core import constants
 from src.core.database import Base
 
 
@@ -42,6 +43,11 @@ class BlockchainTransactionModel(Base):
     )
     hash: Mapped[str] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now)
+    expires_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP,
+        default=lambda: datetime.now()
+        + timedelta(seconds=constants.PENDING_BLOCKCHAIN_TRANSACTION_TIMEOUT),
+    )
     updated_at: Mapped[datetime] = mapped_column(
         TIMESTAMP, default=datetime.now, onupdate=datetime.now
     )

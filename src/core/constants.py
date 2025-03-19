@@ -85,3 +85,6 @@ TRON_JRPC_VERSION: str = "2.0"
 TRON_GET_TRANSACTION_BY_HASH_METHOD: str = "eth_getTransactionByHash"
 TRON_GET_BALANCE_METHOD: str = "eth_getBalance"
 TRON_GET_BLOCK_BY_HASH_METHOD: str = "eth_getBlockByHash"
+
+# MARK: Blockchain transactions
+PENDING_BLOCKCHAIN_TRANSACTION_TIMEOUT: int = 60 * 60 * 24  # 1 день

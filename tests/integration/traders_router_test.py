@@ -1,5 +1,7 @@
 """Модуль для тестирования роутера traders_router."""
 
+from datetime import datetime, timedelta
+
 import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -137,7 +139,7 @@ class TestTradersRouter(BaseTestRouter):
             == trader_balance_before + blockchain_transaction_db.amount
         )
 
-    async def test_confirm_pay_in_failed(
+    async def test_confirm_pay_in_wrong_credentials(
         self,
         router_client: httpx.AsyncClient,
         trader_jwt_tokens: auth_schemas.JWTGetSchema,
@@ -172,6 +174,59 @@ class TestTradersRouter(BaseTestRouter):
         )
 
         assert response.status_code == status.HTTP_409_CONFLICT
+
+        assert (
+            await BlockchainTransactionRepository.get_one_or_none(
+                session=session,
+                user_id=user_trader_db.id,
+            )
+        ).status == StatusEnum.FAILED
+
+        await session.refresh(user_trader_db)
+        assert (
+            user_trader_db.balance
+            != trader_balance_before + blockchain_transaction_db.amount
+        )
+
+    async def test_confirm_pay_in_expired(
+        self,
+        router_client: httpx.AsyncClient,
+        trader_jwt_tokens: auth_schemas.JWTGetSchema,
+        session: AsyncSession,
+        user_trader_db: UserModel,
+        blockchain_transaction_db: BlockchainTransactionModel,
+        mocker,
+    ):
+        """
+        Тест на подтверждение пополнения средств как трейдер,
+        когда транзакция просрочена.
+        """
+
+        blockchain_transaction_db.expires_at = datetime.now() - timedelta(
+            seconds=constants.PENDING_BLOCKCHAIN_TRANSACTION_TIMEOUT + 1
+        )
+
+        mocker.patch(
+            "src.modules.blockchain.services.tron_service.TronService.get_transaction_by_hash",
+            return_value={
+                "transaction_hash": "123",
+                "amount": blockchain_transaction_db.amount,
+                "from_address": "0" * 42,
+                "to_address": blockchain_transaction_db.to_address,
+                "created_at": faker.date_time(),
+            },
+        )
+
+        trader_balance_before = user_trader_db.balance
+        response = await router_client.post(
+            "/traders/confirm-pay-in",
+            headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
+            json=traders_schemas.ConfirmPayInSchema(
+                transaction_hash="123"
+            ).model_dump(),
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
 
         assert (
             await BlockchainTransactionRepository.get_one_or_none(

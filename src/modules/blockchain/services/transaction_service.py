@@ -1,6 +1,7 @@
 """Сервис для работы с транзакциями на блокчейне."""
 
 import uuid
+from datetime import datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -74,7 +75,7 @@ class BlockchainTransactionService(
             Транзакция.
 
         Raises:
-            NotFoundException: Транзакция не найдена.
+            NotFoundException: Транзакция не найдена или просрочена.
         """
 
         transaction_db = await cls.repository.get_one_or_none(
@@ -85,5 +86,16 @@ class BlockchainTransactionService(
 
         if not transaction_db:
             raise exceptions.NotFoundException("Транзакций в процессе обработки нет.")
+
+        elif transaction_db.expires_at < datetime.now():
+            await cls.update_status_by_id(
+                session=session,
+                id=transaction_db.id,
+                status=StatusEnum.FAILED,
+            )
+
+            raise exceptions.NotFoundException(
+                "Транзакция в процессе обработки просрочена."
+            )
 
         return transaction_db
