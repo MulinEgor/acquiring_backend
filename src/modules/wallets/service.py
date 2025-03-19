@@ -1,5 +1,6 @@
 """Модуль для работы с сервисами кошельков."""
 
+from loguru import logger
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -40,7 +41,10 @@ class WalletService(
         Returns: Кошелек.
         """
 
+        logger.info("Создание кошелька: {}", data)
+
         if not await TronService.does_wallet_exist(data.address):
+            logger.warning("Кошелек не существует на блокчейне: {}", data.address)
             raise exceptions.BadRequestException("Кошелек не существует на блокчейне.")
 
         return await super().create(session, data)
@@ -59,12 +63,17 @@ class WalletService(
         Returns: Кошелек.
         """
 
+        logger.info("Получение кошелька по адресу: {}", address)
+
         wallet = await cls.repository.get_one_or_none(
             session, WalletModel.address == address
         )
 
         if not wallet:
-            raise exceptions.NotFoundException()
+            logger.warning("Кошелек с адресом: {} не найден", address)
+            raise exceptions.NotFoundException("Кошелек не найден.")
+
+        logger.success("Кошелек с адресом: {} найден", address)
 
         return schemas.WalletGetSchema.model_validate(wallet)
 
@@ -80,7 +89,12 @@ class WalletService(
         Raises:
             NotFoundException: Кошелек не найден.
         """
+
+        logger.info("Удаление кошелька по адресу: {}", address)
+
         await cls.get_by_address(session, address)
 
         await session.execute(delete(WalletModel).where(WalletModel.address == address))
         await session.commit()
+
+        logger.success("Кошелек с адресом: {} удален", address)

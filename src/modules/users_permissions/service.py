@@ -2,6 +2,7 @@
 
 import uuid
 
+from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -35,6 +36,13 @@ class UsersPermissionsService:
             permission_ids (list[uuid.UUID]): ID разрешений.
         """
 
+        logger.info(
+            "Добавление разрешений пользователю с ID: {} \
+             разрешениями: {}",
+            user_id,
+            permission_ids,
+        )
+
         # Удалить все разрешения пользователя
         await cls.repository.delete_bulk(
             session,
@@ -53,8 +61,23 @@ class UsersPermissionsService:
                     for permission_id in permission_ids
                 ],
             )
+
         except IntegrityError as e:
+            logger.warning(
+                "Ошибка при добавлении разрешений пользователю с ID: {} \
+                 разрешениями: {}",
+                user_id,
+                permission_ids,
+                exc=e,
+            )
             raise exceptions.ConflictException(exc=e)
+
+        logger.success(
+            "Разрешения добавлены пользователю с ID: {} \
+             разрешениями: {}",
+            user_id,
+            permission_ids,
+        )
 
     # MARK: Get
     @classmethod
@@ -74,11 +97,21 @@ class UsersPermissionsService:
             list[PermissionModel]: Список разрешений.
         """
 
+        logger.info(
+            "Получение разрешений для пользователя с ID: {}",
+            user_id,
+        )
+
         user_permissions = await cls.repository.get_all_with_pagination_from_stmt(
             session,
             stmt=select(UsersPermissionsModel).where(
                 UsersPermissionsModel.user_id == user_id,
             ),
+        )
+
+        logger.success(
+            "Разрешения получены для пользователя с ID: {}",
+            user_id,
         )
 
         return [permission.permission for permission in user_permissions]

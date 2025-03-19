@@ -45,6 +45,7 @@ class JWTService:
                 raise exceptions.InvalidTokenException()
 
             return user_id
+
         except Exception as e:
             if isinstance(e, jwt.ExpiredSignatureError):
                 raise exceptions.TokenExpiredException()

@@ -2,6 +2,7 @@
 
 from typing import Literal
 
+from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core import exceptions
@@ -41,6 +42,11 @@ class TraderService:
             NotFoundException: Нет кошельков, куда можно перевести средства.
         """
 
+        logger.info(
+            "Получение адреса кошелька с наименьшим или наибольшим балансом: {}",
+            min_or_max,
+        )
+
         wallets_addresses = [
             wallet.address
             for wallet in (
@@ -48,6 +54,7 @@ class TraderService:
             ).data
         ]
         if not wallets_addresses:
+            logger.warning("Не найдены кошельки для перевода средств.")
             raise exceptions.NotFoundException(
                 "Не найдены кошельки для перевода средств."
             )
@@ -83,6 +90,8 @@ class TraderService:
             ConflictException: Не удалось создать транзакцию или уже есть одна.
         """
 
+        logger.info("Запрос на перевод средств: {}", amount)
+
         # Проверка на наличие транзакции в процессе обработки в БД
         try:
             await BlockchainTransactionService.get_pending_by_user_id(
@@ -90,6 +99,9 @@ class TraderService:
                 user_id=user.id,
             )
 
+            logger.warning(
+                "У пользователя: {} уже есть транзакция в процессе обработки.", user.id
+            )
             raise exceptions.ConflictException(
                 "У вас уже есть транзакция в процессе обработки."
             )
@@ -113,6 +125,8 @@ class TraderService:
             ),
         )
 
+        logger.success("Транзакция создана для пользователя с ID: {}", user.id)
+
         return schemas.ResponsePayInSchema(wallet_address=wallet_address)
 
     @classmethod
@@ -134,6 +148,8 @@ class TraderService:
             NotFoundException: Транзакция не найдена.
             ConflictException: Не удалось обновить статус транзакции.
         """
+
+        logger.info("Подтверждение перевода средств от пользователя с ID: {}", user.id)
 
         # Получение транзакции в процессе обработки из БД
         transaction_db = await BlockchainTransactionService.get_pending_by_user_id(
@@ -159,6 +175,13 @@ class TraderService:
             or transaction_db.to_address != transaction["to_address"]
             or transaction_db.type != TypeEnum.PAY_IN
         ):
+            logger.warning(
+                "Транзакция с хэшем: {} \
+                 не соответствует ожидаемой для пользователя с ID: {}",
+                transaction_hash,
+                user.id,
+            )
+
             await BlockchainTransactionService.update_status_by_id(
                 session=session,
                 id=transaction_db.id,
@@ -181,3 +204,8 @@ class TraderService:
         # Зачисление средств на счет пользователя
         user.balance += transaction_db.amount
         await session.commit()
+
+        logger.success(
+            "Средства зачислены на счет пользователя с ID: {}",
+            user.id,
+        )

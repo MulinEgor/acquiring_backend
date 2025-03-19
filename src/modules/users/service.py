@@ -2,6 +2,7 @@
 
 import uuid
 
+from loguru import logger
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -52,6 +53,8 @@ class UserService(
             ConflictException: Пользователь уже существует.
         """
 
+        logger.info("Создание пользователя: {}", data)
+
         # Проверка существования разрешений
         if not await PermissionService.check_all_exist(
             session=session,
@@ -78,17 +81,21 @@ class UserService(
             )
 
             # Добавление разрешений пользователю
-            await UsersPermissionsService.add_permissions_to_user(
-                session=session,
-                user_id=user.id,
-                permission_ids=data.permissions_ids,
-            )
+            if data.permissions_ids:
+                await UsersPermissionsService.add_permissions_to_user(
+                    session=session,
+                    user_id=user.id,
+                    permission_ids=data.permissions_ids,
+                )
 
             await session.commit()
             await session.refresh(user)
 
         except IntegrityError as ex:
+            logger.warning("Ошибка при создании пользователя: {}", ex)
             raise exceptions.ConflictException(exc=ex)
+
+        logger.success("Пользователь создан с ID: {}", user.id)
 
         return schemas.UserCreatedGetSchema(
             **schemas.UserGetSchema.model_validate(user).model_dump(),
@@ -119,6 +126,8 @@ class UserService(
             ConflictException: Пользователь с такими данными уже существует.
         """
 
+        logger.info("Обновление пользователя с ID: {}", user_id)
+
         # Поиск пользователя в БД
         user = await cls.get_by_id(session, user_id)
 
@@ -127,6 +136,10 @@ class UserService(
             session=session,
             ids=data.permissions_ids,
         ):
+            logger.warning(
+                "Какие то разрешения не найдены для пользователя с ID: {}",
+                user_id,
+            )
             raise exceptions.NotFoundException(
                 message="Какие то разрешения не найдены.",
             )
@@ -160,6 +173,14 @@ class UserService(
             await session.refresh(updated_user)
 
         except IntegrityError as ex:
+            logger.warning(
+                "Ошибка при обновлении пользователя с ID: {} \
+                 данными: {}",
+                user_id,
+                ex,
+            )
             raise exceptions.ConflictException(exc=ex)
+
+        logger.success("Пользователь обновлен с ID: {}", user_id)
 
         return schemas.UserGetSchema.model_validate(updated_user)

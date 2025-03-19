@@ -3,6 +3,7 @@
 import uuid
 from datetime import datetime
 
+from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core import exceptions
@@ -45,16 +46,21 @@ class BlockchainTransactionService(
             NotFoundException: Транзакция не найдена.
         """
 
+        logger.info("Обновление статуса транзакции по ID: {}", id)
+
         transaction_db = await cls.repository.get_one_or_none(
             session=session,
             id=id,
         )
 
         if not transaction_db:
+            logger.warning("Транзакция с ID: {} не найдена", id)
             raise exceptions.NotFoundException("Транзакция не найдена.")
 
         transaction_db.status = status
         await session.commit()
+
+        logger.success("Статус транзакции с ID: {} обновлен на: {}", id, status)
 
     @classmethod
     async def get_pending_by_user_id(
@@ -78,6 +84,11 @@ class BlockchainTransactionService(
             NotFoundException: Транзакция не найдена или просрочена.
         """
 
+        logger.info(
+            "Получение транзакции в статусе PENDING по ID пользователя: {}",
+            user_id,
+        )
+
         transaction_db = await cls.repository.get_one_or_none(
             session=session,
             user_id=user_id,
@@ -85,6 +96,10 @@ class BlockchainTransactionService(
         )
 
         if not transaction_db:
+            logger.warning(
+                "Транзакций в статусе PENDING по ID пользователя: {} нет",
+                user_id,
+            )
             raise exceptions.NotFoundException("Транзакций в процессе обработки нет.")
 
         elif transaction_db.expires_at < datetime.now():
@@ -94,8 +109,18 @@ class BlockchainTransactionService(
                 status=StatusEnum.FAILED,
             )
 
+            logger.warning(
+                "Транзакция в процессе обработки просрочена: {}",
+                transaction_db.id,
+            )
+
             raise exceptions.NotFoundException(
                 "Транзакция в процессе обработки просрочена."
             )
+
+        logger.success(
+            "Транзакция в статусе PENDING по ID пользователя: {} получена",
+            user_id,
+        )
 
         return transaction_db
