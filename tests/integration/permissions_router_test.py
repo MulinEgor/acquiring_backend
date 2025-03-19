@@ -4,12 +4,12 @@ import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src import constants
-from src.auth import schemas as auth_schemas
-from src.permissions import schemas
-from src.permissions.models import PermissionModel
-from src.permissions.repository import PermissionRepository
-from src.permissions.router import permissions_router
+from src.core import constants
+from src.modules.auth import schemas as auth_schemas
+from src.modules.permissions import schemas
+from src.modules.permissions.models import PermissionModel
+from src.modules.permissions.repository import PermissionRepository
+from src.modules.permissions.router import permissions_router
 from tests.integration.conftest import BaseTestRouter
 
 

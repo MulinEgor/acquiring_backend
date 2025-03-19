@@ -1,0 +1,134 @@
+"""Модуль для маршрутов пользователей."""
+
+from fastapi import APIRouter, Depends, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
+import src.modules.users.schemas as schemas
+from src.core import constants, dependencies
+from src.modules.users.models import UserModel
+from src.modules.users.service import UserService
+
+users_router = APIRouter(
+    prefix="/users",
+    tags=["Пользователи"],
+)
+
+
+# MARK: Get
+@users_router.get(
+    "/me",
+    summary="Получить данные текущего пользователя.",
+    status_code=status.HTTP_200_OK,
+)
+async def get_current_user_route(
+    user: UserModel = Depends(dependencies.get_current_user),
+    _=Depends(
+        dependencies.check_user_permissions([constants.PermissionEnum.GET_MY_USER])
+    ),
+):
+    """
+    Получить данные текущего пользователя.
+
+    Требуется разрешение: `получить своего пользователя`.
+    """
+    return schemas.UserGetSchema.model_validate(user)
+
+
+@users_router.get(
+    "/{id}",
+    summary="Получить данные пользователя по ID.",
+    status_code=status.HTTP_200_OK,
+)
+async def get_user_by_id_route(
+    id: str,
+    _=Depends(dependencies.check_user_permissions([constants.PermissionEnum.GET_USER])),
+    session: AsyncSession = Depends(dependencies.get_session),
+):
+    """
+    Получить данные пользователя по ID.
+
+    Требуется разрешение: `получить пользователя`.
+    """
+    return await UserService.get_by_id(session, id)
+
+
+@users_router.get(
+    "",
+    summary="Получить список пользователей.",
+    status_code=status.HTTP_200_OK,
+)
+async def get_users_by_admin_route(
+    query_params: schemas.UsersPaginationSchema = Query(),
+    _=Depends(dependencies.check_user_permissions([constants.PermissionEnum.GET_USER])),
+    session: AsyncSession = Depends(dependencies.get_session),
+):
+    """
+    Получить список пользователей.
+
+    Требуется разрешение: `получить пользователя`.
+    """
+    return await UserService.get_all(session, query_params)
+
+
+# MARK: Post
+@users_router.post(
+    "",
+    summary="Создать нового пользователя.",
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_user_by_admin_route(
+    data: schemas.UserCreateSchema,
+    _=Depends(
+        dependencies.check_user_permissions([constants.PermissionEnum.CREATE_USER])
+    ),
+    session: AsyncSession = Depends(dependencies.get_session),
+):
+    """
+    Создать нового пользователя.
+
+    Требуется разрешение: `создать пользователя`.
+    """
+    return await UserService.create(session, data)
+
+
+# MARK: Put
+@users_router.put(
+    "/{id}",
+    summary="Обновить данные пользователя.",
+    status_code=status.HTTP_200_OK,
+)
+async def update_user_by_admin_route(
+    id: str,
+    data: schemas.UserUpdateSchema,
+    _=Depends(
+        dependencies.check_user_permissions([constants.PermissionEnum.UPDATE_USER])
+    ),
+    session: AsyncSession = Depends(dependencies.get_session),
+):
+    """
+    Обновить данные пользователя.
+
+    Требуется разрешение: `обновить пользователя`.
+    """
+    return await UserService.update(session, id, data)
+
+
+# MARK: Delete
+@users_router.delete(
+    "/{id}",
+    summary="Удалить пользователя.",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_user_by_admin_route(
+    id: str,
+    _=Depends(
+        dependencies.check_user_permissions([constants.PermissionEnum.DELETE_USER])
+    ),
+    session: AsyncSession = Depends(dependencies.get_session),
+):
+    """
+    Удалить пользователя.
+
+    Требуется разрешение: `удалить пользователя`.
+    """
+    await UserService.delete(session, id)
