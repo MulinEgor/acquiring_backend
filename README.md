@@ -28,7 +28,7 @@ cp -r .env.example .env
 
 2. Запустить API и БД в Docker контейнерах:
 ```bash
-make start_dev
+make start
 ```
 
 3. Применить миграции:
@@ -42,7 +42,7 @@ make migrate
 
 5. Для остановки контейнеров выполнить
 ```bash
-make stop_dev
+make stop
 ```
 
 ## Тестовые данные для входа
