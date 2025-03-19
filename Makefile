@@ -1,9 +1,9 @@
 # Запуск и остановка dev сервисов
-build_dev:
+build:
 	docker compose --profile dev build
-start_dev:
+start:
 	docker compose --profile dev up -d
-stop_dev:
+stop:
 	docker compose --profile dev down
 # Запуск тестов
 test:
@@ -13,7 +13,7 @@ test:
 	exit $$EXIT_CODE
 # Миграции
 migrate:
-	docker compose exec api-dev alembic upgrade head
+	docker compose exec api alembic upgrade head
 # Исправление и проверка кода линтером
 ruff_fix: 
 	uv run ruff format . && uv run ruff check --fix . && uv run ruff check --fix --select I .

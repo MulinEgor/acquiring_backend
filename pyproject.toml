@@ -10,6 +10,8 @@ dependencies = [
     "sqlalchemy>=2.0.37",
     "pyjwt>=2.10.1",
     "redis>=5.2.1",
+    "aiohttp>=3.11.14",
+    "loguru>=0.7.3",
 ]
 
 [dependency-groups]
@@ -41,3 +43,4 @@ extend-select = ["E"]
 "**/models.py**" = ["F821"]
 "**/__init__.py" = ["F403"]
 "src/users/schemas.py" = ["F821"]
+"src/core/logger.py" = ["E501"]
