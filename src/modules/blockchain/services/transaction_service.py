@@ -154,13 +154,15 @@ class BlockchainTransactionService(
         if not transaction_db:
             raise exceptions.NotFoundException("Транзакция не найдена.")
 
-        if (
-            transaction_db.status != StatusEnum.PENDING
-            or transaction_db.type != TypeEnum.PAY_OUT
-        ):
-            raise exceptions.BadRequestException(
-                "Транзакция не в статусе PENDING или не является выводом средств"
-            )
+        err_msgs = []
+        if transaction_db.status != StatusEnum.PENDING:
+            err_msgs.append("не в статусе PENDING")
+        elif transaction_db.type != TypeEnum.PAY_OUT:
+            err_msgs.append("не является выводом средств")
+        elif transaction_db.expires_at < datetime.now():
+            err_msgs.append("просрочена")
+        if err_msgs:
+            raise exceptions.BadRequestException("Транзакция " + ", ".join(err_msgs))
 
         # Создание и подписание транзакции на блокчейне
         hash = await TronService.create_and_sign_transaction(
