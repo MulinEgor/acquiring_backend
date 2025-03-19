@@ -6,10 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import src.modules.auth.schemas as auth_schemas
 import src.modules.users.schemas as user_schemas
-from src.modules.auth.router import auth_router
-from src.modules.services.hash_service import HashService
-from src.modules.users.models import UserModel
-from src.modules.users.repository import UserRepository
+from src.modules.auth import auth_router
+from src.modules.services import HashService
+from src.modules.users import UserModel, UserRepository
 from tests.conftest import faker
 from tests.integration.conftest import BaseTestRouter
 

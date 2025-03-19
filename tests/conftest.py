@@ -21,15 +21,15 @@ import src.modules.users.schemas as user_schemas
 import src.modules.wallets.schemas as wallet_schemas
 from src.core import constants
 from src.core.settings import settings
-from src.modules.auth.services.jwt_service import JWTService
-from src.modules.blockchain.models import BlockchainTransactionModel, TypeEnum
+from src.modules.auth.services import JWTService
+from src.modules.blockchain import BlockchainTransactionModel, TypeEnum
 from src.modules.permissions import schemas as permission_schemas
 from src.modules.permissions.models import PermissionModel
 from src.modules.permissions.repository import PermissionRepository
-from src.modules.services.hash_service import HashService
-from src.modules.users.models import UserModel
+from src.modules.services import HashService
+from src.modules.users import UserModel
 from src.modules.users_permissions.repository import UsersPermissionsRepository
-from src.modules.wallets.models import WalletModel
+from src.modules.wallets import WalletModel
 
 faker = Faker()
 
@@ -244,6 +244,7 @@ async def user_trader_db(
     trader_permissions = [
         constants.PermissionEnum.REQUEST_PAY_IN_TRADER,
         constants.PermissionEnum.CONFIRM_PAY_IN_TRADER,
+        constants.PermissionEnum.REQUEST_PAY_OUT_TRADER,
     ]
     permissions = await PermissionRepository.get_all(session)
     await UsersPermissionsRepository.create_bulk(
@@ -348,6 +349,26 @@ async def blockchain_transaction_db(
         to_address="*" * 42,  # тестовая строка с нужной длиной
         amount=100,
         type=TypeEnum.PAY_IN,
+    )
+    session.add(transaction)
+    await session.commit()
+
+    return transaction
+
+
+@pytest_asyncio.fixture
+async def blockchain_transaction_pay_out_db(
+    session: AsyncSession,
+    user_trader_db: UserModel,
+) -> BlockchainTransactionModel:
+    """Добавить транзакцию в БД."""
+
+    transaction = BlockchainTransactionModel(
+        user_id=user_trader_db.id,
+        from_address="*" * 42,  # тестовая строка с нужной длиной
+        to_address="*" * 42,  # тестовая строка с нужной длиной
+        amount=100,
+        type=TypeEnum.PAY_OUT,
     )
     session.add(transaction)
     await session.commit()

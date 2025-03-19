@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core import constants, dependencies
 from src.modules.permissions import schemas
 from src.modules.permissions.service import PermissionService
-from src.modules.users.models import UserModel
+from src.modules.users import UserModel
 
 permissions_router = APIRouter(prefix="/permissions", tags=["Разрешения"])
 

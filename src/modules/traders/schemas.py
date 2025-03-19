@@ -3,6 +3,7 @@
 from pydantic import BaseModel, Field
 
 
+# MARK: Pay in
 class RequestPayInSchema(BaseModel):
     """Схема для получения адреса кошелька, куда нужно перевести средства."""
 
@@ -21,3 +22,17 @@ class ResponsePayInSchema(BaseModel):
     wallet_address: str = Field(
         description="Адрес кошелька на блокчейне, куда нужно перевести средства"
     )
+
+
+# MARK: Pay out
+class RequestPayOutSchema(BaseModel):
+    """Схема для запроса вывода средств терминалом."""
+
+    amount: int = Field(description="Сумма перевода в TRX")
+    to_address: str = Field(description="Адрес кошелька, куда нужно перевести средства")
+
+
+class ResponsePayOutSchema(BaseModel):
+    """Схема для ответа на запрос вывода средств."""
+
+    transaction_id: int = Field(description="Идентификатор транзакции")

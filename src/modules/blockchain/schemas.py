@@ -5,7 +5,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-from src.core.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
+from src.core.base import DataListGetBaseSchema, PaginationBaseSchema
 from src.modules.blockchain.models import StatusEnum, TypeEnum
 
 
@@ -14,6 +14,9 @@ class TransactionCreateSchema(BaseModel):
 
     user_id: uuid.UUID = Field(description="Идентификатор пользователя")
     to_address: str = Field(description="Адрес кошелька, куда переведена сумма")
+    from_address: str | None = Field(
+        default=None, description="Адрес кошелька, откуда будет переведена сумма"
+    )
     amount: int = Field(description="Сумма перевода")
     type: TypeEnum = Field(description="Тип транзакции")
 

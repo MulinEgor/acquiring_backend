@@ -5,7 +5,7 @@ import uuid
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.base.repository import BaseRepository
+from src.core.base import BaseRepository
 from src.modules.users_permissions import schemas
 from src.modules.users_permissions.models import UsersPermissionsModel
 

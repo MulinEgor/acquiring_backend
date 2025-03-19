@@ -61,10 +61,14 @@ class PermissionEnum(StrEnum):
 
     # MARK: Blockchain Transaction
     GET_BLOCKCHAIN_TRANSACTION = "получить транзакцию блокчейна"
+    CONFIRM_PAY_OUT_BLOCKCHAIN_TRANSACTION = (
+        "подтвердить исходящую транзакцию блокчейна"
+    )
 
     # MARK: Trader
     REQUEST_PAY_IN_TRADER = "запросить пополнение средств как трейдер"
     CONFIRM_PAY_IN_TRADER = "подтвердить пополнение средств как трейдер"
+    REQUEST_PAY_OUT_TRADER = "запросить вывод средств как трейдер"
 
 
 # MARK: Redis
@@ -80,11 +84,17 @@ TWO_FACTOR_LOGIN_CONFIRM_MESSAGE: str = "Здравствуйте! Ваш код
 TWO_FACTOR_MAX_CODE_TRIES: int = 3
 
 # MARK: Tron
-TRON_API_URL: str = "https://api.shasta.trongrid.io/jsonrpc"
+TRON_JRPC_API_URL: str = "https://api.shasta.trongrid.io/jsonrpc"
 TRON_JRPC_VERSION: str = "2.0"
 TRON_GET_TRANSACTION_BY_HASH_METHOD: str = "eth_getTransactionByHash"
 TRON_GET_BALANCE_METHOD: str = "eth_getBalance"
 TRON_GET_BLOCK_BY_HASH_METHOD: str = "eth_getBlockByHash"
+TRON_CREATE_TRANSACTION_URL: str = (
+    "https://api.shasta.trongrid.io/wallet/createtransaction"
+)
+TRON_BROADCAST_TRANSACTION_URL: str = (
+    "https://api.shasta.trongrid.io/wallet/broadcasttransaction"
+)
 
 # MARK: Blockchain transactions
 PENDING_BLOCKCHAIN_TRANSACTION_TIMEOUT: int = 60 * 60 * 24  # 1 день

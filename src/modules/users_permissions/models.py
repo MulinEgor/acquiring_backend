@@ -7,6 +7,8 @@ from sqlalchemy import TIMESTAMP, UUID, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.database import Base
+from src.modules.permissions.models import PermissionModel
+from src.modules.users.models import UserModel
 
 
 class UsersPermissionsModel(Base):

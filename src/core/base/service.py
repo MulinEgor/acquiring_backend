@@ -93,12 +93,9 @@ class BaseService(
 
             schema_class = await cls._get_schema_class_by_type(types.GetSchemaType)
 
-            logger.opt(depth=1).success("Объект создан с ID: {}", obj_db.id)
-
             return schema_class.model_validate(obj_db)
 
         except IntegrityError as ex:
-            logger.opt(depth=1).error("Конфликт при создании объекта: {}", ex)
             raise exceptions.ConflictException(exc=ex)
 
     # MARK: Get
@@ -131,8 +128,6 @@ class BaseService(
             logger.opt(depth=1).warning("Объект с ID: {} не найден", id)
             raise exceptions.NotFoundException()
 
-        logger.opt(depth=1).success("Объект с ID: {} найден", id)
-
         schema_class = await cls._get_schema_class_by_type(types.GetSchemaType)
         return schema_class.model_validate(obj_db)
 
@@ -157,7 +152,10 @@ class BaseService(
             NotFoundException: Объекты не найдены.
         """
 
-        logger.opt(depth=1).info("Получение списка объектов")
+        logger.opt(depth=1).info(
+            "Получение списка объектов с параметрами: {}",
+            query_params.model_dump(),
+        )
 
         base_stmt = await cls.repository.get_stmt_by_query(
             query_params=query_params,
@@ -170,7 +168,6 @@ class BaseService(
         )
 
         if not objects_db:
-            logger.opt(depth=1).warning("Объекты не найдены")
             raise exceptions.NotFoundException()
 
         objects_count = await cls.repository.count_subquery(
@@ -185,7 +182,6 @@ class BaseService(
 
         # Получаем класс схемы для списка и создаем его экземпляр
         list_schema_class = await cls._get_schema_class_by_type(types.GetListSchemaType)
-        logger.opt(depth=1).success("Список объектов получен")
 
         return list_schema_class(
             count=objects_count,
@@ -216,7 +212,7 @@ class BaseService(
             ConflictException: Объект с такими данными уже существует.
         """
 
-        logger.opt(depth=1).info("Обновление объекта: {}", data)
+        logger.opt(depth=1).info("Обновление объекта с ID: {}", id)
 
         # Поиск объекта в БД
         await cls.get_by_id(session=session, id=id)
@@ -231,15 +227,9 @@ class BaseService(
             await session.commit()
 
         except IntegrityError as ex:
-            logger.opt(depth=1).error(
-                "Конфликт при обновлении объекта с ID {}: {}",
-                id,
-                ex,
-            )
             raise exceptions.ConflictException(exc=ex)
 
         schema_class = await cls._get_schema_class_by_type(types.GetSchemaType)
-        logger.opt(depth=1).success("Объект обновлен с ID: {}", id)
 
         return schema_class.model_validate(updated_obj)
 
@@ -272,5 +262,3 @@ class BaseService(
             session=session,
         )
         await session.commit()
-
-        logger.opt(depth=1).success("Объект с ID: {} удален", id)

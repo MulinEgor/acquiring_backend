@@ -9,7 +9,7 @@ from pydantic import (
     model_serializer,
 )
 
-from src.core.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
+from src.core.base import DataListGetBaseSchema, PaginationBaseSchema
 from src.core.database import Base
 from src.modules.permissions.schemas import PermissionGetSchema
 
@@ -42,7 +42,6 @@ class UserGetSchema(BaseModel):
         Returns:
             UserGetSchema: Валидированный объект схемы
         """
-        # Здесь можно добавить любую дополнительную логику валидации
         if not isinstance(obj, dict):
             obj = obj.__dict__
 
@@ -51,7 +50,6 @@ class UserGetSchema(BaseModel):
             for user_permission in obj["users_permissions"]
         ]
 
-        # Вызов стандартной валидации
         return super().model_validate(obj)
 
 

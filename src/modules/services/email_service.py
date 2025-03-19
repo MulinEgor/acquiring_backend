@@ -38,7 +38,4 @@ class EmailService:
                 server.sendmail(settings.SMTP_SENDER_EMAIL, [email], msg.as_string())
 
         except Exception as e:
-            logger.error("Ошибка при отправке email: {}", e)
             raise e
-
-        logger.success("Email отправлен на почту: {}", email)

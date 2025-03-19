@@ -8,10 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import src.modules.users.schemas as schemas
 from src.core import exceptions
-from src.core.base.service import BaseService
+from src.core.base import BaseService
 from src.modules.permissions.service import PermissionService
-from src.modules.services.hash_service import HashService
-from src.modules.services.random_service import RandomService
+from src.modules.services import HashService, RandomService
 from src.modules.users.models import UserModel
 from src.modules.users.repository import UserRepository
 from src.modules.users_permissions.service import UsersPermissionsService
@@ -92,10 +91,7 @@ class UserService(
             await session.refresh(user)
 
         except IntegrityError as ex:
-            logger.warning("Ошибка при создании пользователя: {}", ex)
             raise exceptions.ConflictException(exc=ex)
-
-        logger.success("Пользователь создан с ID: {}", user.id)
 
         return schemas.UserCreatedGetSchema(
             **schemas.UserGetSchema.model_validate(user).model_dump(),
@@ -136,10 +132,6 @@ class UserService(
             session=session,
             ids=data.permissions_ids,
         ):
-            logger.warning(
-                "Какие то разрешения не найдены для пользователя с ID: {}",
-                user_id,
-            )
             raise exceptions.NotFoundException(
                 message="Какие то разрешения не найдены.",
             )
@@ -173,14 +165,6 @@ class UserService(
             await session.refresh(updated_user)
 
         except IntegrityError as ex:
-            logger.warning(
-                "Ошибка при обновлении пользователя с ID: {} \
-                 данными: {}",
-                user_id,
-                ex,
-            )
             raise exceptions.ConflictException(exc=ex)
-
-        logger.success("Пользователь обновлен с ID: {}", user_id)
 
         return schemas.UserGetSchema.model_validate(updated_user)

@@ -4,7 +4,7 @@ from typing import Tuple
 
 from sqlalchemy import Select, select
 
-from src.core.base.repository import BaseRepository
+from src.core.base import BaseRepository
 from src.modules.permissions import schemas
 from src.modules.permissions.models import PermissionModel
 

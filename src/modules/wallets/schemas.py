@@ -4,7 +4,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-from src.core.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
+from src.core.base import DataListGetBaseSchema, PaginationBaseSchema
 
 
 class WalletCreateSchema(BaseModel):

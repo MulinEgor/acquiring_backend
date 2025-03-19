@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core import constants, dependencies
 from src.modules.traders import schemas
 from src.modules.traders.service import TraderService
-from src.modules.users.models import UserModel
+from src.modules.users import UserModel
 
 traders_router = APIRouter(
     prefix="/traders",
@@ -65,4 +65,32 @@ async def confirm_pay_in(
         session=session,
         user=user,
         transaction_hash=body.transaction_hash,
+    )
+
+
+# MARK: Pay out
+@traders_router.post(
+    "/request-pay-out",
+    summary="Запросить вывод средств как трейдер",
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def request_pay_out(
+    body: schemas.RequestPayOutSchema,
+    user: UserModel = Depends(dependencies.get_current_user),
+    _=Depends(
+        dependencies.check_user_permissions(
+            [constants.PermissionEnum.REQUEST_PAY_OUT_TRADER]
+        )
+    ),
+    session: AsyncSession = Depends(dependencies.get_session),
+) -> None:
+    """
+    Запросить вывод средств как трейдер.
+
+    Требуется разрешение: `запросить вывод средств как трейдер`.
+    """
+    return await TraderService.request_pay_out(
+        session=session,
+        user=user,
+        data=body,
     )

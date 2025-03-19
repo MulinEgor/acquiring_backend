@@ -12,6 +12,7 @@ dependencies = [
     "redis>=5.2.1",
     "aiohttp>=3.11.14",
     "loguru>=0.7.3",
+    "web3>=7.9.0",
 ]
 
 [dependency-groups]
