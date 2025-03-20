@@ -10,13 +10,13 @@ x-db-base: &db-base
     timeout: 5s
     retries: 5
 
-x-api-base: &api-base
+x-app-base: &app-base
   build:
     context: ./
   restart: always
 
-# MARK: Dev
 services:
+  # MARK: DB
   db:
     profiles: [ "dev" ]
     container_name: "db"
@@ -33,6 +33,7 @@ services:
     networks:
       - dev
 
+  # MARK: Redis
   redis:
     profiles: [ "dev" ]
     container_name: "redis"
@@ -49,10 +50,48 @@ services:
     networks:
       - dev
 
+  # MARK: Celery
+  celery-worker:
+    profiles: [ "dev" ]
+    container_name: "celery-worker"
+    <<: *app-base
+    command: celery -A tasks.celery_worker worker --loglevel=info
+    volumes:
+      - ./:/app
+      - /app/.venv
+    env_file:
+      - ./.env
+    healthcheck:
+      test: ["CMD", "celery", "-A", "tasks.celery_worker", "inspect", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+    networks:
+      - dev
+
+  celery-beat:
+    profiles: [ "dev" ]
+    container_name: "celery-beat"
+    <<: *app-base
+    command: celery -A tasks.celery_worker beat --loglevel=info
+    volumes:
+      - ./:/app
+      - /app/.venv
+    env_file:
+      - ./.env
+    healthcheck:
+      test: ["CMD", "celery", "-A", "tasks.celery_worker", "inspect", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+    networks:
+      - dev
+
+  # MARK: API
   api:
     profiles: [ "dev" ]
     container_name: "api"
-    <<: *api-base
+    <<: *app-base
     command: granian --interface asgi --reload --host 0.0.0.0 --port 8000 src.main:app
     volumes:
       - ./:/app
@@ -71,7 +110,7 @@ services:
     networks:
       - dev
 
-  # MARK: Test
+  # MARK: Test DB
   db-test:
     profiles: [ "test" ]
     container_name: "db-test"
@@ -81,6 +120,7 @@ services:
     networks:
       - test
 
+  # MARK: Test API
   api-test:
     profiles: [ "test" ]
     container_name: "api-test"
