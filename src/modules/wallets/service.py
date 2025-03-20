@@ -5,8 +5,8 @@ from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core import exceptions
-from src.core.base import BaseService
-from src.modules.blockchain.services import TronService
+from src.core.base.service import BaseService
+from src.modules.blockchain.services.tron_service import TronService
 from src.modules.wallets import schemas
 from src.modules.wallets.models import WalletModel
 from src.modules.wallets.repository import WalletRepository

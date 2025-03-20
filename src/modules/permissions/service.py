@@ -3,7 +3,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.base import BaseService
+from src.core.base.service import BaseService
 from src.modules.permissions import schemas
 from src.modules.permissions.models import PermissionModel
 from src.modules.permissions.repository import PermissionRepository

@@ -6,14 +6,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import src.modules.auth.schemas as auth_schemas
 from src.core import constants
-from src.modules.blockchain import (
-    BlockchainTransactionModel,
-    BlockchainTransactionRepository,
-    StatusEnum,
-    blockchain_transactions_router,
-)
 from src.modules.blockchain import schemas as blockchain_schemas
-from src.modules.users import UserModel
+from src.modules.blockchain.models import BlockchainTransactionModel, StatusEnum
+from src.modules.blockchain.repository import BlockchainTransactionRepository
+from src.modules.blockchain.router import blockchain_transactions_router
+from src.modules.users.models import UserModel
 from tests.integration.conftest import BaseTestRouter
 
 

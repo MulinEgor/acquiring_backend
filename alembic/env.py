@@ -7,6 +7,7 @@ from sqlalchemy import engine_from_config, pool
 from alembic import context
 from src.core.database import Base
 from src.core.settings import settings
+from src.modules.blockchain.models import BlockchainTransactionModel
 from src.modules.permissions.models import PermissionModel
 from src.modules.users.models import UserModel
 from src.modules.users_permissions.models import UsersPermissionsModel

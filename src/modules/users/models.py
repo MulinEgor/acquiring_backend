@@ -7,6 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core import constants
 from src.core.database import Base
+from src.modules.blockchain.models import BlockchainTransactionModel
 
 
 class UserModel(Base):
@@ -57,6 +58,6 @@ class UserModel(Base):
         lazy="selectin",
         cascade="all, delete",
     )
-    blockchain_transactions: Mapped[list["BlockchainTransactionModel"]] = relationship(
+    blockchain_transactions: Mapped[list[BlockchainTransactionModel]] = relationship(
         back_populates="user",
     )

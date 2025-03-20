@@ -21,15 +21,15 @@ import src.modules.users.schemas as user_schemas
 import src.modules.wallets.schemas as wallet_schemas
 from src.core import constants
 from src.core.settings import settings
-from src.modules.auth.services import JWTService
-from src.modules.blockchain import BlockchainTransactionModel, TypeEnum
+from src.modules.auth.services.jwt_service import JWTService
+from src.modules.blockchain.models import BlockchainTransactionModel, TypeEnum
 from src.modules.permissions import schemas as permission_schemas
 from src.modules.permissions.models import PermissionModel
 from src.modules.permissions.repository import PermissionRepository
-from src.modules.services import HashService
-from src.modules.users import UserModel
+from src.modules.services.hash_service import HashService
+from src.modules.users.models import UserModel
 from src.modules.users_permissions.repository import UsersPermissionsRepository
-from src.modules.wallets import WalletModel
+from src.modules.wallets.models import WalletModel
 
 faker = Faker()
 
@@ -134,9 +134,15 @@ def output_to_stdout():
 async def mock_redis(mocker):
     """Мокирование Redis."""
 
-    mocker.patch("src.modules.services.RedisService.get", return_value=None)
-    mocker.patch("src.modules.services.RedisService.set", return_value=None)
-    mocker.patch("src.modules.services.RedisService.delete", return_value=None)
+    mocker.patch(
+        "src.modules.services.redis_service.RedisService.get", return_value=None
+    )
+    mocker.patch(
+        "src.modules.services.redis_service.RedisService.set", return_value=None
+    )
+    mocker.patch(
+        "src.modules.services.redis_service.RedisService.delete", return_value=None
+    )
 
 
 # MARK: Permissions

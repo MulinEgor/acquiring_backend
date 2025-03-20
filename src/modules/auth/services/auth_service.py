@@ -9,8 +9,12 @@ import src.modules.auth.schemas as auth_schemas
 import src.modules.users.schemas as user_schemas
 from src.core import constants, exceptions
 from src.modules.auth.services.jwt_service import JWTService
-from src.modules.services import EmailService, HashService, RandomService, RedisService
-from src.modules.users import UserModel, UserRepository
+from src.modules.services.email_service import EmailService
+from src.modules.services.hash_service import HashService
+from src.modules.services.random_service import RandomService
+from src.modules.services.redis_service import RedisService
+from src.modules.users.models import UserModel
+from src.modules.users.repository import UserRepository
 
 
 class AuthService:

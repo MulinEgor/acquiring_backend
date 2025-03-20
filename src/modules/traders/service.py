@@ -8,13 +8,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core import exceptions
 from src.modules.blockchain import schemas as blockchain_schemas
 from src.modules.blockchain.models import StatusEnum, TypeEnum
-from src.modules.blockchain.services import (
+from src.modules.blockchain.services.transaction_service import (
     BlockchainTransactionService,
-    TronService,
 )
+from src.modules.blockchain.services.tron_service import TronService
 from src.modules.traders import schemas
-from src.modules.users import UserModel
-from src.modules.wallets import WalletPaginationSchema, WalletService
+from src.modules.users.models import UserModel
+from src.modules.wallets.schemas import WalletPaginationSchema
+from src.modules.wallets.service import WalletService
 
 
 class TraderService:

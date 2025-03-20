@@ -7,12 +7,12 @@ from fastapi.responses import ORJSONResponse
 from src.core import constants, handlers, middlewares
 from src.core.logger import setup_logging
 from src.core.settings import settings
-from src.modules.auth import auth_router
-from src.modules.healthcheck import health_check_router
+from src.modules.auth.router import auth_router
+from src.modules.healthcheck.router import health_check_router
 from src.modules.permissions.router import permissions_router
-from src.modules.traders import traders_router
-from src.modules.users import users_router
-from src.modules.wallets import wallets_router
+from src.modules.traders.router import traders_router
+from src.modules.users.router import users_router
+from src.modules.wallets.router import wallets_router
 
 
 def setup_middlewares(app: FastAPI):

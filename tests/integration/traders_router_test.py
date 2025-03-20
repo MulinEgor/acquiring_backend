@@ -14,13 +14,13 @@ from src.modules.blockchain.models import (
     TypeEnum,
 )
 from src.modules.blockchain.repository import BlockchainTransactionRepository
-from src.modules.blockchain.services import (
+from src.modules.blockchain.services.transaction_service import (
     BlockchainTransactionService,
 )
 from src.modules.traders import schemas as traders_schemas
-from src.modules.traders import traders_router
-from src.modules.users import UserModel
-from src.modules.wallets import WalletModel
+from src.modules.traders.router import traders_router
+from src.modules.users.models import UserModel
+from src.modules.wallets.models import WalletModel
 from tests.conftest import faker
 from tests.integration.conftest import BaseTestRouter
 

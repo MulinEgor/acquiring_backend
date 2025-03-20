@@ -6,7 +6,7 @@ from pydantic import (
     Field,
 )
 
-from src.core.base import DataListGetBaseSchema, PaginationBaseSchema
+from src.core.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
 from src.core.database import Base
 from src.modules.permissions.schemas import PermissionGetSchema
 

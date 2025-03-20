@@ -6,9 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import src.modules.users.schemas as schemas
 from src.core import exceptions
-from src.core.base import BaseService
+from src.core.base.service import BaseService
 from src.modules.permissions.service import PermissionService
-from src.modules.services import HashService, RandomService
+from src.modules.services.hash_service import HashService
+from src.modules.services.random_service import RandomService
 from src.modules.users.models import UserModel
 from src.modules.users.repository import UserRepository
 from src.modules.users_permissions.service import UsersPermissionsService

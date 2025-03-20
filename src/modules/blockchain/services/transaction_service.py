@@ -6,7 +6,7 @@ from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core import exceptions
-from src.core.base import BaseService
+from src.core.base.service import BaseService
 from src.modules.blockchain import schemas
 from src.modules.blockchain.models import (
     BlockchainTransactionModel,
@@ -15,7 +15,7 @@ from src.modules.blockchain.models import (
 )
 from src.modules.blockchain.repository import BlockchainTransactionRepository
 from src.modules.blockchain.services.tron_service import TronService
-from src.modules.users import UserRepository
+from src.modules.users.repository import UserRepository
 
 
 class BlockchainTransactionService(
