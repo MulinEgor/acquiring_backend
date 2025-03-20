@@ -135,6 +135,7 @@ class BaseService(
         cls,
         session: AsyncSession,
         query_params: types.PaginationSchemaType,
+        user_id: int | None = None,
     ) -> types.GetListSchemaType:
         """
         Получить список объектов и их общее количество
@@ -143,6 +144,7 @@ class BaseService(
         Args:
             session (AsyncSession): Сессия для работы с базой данных.
             query_params (GetQuerySchemaType): Query параметры для фильтрации.
+            user_id (int | None): Идентификатор пользователя.
 
         Returns:
             GetListSchemaType: список объектов и их общее количество.
@@ -159,6 +161,9 @@ class BaseService(
         base_stmt = await cls.repository.get_stmt_by_query(
             query_params=query_params,
         )
+        if user_id:
+            base_stmt = base_stmt.where(cls.repository.model.user_id == user_id)
+
         objects_db = await cls.repository.get_all_with_pagination_from_stmt(
             session=session,
             limit=query_params.limit,

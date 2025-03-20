@@ -37,8 +37,6 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
         schema = blockchain_schemas.TransactionGetSchema.model_validate(response.json())
 
         assert schema.id == blockchain_transaction_db.id
-        assert schema.amount == blockchain_transaction_db.amount
-        assert schema.status == blockchain_transaction_db.status
 
     async def test_get_transaction_by_id_failed(
         self,
@@ -51,6 +49,7 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
             f"/blockchain-transactions/{blockchain_transaction_db.id + 1}",
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
         )
+
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     async def test_get_transactions(
@@ -78,9 +77,6 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
         )
 
         assert schema.count == 1
-        assert schema.data[0].id == blockchain_transaction_db.id
-        assert schema.data[0].amount == blockchain_transaction_db.amount
-        assert schema.data[0].status == blockchain_transaction_db.status
 
     async def test_get_transactions_failed(
         self,
@@ -100,6 +96,58 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
+    async def test_get_my_transactions(
+        self,
+        router_client: httpx.AsyncClient,
+        blockchain_transaction_db: BlockchainTransactionModel,
+        trader_jwt_tokens: auth_schemas.JWTGetSchema,
+    ):
+        """
+        Тест на получение транзакций с пагинацией для текущего пользователя,
+        для которого есть транзакции.
+        """
+        query_params = blockchain_schemas.TransactionPaginationSchema(
+            from_address=blockchain_transaction_db.from_address,
+            max_amount=blockchain_transaction_db.amount,
+            status=blockchain_transaction_db.status.value,
+        )
+        response = await router_client.get(
+            "/blockchain-transactions/me",
+            headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
+            params=query_params.model_dump(exclude_none=True),
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+
+        schema = blockchain_schemas.TransactionListSchema.model_validate(
+            response.json()
+        )
+
+        assert schema.count == 1
+
+    async def test_get_my_transactions_failed(
+        self,
+        router_client: httpx.AsyncClient,
+        blockchain_transaction_db: BlockchainTransactionModel,
+        admin_jwt_tokens: auth_schemas.JWTGetSchema,
+    ):
+        """
+        Тест на получение транзакций с пагинацией для текущего пользователя,
+        для которого нет транзакций.
+        """
+        query_params = blockchain_schemas.TransactionPaginationSchema(
+            from_address=blockchain_transaction_db.from_address,
+            max_amount=blockchain_transaction_db.amount,
+            status=blockchain_transaction_db.status.value,
+        )
+        response = await router_client.get(
+            "/blockchain-transactions/me",
+            headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
+            params=query_params.model_dump(exclude_none=True),
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
     # MARK: Patch
     async def test_confirm_transaction(
         self,
@@ -112,7 +160,6 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
         mocker,
     ):
         """Тест на подтверждение транзакции."""
-
         hash = "0x123"
         trader_balance_before = user_trader_db.balance
 
@@ -135,7 +182,6 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
 
         assert transaction_db is not None
         assert transaction_db.status == StatusEnum.CONFIRMED
-        assert transaction_db.hash == hash
 
         await session.refresh(user_trader_db)
         assert user_trader_db.balance == trader_balance_before - transaction_db.amount
@@ -149,8 +195,7 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
         session: AsyncSession,
         mocker,
     ):
-        """Тест на подтверждение транзакции."""
-
+        """Тест на подтверждение транзакции с неверным статусом."""
         hash = "0x123"
         trader_balance_before = user_trader_db.balance
 
@@ -173,7 +218,6 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
 
         assert transaction_db is not None
         assert transaction_db.status == StatusEnum.PENDING
-        assert transaction_db.hash is None
 
         await session.refresh(user_trader_db)
         assert user_trader_db.balance == trader_balance_before

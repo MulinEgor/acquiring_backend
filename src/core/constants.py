@@ -60,6 +60,7 @@ class PermissionEnum(StrEnum):
     DELETE_WALLET = "удалить кошелек"
 
     # MARK: Blockchain Transaction
+    GET_MY_BLOCKCHAIN_TRANSACTION = "получить свои транзакции блокчейна"
     GET_BLOCKCHAIN_TRANSACTION = "получить транзакцию блокчейна"
     CONFIRM_PAY_OUT_BLOCKCHAIN_TRANSACTION = (
         "подтвердить исходящую транзакцию блокчейна"

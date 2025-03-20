@@ -8,6 +8,7 @@ from src.modules.blockchain import schemas
 from src.modules.blockchain.services.transaction_service import (
     BlockchainTransactionService,
 )
+from src.modules.users.models import UserModel
 
 blockchain_transactions_router = APIRouter(
     prefix="/blockchain-transactions",
@@ -16,6 +17,33 @@ blockchain_transactions_router = APIRouter(
 
 
 # MARK: Get
+@blockchain_transactions_router.get(
+    "/me",
+    summary="Получить мои транзакции",
+    status_code=status.HTTP_200_OK,
+)
+async def get_my_transactions(
+    query_params: schemas.TransactionPaginationSchema = Query(),
+    user: UserModel = Depends(dependencies.get_current_user),
+    _=Depends(
+        dependencies.check_user_permissions(
+            [constants.PermissionEnum.GET_MY_BLOCKCHAIN_TRANSACTION]
+        )
+    ),
+    session: AsyncSession = Depends(dependencies.get_session),
+) -> schemas.TransactionListSchema:
+    """
+    Получить транзакции с пагинацией для текущего пользователя.
+
+    Требуется разрешение: `получить свои транзакции блокчейна`.
+    """
+    return await BlockchainTransactionService.get_all(
+        session=session,
+        query_params=query_params,
+        user_id=user.id,
+    )
+
+
 @blockchain_transactions_router.get(
     "/{id}",
     summary="Получить транзакцию по ID",
@@ -43,7 +71,7 @@ async def get_transaction_by_id(
 
 @blockchain_transactions_router.get(
     "",
-    summary="Получить транзакции с пагинацией",
+    summary="Получить транзакции",
     status_code=status.HTTP_200_OK,
 )
 async def get_transactions(

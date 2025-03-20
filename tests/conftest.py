@@ -257,6 +257,7 @@ async def user_trader_db(
         constants.PermissionEnum.REQUEST_PAY_IN_TRADER,
         constants.PermissionEnum.CONFIRM_PAY_IN_TRADER,
         constants.PermissionEnum.REQUEST_PAY_OUT_TRADER,
+        constants.PermissionEnum.GET_MY_BLOCKCHAIN_TRANSACTION,
     ]
     permissions = await PermissionRepository.get_all(session)
     await UsersPermissionsRepository.create_bulk(
