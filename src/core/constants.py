@@ -71,6 +71,17 @@ class PermissionEnum(StrEnum):
     CONFIRM_PAY_IN_TRADER = "подтвердить пополнение средств как трейдер"
     REQUEST_PAY_OUT_TRADER = "запросить вывод средств как трейдер"
 
+    # MARK: Requisite
+    CREATE_MY_REQUISITE = "создать свои реквизиты"
+    GET_MY_REQUISITE = "получить свои реквизиты"
+    UPDATE_MY_REQUISITE = "обновить свои реквизиты"
+    DELETE_MY_REQUISITE = "удалить свои реквизиты"
+
+    CREATE_REQUISITE = "создать реквизиты"
+    GET_REQUISITE = "получить реквизиты"
+    UPDATE_REQUISITE = "обновить реквизиты"
+    DELETE_REQUISITE = "удалить реквизиты"
+
 
 # MARK: Redis
 REDIS_EXPIRE_SECONDS: int = 60 * 15  # 15 минут

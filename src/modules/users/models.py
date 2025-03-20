@@ -61,3 +61,8 @@ class UserModel(Base):
     blockchain_transactions: Mapped[list[BlockchainTransactionModel]] = relationship(
         back_populates="user",
     )
+    requisites: Mapped[list["RequisiteModel"]] = relationship(
+        back_populates="user",
+        lazy="selectin",
+        cascade="all, delete",
+    )
