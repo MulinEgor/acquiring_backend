@@ -4,12 +4,12 @@ import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import src.modules.auth.schemas as auth_schemas
-import src.modules.users.schemas as user_schemas
-from src.modules.auth.router import auth_router
-from src.modules.services.hash_service import HashService
-from src.modules.users.models import UserModel
-from src.modules.users.repository import UserRepository
+from src.api.common.routers.auth_router import router as auth_router
+from src.apps.auth import schemas as auth_schemas
+from src.apps.users import schemas as user_schemas
+from src.apps.users.models import UserModel
+from src.apps.users.repository import UserRepository
+from src.lib.services.hash_service import HashService
 from tests.conftest import faker
 from tests.integration.conftest import BaseTestRouter
 
@@ -61,7 +61,7 @@ class TestAuthRouter(BaseTestRouter):
         """Проверка авторизации пользователя с 2FA, должен вернуться словарь."""
 
         mocker.patch(
-            "src.modules.auth.services.auth_service.AuthService._send_2fa_code",
+            "src.apps.auth.services.auth_service.AuthService._send_2fa_code",
             return_value={
                 "message": "Письмо с кодом подтверждения отправлено на почту."
             },
@@ -101,7 +101,7 @@ class TestAuthRouter(BaseTestRouter):
         """Проверка подтверждения авторизации пользователя с 2FA."""
 
         mocker.patch(
-            "src.modules.auth.services.auth_service.AuthService._check_and_delete_2fa_code",
+            "src.apps.auth.services.auth_service.AuthService._check_and_delete_2fa_code",
             return_value=None,
         )
 
@@ -131,7 +131,7 @@ class TestAuthRouter(BaseTestRouter):
         """Проверка включения 2FA."""
 
         mocker.patch(
-            "src.modules.auth.services.auth_service.AuthService._check_and_delete_2fa_code",
+            "src.apps.auth.services.auth_service.AuthService._check_and_delete_2fa_code",
             return_value=None,
         )
 
@@ -158,7 +158,7 @@ class TestAuthRouter(BaseTestRouter):
         """Проверка включения 2FA."""
 
         mocker.patch(
-            "src.modules.auth.services.auth_service.AuthService._check_and_delete_2fa_code",
+            "src.apps.auth.services.auth_service.AuthService._check_and_delete_2fa_code",
             return_value=None,
         )
 

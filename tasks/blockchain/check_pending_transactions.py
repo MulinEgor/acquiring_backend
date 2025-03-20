@@ -5,9 +5,9 @@ from datetime import datetime
 
 from loguru import logger
 
+from src.apps.blockchain.models import StatusEnum
+from src.apps.blockchain.repository import BlockchainTransactionRepository
 from src.core.dependencies import get_session
-from src.modules.blockchain.models import StatusEnum
-from src.modules.blockchain.repository import BlockchainTransactionRepository
 from tasks.celery_worker import worker
 
 

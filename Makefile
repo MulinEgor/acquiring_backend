@@ -16,7 +16,7 @@ test:
 	exit $$EXIT_CODE
 # Миграции
 migrate:
-	docker compose exec api alembic upgrade head
+	docker compose exec admin-api alembic upgrade head
 # Исправление и проверка кода линтером
 ruff_fix: 
 	uv run ruff format . && uv run ruff check --fix . && uv run ruff check --fix --select I .

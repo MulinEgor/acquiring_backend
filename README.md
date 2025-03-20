@@ -37,8 +37,10 @@ make migrate
 ```
 
 4. Документация API и доступные эндпоинты:
-* Swagger UI: http://localhost:8000/docs
-* ReDoc: http://localhost:8000/redoc
+Админка: http://localhost:80/docs
+Трейдер: http://localhost:81/docs
+Мерчант: http://localhost:82/docs
+Суппорт: http://localhost:83/redoc
 
 5. Для остановки контейнеров выполнить
 ```bash

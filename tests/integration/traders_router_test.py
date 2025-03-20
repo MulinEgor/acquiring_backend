@@ -6,21 +6,21 @@ import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import src.modules.auth.schemas as auth_schemas
-from src.core import constants
-from src.modules.blockchain.models import (
+from src.api.trader.router.router import router as traders_router
+from src.apps.auth import schemas as auth_schemas
+from src.apps.blockchain.models import (
     BlockchainTransactionModel,
     StatusEnum,
     TypeEnum,
 )
-from src.modules.blockchain.repository import BlockchainTransactionRepository
-from src.modules.blockchain.services.transaction_service import (
+from src.apps.blockchain.repository import BlockchainTransactionRepository
+from src.apps.blockchain.services.transaction_service import (
     BlockchainTransactionService,
 )
-from src.modules.traders import schemas as traders_schemas
-from src.modules.traders.router import traders_router
-from src.modules.users.models import UserModel
-from src.modules.wallets.models import WalletModel
+from src.apps.traders import schemas as traders_schemas
+from src.apps.users.models import UserModel
+from src.apps.wallets.models import WalletModel
+from src.core import constants
 from tests.conftest import faker
 from tests.integration.conftest import BaseTestRouter
 
@@ -43,7 +43,7 @@ class TestTradersRouter(BaseTestRouter):
         """Тест на запрос пополнения средств как трейдер."""
 
         mocker.patch(
-            "src.modules.blockchain.services.tron_service.TronService.get_wallets_balances",
+            "src.apps.blockchain.services.tron_service.TronService.get_wallets_balances",
             return_value={
                 wallet_db.address: 100,
             },
@@ -111,7 +111,7 @@ class TestTradersRouter(BaseTestRouter):
         """Тест на подтверждение пополнения средств как трейдер."""
 
         mocker.patch(
-            "src.modules.blockchain.services.tron_service.TronService.get_transaction_by_hash",
+            "src.apps.blockchain.services.tron_service.TronService.get_transaction_by_hash",
             return_value={
                 "transaction_hash": "123",
                 "amount": blockchain_transaction_db.amount,
@@ -160,7 +160,7 @@ class TestTradersRouter(BaseTestRouter):
         """
 
         mocker.patch(
-            "src.modules.blockchain.services.tron_service.TronService.get_transaction_by_hash",
+            "src.apps.blockchain.services.tron_service.TronService.get_transaction_by_hash",
             return_value={
                 "transaction_hash": "123",
                 "amount": blockchain_transaction_db.amount - 30,
@@ -213,7 +213,7 @@ class TestTradersRouter(BaseTestRouter):
         )
 
         mocker.patch(
-            "src.modules.blockchain.services.tron_service.TronService.get_transaction_by_hash",
+            "src.apps.blockchain.services.tron_service.TronService.get_transaction_by_hash",
             return_value={
                 "transaction_hash": "123",
                 "amount": blockchain_transaction_db.amount,
@@ -265,7 +265,7 @@ class TestTradersRouter(BaseTestRouter):
         to_address = "0" * 42
 
         mocker.patch(
-            "src.modules.blockchain.services.tron_service.TronService.get_wallets_balances",
+            "src.apps.blockchain.services.tron_service.TronService.get_wallets_balances",
             return_value={
                 wallet_db.address: amount,
             },

@@ -1,7 +1,12 @@
 # MARK: Base
 x-db-base: &db-base
+  profiles: [ "dev" ]
+  networks:
+    - dev
   image: postgres:16
   restart: always
+  env_file:
+      - ./.env
   healthcheck:
     test:
       - CMD-SHELL
@@ -11,27 +16,39 @@ x-db-base: &db-base
     retries: 5
 
 x-app-base: &app-base
+  profiles: [ "dev" ]
+  networks:
+    - dev
   build:
     context: ./
   restart: always
+  volumes:
+      - ./:/app
+      - /app/.venv
+  env_file:
+      - ./.env
+
+x-api-base: &api-base
+  <<: *app-base
+  depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    
 
 services:
   # MARK: DB
   db:
-    profiles: [ "dev" ]
     container_name: "db"
     <<: *db-base
     ports:
       - 5432:5432
-    env_file:
-      - ./.env
     expose:
       - 5432
     volumes:
       - ./volumes/postgres/docker-entrypoint-initdb.d/:/docker-entrypoint-initdb.d/
       - pgdata:/var/lib/postgresql/data
-    networks:
-      - dev
 
   # MARK: Redis
   redis:
@@ -52,63 +69,62 @@ services:
 
   # MARK: Celery
   celery-worker:
-    profiles: [ "dev" ]
     container_name: "celery-worker"
     <<: *app-base
     command: celery -A tasks.celery_worker worker --loglevel=info
-    volumes:
-      - ./:/app
-      - /app/.venv
-    env_file:
-      - ./.env
     healthcheck:
       test: ["CMD", "celery", "-A", "tasks.celery_worker", "inspect", "ping"]
       interval: 10s
       timeout: 10s
       retries: 3
-    networks:
-      - dev
 
   celery-beat:
-    profiles: [ "dev" ]
     container_name: "celery-beat"
     <<: *app-base
     command: celery -A tasks.celery_worker beat --loglevel=info
-    volumes:
-      - ./:/app
-      - /app/.venv
-    env_file:
-      - ./.env
     healthcheck:
       test: ["CMD", "celery", "-A", "tasks.celery_worker", "inspect", "ping"]
       interval: 10s
       timeout: 10s
       retries: 3
-    networks:
-      - dev
 
   # MARK: API
-  api:
-    profiles: [ "dev" ]
-    container_name: "api"
-    <<: *app-base
-    command: granian --interface asgi --reload --host 0.0.0.0 --port 8000 src.main:app
-    volumes:
-      - ./:/app
-      - /app/.venv
-    env_file:
-      - ./.env
+  admin-api:
+    container_name: "admin-api"
+    <<: *api-base
+    command: granian --interface asgi --reload --host 0.0.0.0 --port 80 src.api.admin.api:api
     ports:
-      - 8000:8000
+      - 80:80
     expose:
-      - 8000
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    networks:
-      - dev
+      - 80
+
+  trader-api:
+    container_name: "trader-api"
+    <<: *api-base
+    command: granian --interface asgi --reload --host 0.0.0.0 --port 81 src.api.trader.api:api
+    ports:
+      - 81:81
+    expose:
+      - 81
+
+  merchant-api:
+    container_name: "merchant-api"
+    <<: *api-base
+    command: granian --interface asgi --reload --host 0.0.0.0 --port 82 src.api.merchant.api:api
+    ports:
+      - 82:82
+    expose:
+      - 82
+
+
+  support-api:
+    container_name: "support-api"
+    <<: *app-base
+    command: granian --interface asgi --reload --host 0.0.0.0 --port 83 src.api.support.api:api
+    ports:
+      - 83:83
+    expose:
+      - 83
 
   # MARK: Test DB
   db-test:

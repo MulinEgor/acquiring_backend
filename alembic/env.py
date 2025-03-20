@@ -5,13 +5,13 @@ from os.path import abspath, dirname
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
+from src.apps.blockchain.models import BlockchainTransactionModel
+from src.apps.permissions.models import PermissionModel
+from src.apps.users.models import UserModel
+from src.apps.users_permissions.models import UsersPermissionsModel
+from src.apps.wallets.models import WalletModel
 from src.core.database import Base
 from src.core.settings import settings
-from src.modules.blockchain.models import BlockchainTransactionModel
-from src.modules.permissions.models import PermissionModel
-from src.modules.users.models import UserModel
-from src.modules.users_permissions.models import UsersPermissionsModel
-from src.modules.wallets.models import WalletModel
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
