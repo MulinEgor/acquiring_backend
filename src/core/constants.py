@@ -84,16 +84,14 @@ TWO_FACTOR_LOGIN_CONFIRM_MESSAGE: str = "Здравствуйте! Ваш код
 TWO_FACTOR_MAX_CODE_TRIES: int = 3
 
 # MARK: Tron
-TRON_JRPC_API_URL: str = "https://api.shasta.trongrid.io/jsonrpc"
+TRON_JRPC_API_URL: str = "https://nile.trongrid.io/jsonrpc"
 TRON_JRPC_VERSION: str = "2.0"
 TRON_GET_TRANSACTION_BY_HASH_METHOD: str = "eth_getTransactionByHash"
 TRON_GET_BALANCE_METHOD: str = "eth_getBalance"
 TRON_GET_BLOCK_BY_HASH_METHOD: str = "eth_getBlockByHash"
-TRON_CREATE_TRANSACTION_URL: str = (
-    "https://api.shasta.trongrid.io/wallet/createtransaction"
-)
+TRON_CREATE_TRANSACTION_URL: str = "https://nile.trongrid.io/wallet/createtransaction"
 TRON_BROADCAST_TRANSACTION_URL: str = (
-    "https://api.shasta.trongrid.io/wallet/broadcasttransaction"
+    "https://nile.trongrid.io/wallet/broadcasttransaction"
 )
 
 # MARK: Blockchain transactions

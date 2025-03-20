@@ -1,13 +1,13 @@
 """Модуль для сервиса для работы с Tron."""
 
 import asyncio
+import hashlib
 import random
 from datetime import datetime
 
 import aiohttp
 import orjson
-from eth_utils import to_bytes
-from web3 import Account
+from tronpy.keys import PrivateKey
 
 from src.core import constants, exceptions
 from src.core.settings import settings
@@ -163,6 +163,8 @@ class TronService:
 
                 data_json: dict = orjson.loads(await response.text())
 
+        print(data_json)
+
         if data_json.get("result") is None:
             raise exceptions.NotFoundException("Транзакция не найдена.")
 
@@ -202,6 +204,7 @@ class TronService:
                     "owner_address": from_address,
                     "to_address": to_address,
                     "amount": amount,
+                    "visible": True,
                 },
                 headers={
                     "TRON-PRO-API-KEY": settings.TRON_PRIVATE_KEY,
@@ -210,15 +213,22 @@ class TronService:
                 if response.status != 200:
                     raise exceptions.InternalServerErrorException(
                         f"Ошибка при попытке создать транзакцию с Tron API: \
-                        status: {response.status}, text: {await response.text()}."
+                        статус: {response.status}, текст: {await response.text()}."
+                    )
+                data = orjson.loads(await response.text())
+
+                if data.get("Error"):
+                    raise exceptions.InternalServerErrorException(
+                        f"Ошибка при попытке создать транзакцию с Tron API: \
+                        текст: {data.get('Error')}."
                     )
 
-                return orjson.loads(await response.text())
+                return data
 
     @staticmethod
     async def _sign_transaction(transaction: dict) -> dict:
         """
-        Подписание транзакции используя web3 с приватным ключом.
+        Подписание транзакции используя tronpy с приватным ключом.
 
         Args:
             transaction: Транзакция.
@@ -227,12 +237,16 @@ class TronService:
             Транзакция с подписью.
         """
 
-        account = Account.from_key(settings.TRON_PRIVATE_KEY)
-        message = to_bytes(hexstr=transaction["txID"])
+        private_key = PrivateKey(
+            bytes.fromhex(
+                "913896c38c40e3072d55b0fff582c396b31e12879d364cf909de8552f560f1bc"
+            )
+        )
 
-        signed = account.signHash(message)
+        msg_hash = hashlib.sha256(bytes.fromhex(transaction["raw_data_hex"])).digest()
+        signature = private_key.sign_msg_hash(msg_hash)
+        transaction["signature"] = [signature.hex()]
 
-        transaction["signature"] = [signed.signature.hex()]
         return transaction
 
     @staticmethod
@@ -288,4 +302,4 @@ class TronService:
         signed_transaction = await cls._sign_transaction(transaction)
         await cls._broadcast_transaction(signed_transaction)
 
-        return to_bytes(hexstr=transaction["txID"])
+        return transaction["txID"]
