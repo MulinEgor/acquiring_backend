@@ -279,7 +279,6 @@ class TestTradersRouter(BaseTestRouter):
                 to_address=to_address,
             ).model_dump(),
         )
-        print(response.json())
 
         assert response.status_code == status.HTTP_202_ACCEPTED
 
@@ -320,7 +319,6 @@ class TestTradersRouter(BaseTestRouter):
                 to_address=to_address,
             ).model_dump(),
         )
-        print(response.json())
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 

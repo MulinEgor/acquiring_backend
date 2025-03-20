@@ -11,6 +11,7 @@ from src.modules.blockchain.models import BlockchainTransactionModel, StatusEnum
 from src.modules.blockchain.repository import BlockchainTransactionRepository
 from src.modules.blockchain.router import blockchain_transactions_router
 from src.modules.users.models import UserModel
+from src.modules.wallets.models import WalletModel
 from tests.integration.conftest import BaseTestRouter
 
 
@@ -106,6 +107,7 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
         blockchain_transaction_pay_out_db: BlockchainTransactionModel,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
         user_trader_db: UserModel,
+        wallet_db: WalletModel,
         session: AsyncSession,
         mocker,
     ):

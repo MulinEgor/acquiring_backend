@@ -97,6 +97,7 @@ def upgrade() -> None:
         "wallets",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
         sa.Column("address", sa.String(length=42), nullable=False),
+        sa.Column("private_key", sa.String(length=66), nullable=True),
         sa.Column("created_at", sa.TIMESTAMP(timezone=True), nullable=False),
         sa.Column("updated_at", sa.TIMESTAMP(timezone=True), nullable=False),
         sa.PrimaryKeyConstraint("id", name=op.f("wallets_pkey")),

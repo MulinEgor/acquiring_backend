@@ -1,7 +1,6 @@
 """Основной модуль `conftest` для всех тестов."""
 
 import asyncio
-import random
 import sys
 from typing import AsyncGenerator
 
@@ -174,7 +173,6 @@ async def user_db(session: AsyncSession) -> UserModel:
     """Добавить пользователя в БД."""
 
     user_db = UserModel(
-        id=random.randint(1, 100),
         email=faker.email(),
         hashed_password=HashService.generate(faker.password()),
     )
@@ -217,7 +215,6 @@ async def user_admin_db(
     """Добавить пользователя-администратора в БД."""
 
     user_admin = UserModel(
-        id=random.randint(1, 100),
         email=faker.email(),
         hashed_password=HashService.generate(faker.password()),
     )
@@ -249,7 +246,6 @@ async def user_trader_db(
     """Добавить пользователя-трейдера в БД."""
 
     user_trader = UserModel(
-        id=random.randint(1, 100),
         email=faker.email(),
         hashed_password=HashService.generate(faker.password()),
     )
@@ -336,6 +332,7 @@ async def wallet_db(session: AsyncSession) -> WalletModel:
 
     wallet = WalletModel(
         address="*" * 42,  # тестовая строка с нужной длинойs
+        private_key="*" * 66,  # тестовая строка с нужной длиной
     )
     session.add(wallet)
     await session.commit()
@@ -349,6 +346,7 @@ def wallet_create_data() -> wallet_schemas.WalletCreateSchema:
 
     return wallet_schemas.WalletCreateSchema(
         address="*" * 42,  # тестовая строка с нужной длинойs
+        private_key="*" * 66,  # тестовая строка с нужной длиной
     )
 
 

@@ -16,6 +16,7 @@ from src.modules.blockchain.models import (
 from src.modules.blockchain.repository import BlockchainTransactionRepository
 from src.modules.blockchain.services.tron_service import TronService
 from src.modules.users.repository import UserRepository
+from src.modules.wallets.repository import WalletRepository
 
 
 class BlockchainTransactionService(
@@ -118,6 +119,7 @@ class BlockchainTransactionService(
         transaction_db.status = status
         await session.commit()
 
+    # MARK: Confirm
     @classmethod
     async def confirm_pay_out(
         cls,
@@ -163,11 +165,20 @@ class BlockchainTransactionService(
         if err_msgs:
             raise exceptions.BadRequestException("Транзакция " + ", ".join(err_msgs))
 
+        wallet_db = await WalletRepository.get_one_or_none(
+            session=session,
+            address=transaction_db.from_address,
+        )
+
+        if not wallet_db:
+            raise exceptions.NotFoundException("Кошелек не найден.")
+
         # Создание и подписание транзакции на блокчейне
         hash = await TronService.create_and_sign_transaction(
             from_address=transaction_db.from_address,
             to_address=transaction_db.to_address,
             amount=transaction_db.amount,
+            private_key=wallet_db.private_key,
         )
 
         transaction_db.status = StatusEnum.CONFIRMED

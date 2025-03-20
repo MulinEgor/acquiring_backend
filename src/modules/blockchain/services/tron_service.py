@@ -38,6 +38,9 @@ class TronService:
                     "params": [hash, False],
                     "id": random.randint(1, 1000000),
                 },
+                headers={
+                    "TRON-PRO-API-KEY": settings.TRON_API_KEY,
+                },
             ) as response:
                 if response.status != 200:
                     raise exceptions.InternalServerErrorException(
@@ -73,6 +76,9 @@ class TronService:
                     "method": constants.TRON_GET_BALANCE_METHOD,
                     "params": [address, "latest"],
                     "id": random.randint(1, 1000000),
+                },
+                headers={
+                    "TRON-PRO-API-KEY": settings.TRON_API_KEY,
                 },
             ) as response:
                 if response.status != 200:
@@ -114,6 +120,9 @@ class TronService:
                         "params": [address, "latest"],
                         "id": random.randint(1, 1000000),
                     },
+                    headers={
+                        "TRON-PRO-API-KEY": settings.TRON_API_KEY,
+                    },
                 )
                 for address in addresses
             ]
@@ -154,6 +163,9 @@ class TronService:
                     "params": [hash],
                     "id": random.randint(1, 1000000),
                 },
+                headers={
+                    "TRON-PRO-API-KEY": settings.TRON_API_KEY,
+                },
             ) as response:
                 if response.status != 200:
                     raise exceptions.InternalServerErrorException(
@@ -162,8 +174,6 @@ class TronService:
                     )
 
                 data_json: dict = orjson.loads(await response.text())
-
-        print(data_json)
 
         if data_json.get("result") is None:
             raise exceptions.NotFoundException("Транзакция не найдена.")
@@ -207,7 +217,7 @@ class TronService:
                     "visible": True,
                 },
                 headers={
-                    "TRON-PRO-API-KEY": settings.TRON_PRIVATE_KEY,
+                    "TRON-PRO-API-KEY": settings.TRON_API_KEY,
                 },
             ) as response:
                 if response.status != 200:
@@ -226,22 +236,19 @@ class TronService:
                 return data
 
     @staticmethod
-    async def _sign_transaction(transaction: dict) -> dict:
+    async def _sign_transaction(transaction: dict, private_key: str) -> dict:
         """
         Подписание транзакции используя tronpy с приватным ключом.
 
         Args:
             transaction: Транзакция.
+            private_key: Приватный ключ.
 
         Returns:
             Транзакция с подписью.
         """
 
-        private_key = PrivateKey(
-            bytes.fromhex(
-                "913896c38c40e3072d55b0fff582c396b31e12879d364cf909de8552f560f1bc"
-            )
-        )
+        private_key = PrivateKey(bytes.fromhex(private_key))
 
         msg_hash = hashlib.sha256(bytes.fromhex(transaction["raw_data_hex"])).digest()
         signature = private_key.sign_msg_hash(msg_hash)
@@ -263,7 +270,7 @@ class TronService:
                 constants.TRON_BROADCAST_TRANSACTION_URL,
                 json=signed_transaction,
                 headers={
-                    "TRON-PRO-API-KEY": settings.TRON_PRIVATE_KEY,
+                    "TRON-PRO-API-KEY": settings.TRON_API_KEY,
                 },
             ) as response:
                 if response.status != 200:
@@ -278,6 +285,7 @@ class TronService:
         from_address: str,
         to_address: str,
         amount: int,
+        private_key: str,
     ) -> str:
         """
         Отправить и подписать транзакцию на блокчейне.
@@ -286,6 +294,7 @@ class TronService:
             from_address: Адрес отправителя.
             to_address: Адрес получателя.
             amount: Сумма транзакции.
+            private_key: Приватный ключ.
 
         Returns:
             Хэш транзакции.
@@ -299,7 +308,7 @@ class TronService:
             to_address,
             amount,
         )
-        signed_transaction = await cls._sign_transaction(transaction)
+        signed_transaction = await cls._sign_transaction(transaction, private_key)
         await cls._broadcast_transaction(signed_transaction)
 
         return transaction["txID"]
