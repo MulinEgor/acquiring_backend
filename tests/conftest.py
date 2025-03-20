@@ -2,7 +2,6 @@
 
 import asyncio
 import sys
-import uuid
 from typing import AsyncGenerator
 
 import pytest
@@ -129,6 +128,22 @@ def output_to_stdout():
     sys.stdout = sys.stderr
 
 
+# MARK: Redis
+@pytest_asyncio.fixture(autouse=True)
+async def mock_redis(mocker):
+    """Мокирование Redis."""
+
+    mocker.patch(
+        "src.modules.services.redis_service.RedisService.get", return_value=None
+    )
+    mocker.patch(
+        "src.modules.services.redis_service.RedisService.set", return_value=None
+    )
+    mocker.patch(
+        "src.modules.services.redis_service.RedisService.delete", return_value=None
+    )
+
+
 # MARK: Permissions
 @pytest_asyncio.fixture
 async def permission_db(session: AsyncSession) -> PermissionModel:
@@ -158,7 +173,6 @@ async def user_db(session: AsyncSession) -> UserModel:
     """Добавить пользователя в БД."""
 
     user_db = UserModel(
-        id=str(uuid.uuid4()),
         email=faker.email(),
         hashed_password=HashService.generate(faker.password()),
     )
@@ -201,7 +215,6 @@ async def user_admin_db(
     """Добавить пользователя-администратора в БД."""
 
     user_admin = UserModel(
-        id=str(uuid.uuid4()),
         email=faker.email(),
         hashed_password=HashService.generate(faker.password()),
     )
@@ -233,7 +246,6 @@ async def user_trader_db(
     """Добавить пользователя-трейдера в БД."""
 
     user_trader = UserModel(
-        id=str(uuid.uuid4()),
         email=faker.email(),
         hashed_password=HashService.generate(faker.password()),
     )
@@ -244,6 +256,7 @@ async def user_trader_db(
     trader_permissions = [
         constants.PermissionEnum.REQUEST_PAY_IN_TRADER,
         constants.PermissionEnum.CONFIRM_PAY_IN_TRADER,
+        constants.PermissionEnum.REQUEST_PAY_OUT_TRADER,
     ]
     permissions = await PermissionRepository.get_all(session)
     await UsersPermissionsRepository.create_bulk(
@@ -319,6 +332,7 @@ async def wallet_db(session: AsyncSession) -> WalletModel:
 
     wallet = WalletModel(
         address="*" * 42,  # тестовая строка с нужной длинойs
+        private_key="*" * 66,  # тестовая строка с нужной длиной
     )
     session.add(wallet)
     await session.commit()
@@ -332,6 +346,7 @@ def wallet_create_data() -> wallet_schemas.WalletCreateSchema:
 
     return wallet_schemas.WalletCreateSchema(
         address="*" * 42,  # тестовая строка с нужной длинойs
+        private_key="*" * 66,  # тестовая строка с нужной длиной
     )
 
 
@@ -348,6 +363,26 @@ async def blockchain_transaction_db(
         to_address="*" * 42,  # тестовая строка с нужной длиной
         amount=100,
         type=TypeEnum.PAY_IN,
+    )
+    session.add(transaction)
+    await session.commit()
+
+    return transaction
+
+
+@pytest_asyncio.fixture
+async def blockchain_transaction_pay_out_db(
+    session: AsyncSession,
+    user_trader_db: UserModel,
+) -> BlockchainTransactionModel:
+    """Добавить транзакцию в БД."""
+
+    transaction = BlockchainTransactionModel(
+        user_id=user_trader_db.id,
+        from_address="*" * 42,  # тестовая строка с нужной длиной
+        to_address="*" * 42,  # тестовая строка с нужной длиной
+        amount=100,
+        type=TypeEnum.PAY_OUT,
     )
     session.add(transaction)
     await session.commit()

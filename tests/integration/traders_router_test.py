@@ -8,7 +8,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import src.modules.auth.schemas as auth_schemas
 from src.core import constants
-from src.modules.blockchain.models import BlockchainTransactionModel, StatusEnum
+from src.modules.blockchain.models import (
+    BlockchainTransactionModel,
+    StatusEnum,
+    TypeEnum,
+)
 from src.modules.blockchain.repository import BlockchainTransactionRepository
 from src.modules.blockchain.services.transaction_service import (
     BlockchainTransactionService,
@@ -26,6 +30,7 @@ class TestTradersRouter(BaseTestRouter):
 
     router = traders_router
 
+    # MARK: Pay in
     async def test_request_pay_in(
         self,
         router_client: httpx.AsyncClient,
@@ -57,6 +62,7 @@ class TestTradersRouter(BaseTestRouter):
             await BlockchainTransactionService.get_pending_by_user_id(
                 session=session,
                 user_id=user_trader_db.id,
+                type=TypeEnum.PAY_IN,
             )
             is not None
         )
@@ -240,3 +246,86 @@ class TestTradersRouter(BaseTestRouter):
             user_trader_db.balance
             != trader_balance_before + blockchain_transaction_db.amount
         )
+
+    # MARK: Pay out
+    async def test_request_pay_out(
+        self,
+        router_client: httpx.AsyncClient,
+        trader_jwt_tokens: auth_schemas.JWTGetSchema,
+        session: AsyncSession,
+        user_trader_db: UserModel,
+        wallet_db: WalletModel,
+        mocker,
+    ):
+        """Тест на запрос вывода средств как трейдер."""
+
+        user_trader_db.balance = 200
+        await session.commit()
+        amount = 100
+        to_address = "0" * 42
+
+        mocker.patch(
+            "src.modules.blockchain.services.tron_service.TronService.get_wallets_balances",
+            return_value={
+                wallet_db.address: amount,
+            },
+        )
+
+        response = await router_client.post(
+            "/traders/request-pay-out",
+            headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
+            json=traders_schemas.RequestPayOutSchema(
+                amount=amount,
+                to_address=to_address,
+            ).model_dump(),
+        )
+
+        assert response.status_code == status.HTTP_202_ACCEPTED
+
+        schema = traders_schemas.ResponsePayOutSchema.model_validate(response.json())
+
+        transaction_db = await BlockchainTransactionRepository.get_one_or_none(
+            session=session,
+            id=schema.transaction_id,
+        )
+
+        assert transaction_db is not None
+        assert transaction_db.status == StatusEnum.PENDING
+        assert transaction_db.type == TypeEnum.PAY_OUT
+        assert transaction_db.amount == amount
+        assert transaction_db.to_address == to_address
+        assert transaction_db.from_address == wallet_db.address
+
+    async def test_request_pay_out_not_enough_balance(
+        self,
+        router_client: httpx.AsyncClient,
+        trader_jwt_tokens: auth_schemas.JWTGetSchema,
+        session: AsyncSession,
+        user_trader_db: UserModel,
+        wallet_db: WalletModel,
+    ):
+        """Тест на запрос вывода средств как трейдер, когда недостаточно средств."""
+
+        user_trader_db.balance = 100
+        await session.commit()
+        amount = 200
+        to_address = "0" * 42
+
+        response = await router_client.post(
+            "/traders/request-pay-out",
+            headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
+            json=traders_schemas.RequestPayOutSchema(
+                amount=amount,
+                to_address=to_address,
+            ).model_dump(),
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        transactions_db = await BlockchainTransactionRepository.get_all(
+            session=session,
+            offset=0,
+            limit=10,
+        )
+
+        assert len(transactions_db) == 0

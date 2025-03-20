@@ -1,6 +1,9 @@
-# Запуск и остановка dev сервисов
+# Запуск и остановка сервисов
 build:
-	docker compose --profile dev build
+	docker compose --profile dev down -v; \
+	docker compose --profile dev build; \
+	$(MAKE) start; \
+	$(MAKE) migrate
 start:
 	docker compose --profile dev up -d
 stop:
@@ -8,7 +11,7 @@ stop:
 # Запуск тестов
 test:
 	@EXIT_CODE=0; \
-	docker compose -f docker-compose.yml run --rm  api-test || EXIT_CODE=$$?; \
+	docker compose -f docker-compose.yml run --rm api-test || EXIT_CODE=$$?; \
 	docker compose -f docker-compose.yml --profile test down --volumes; \
 	exit $$EXIT_CODE
 # Миграции

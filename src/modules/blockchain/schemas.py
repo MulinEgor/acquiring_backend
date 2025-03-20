@@ -1,6 +1,5 @@
 """Модуль для Pydantic схем транзакций на блокчейне."""
 
-import uuid
 from datetime import datetime
 
 from pydantic import BaseModel, Field
@@ -12,8 +11,11 @@ from src.modules.blockchain.models import StatusEnum, TypeEnum
 class TransactionCreateSchema(BaseModel):
     """Схема для создания транзакции на блокчейне."""
 
-    user_id: uuid.UUID = Field(description="Идентификатор пользователя")
+    user_id: int = Field(description="Идентификатор пользователя")
     to_address: str = Field(description="Адрес кошелька, куда переведена сумма")
+    from_address: str | None = Field(
+        default=None, description="Адрес кошелька, откуда будет переведена сумма"
+    )
     amount: int = Field(description="Сумма перевода")
     type: TypeEnum = Field(description="Тип транзакции")
 
@@ -31,7 +33,7 @@ class TransactionGetSchema(BaseModel):
     """Схема для получения транзакции на блокчейне."""
 
     id: int = Field(description="Идентификатор транзакции")
-    user_id: uuid.UUID = Field(description="Идентификатор пользователя")
+    user_id: int = Field(description="Идентификатор пользователя")
     amount: int = Field(description="Сумма перевода")
     updated_at: datetime = Field(description="Временная метка обновления транзакции")
     hash: str | None = Field(default=None, description="Хэш транзакции")

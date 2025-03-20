@@ -41,10 +41,9 @@ class WalletService(
         Returns: Кошелек.
         """
 
-        logger.info("Создание кошелька: {}", data)
+        logger.info("Создание кошелька: {}", data.model_dump())
 
         if not await TronService.does_wallet_exist(data.address):
-            logger.warning("Кошелек не существует на блокчейне: {}", data.address)
             raise exceptions.BadRequestException("Кошелек не существует на блокчейне.")
 
         return await super().create(session, data)
@@ -70,10 +69,7 @@ class WalletService(
         )
 
         if not wallet:
-            logger.warning("Кошелек с адресом: {} не найден", address)
             raise exceptions.NotFoundException("Кошелек не найден.")
-
-        logger.success("Кошелек с адресом: {} найден", address)
 
         return schemas.WalletGetSchema.model_validate(wallet)
 
@@ -96,5 +92,3 @@ class WalletService(
 
         await session.execute(delete(WalletModel).where(WalletModel.address == address))
         await session.commit()
-
-        logger.success("Кошелек с адресом: {} удален", address)

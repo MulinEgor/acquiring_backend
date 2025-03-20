@@ -40,7 +40,7 @@ async def get_current_user_route(
     status_code=status.HTTP_200_OK,
 )
 async def get_user_by_id_route(
-    id: str,
+    id: int,
     _=Depends(dependencies.check_user_permissions([constants.PermissionEnum.GET_USER])),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
@@ -98,7 +98,7 @@ async def create_user_by_admin_route(
     status_code=status.HTTP_200_OK,
 )
 async def update_user_by_admin_route(
-    id: str,
+    id: int,
     data: schemas.UserUpdateSchema,
     _=Depends(
         dependencies.check_user_permissions([constants.PermissionEnum.UPDATE_USER])
@@ -120,7 +120,7 @@ async def update_user_by_admin_route(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_user_by_admin_route(
-    id: str,
+    id: int,
     _=Depends(
         dependencies.check_user_permissions([constants.PermissionEnum.DELETE_USER])
     ),

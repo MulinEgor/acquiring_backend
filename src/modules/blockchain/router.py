@@ -64,3 +64,29 @@ async def get_transactions(
         session=session,
         query_params=query_params,
     )
+
+
+# MARK: Patch
+@blockchain_transactions_router.patch(
+    "/{id}",
+    summary="Подтвердить исходящую транзакцию по ID",
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def confirm_transaction(
+    id: int,
+    _=Depends(
+        dependencies.check_user_permissions(
+            [constants.PermissionEnum.CONFIRM_PAY_OUT_BLOCKCHAIN_TRANSACTION]
+        )
+    ),
+    session: AsyncSession = Depends(dependencies.get_session),
+):
+    """
+    Подтвердить исходящую транзакцию по ID.
+
+    Требуется разрешение: `подтвердить исходящую транзакцию блокчейна`.
+    """
+    return await BlockchainTransactionService.confirm_pay_out(
+        session=session,
+        id=id,
+    )

@@ -1,12 +1,9 @@
 """Модуль для Pydantic схем пользователей."""
 
-import uuid
-
 from pydantic import (
     BaseModel,
     EmailStr,
     Field,
-    model_serializer,
 )
 
 from src.core.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
@@ -17,7 +14,7 @@ from src.modules.permissions.schemas import PermissionGetSchema
 class UserGetSchema(BaseModel):
     """Pydantic схема для получения пользователя."""
 
-    id: uuid.UUID = Field(description="ID пользователя.")
+    id: int = Field(description="ID пользователя.")
     email: EmailStr = Field(description="Электронная почта пользователя.")
     balance: int = Field(description="Баланс пользователя.")
     amount_frozen: int = Field(description="Замороженные средства пользователя.")
@@ -28,7 +25,6 @@ class UserGetSchema(BaseModel):
     is_2fa_enabled: bool = Field(description="Является ли 2FA включенным.")
 
     class Config:
-        json_encoders = {uuid.UUID: str}
         from_attributes = True
 
     @classmethod
@@ -42,7 +38,6 @@ class UserGetSchema(BaseModel):
         Returns:
             UserGetSchema: Валидированный объект схемы
         """
-        # Здесь можно добавить любую дополнительную логику валидации
         if not isinstance(obj, dict):
             obj = obj.__dict__
 
@@ -51,7 +46,6 @@ class UserGetSchema(BaseModel):
             for user_permission in obj["users_permissions"]
         ]
 
-        # Вызов стандартной валидации
         return super().model_validate(obj)
 
 
@@ -66,16 +60,7 @@ class UserCreateSchema(BaseModel):
     """Pydantic схема для создания пользователя."""
 
     email: EmailStr = Field(description="Электронная почта пользователя.")
-    permissions_ids: list[uuid.UUID] = Field(description="ID разрешений пользователя.")
-
-    @model_serializer
-    def serialize_model(self) -> dict[str, str]:
-        return {
-            "email": self.email,
-            "permissions_ids": [
-                str(permission_id) for permission_id in self.permissions_ids
-            ],
-        }
+    permissions_ids: list[int] = Field(description="ID разрешений пользователя.")
 
 
 class UserCreatedGetSchema(UserGetSchema):
@@ -102,7 +87,7 @@ class UserUpdateSchema(BaseModel):
         default=None,
         description="Пароль пользователя.",
     )
-    permissions_ids: list[uuid.UUID] | None = Field(
+    permissions_ids: list[int] | None = Field(
         default=None,
         description="ID разрешений пользователя.",
     )
@@ -143,7 +128,7 @@ class UsersPaginationSchema(PaginationBaseSchema):
     списка пользователей от имени администратора.
     """
 
-    id: uuid.UUID | None = Field(
+    id: int | None = Field(
         default=None,
         description="ID пользователя.",
     )
@@ -151,7 +136,7 @@ class UsersPaginationSchema(PaginationBaseSchema):
         default=None,
         description="Электронная почта пользователя.",
     )
-    permissions_ids: list[uuid.UUID] | None = Field(
+    permissions_ids: list[int] | None = Field(
         default=None,
         description="ID разрешений пользователя.",
     )

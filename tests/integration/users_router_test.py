@@ -36,7 +36,7 @@ class TestUserRouter(BaseTestRouter):
 
         data = user_schemas.UserGetSchema(**response.json())
 
-        assert str(data.id) == user_db.id
+        assert data.id == user_db.id
         assert data.email == user_db.email
 
     async def test_get_user_by_id(
@@ -59,7 +59,7 @@ class TestUserRouter(BaseTestRouter):
 
         data = user_schemas.UserGetSchema(**response.json())
 
-        assert str(data.id) == user_admin_db.id
+        assert data.id == user_admin_db.id
         assert data.email == user_admin_db.email
 
     async def test_get_users_by_admin_no_query(
@@ -119,7 +119,7 @@ class TestUserRouter(BaseTestRouter):
         users_data = user_schemas.UsersListGetSchema(**response.json())
 
         assert users_data.data[0].email == user_db.email
-        assert str(users_data.data[0].id) == user_db.id
+        assert users_data.data[0].id == user_db.id
 
     # MARK: Post
     async def test_create_user_by_admin_route(
@@ -169,7 +169,7 @@ class TestUserRouter(BaseTestRouter):
 
         updated_user = user_schemas.UserGetSchema(**response.json())
 
-        assert str(updated_user.id) == user_db.id
+        assert updated_user.id == user_db.id
         assert updated_user.email == user_update_data.email
 
     # MARK: Delete

@@ -33,9 +33,12 @@ class WalletRepository(BaseRepository[WalletModel, schemas.WalletCreateSchema, a
 
         stmt = select(WalletModel)
 
-        # Фильтрация по адресу.
+        # Фильтрация по текстовым полям.
         if query_params.address:
             stmt = stmt.where(WalletModel.address == query_params.address)
+
+        if query_params.private_key:
+            stmt = stmt.where(WalletModel.private_key == query_params.private_key)
 
         # Сортировка по дате создания.
         if not query_params.asc:

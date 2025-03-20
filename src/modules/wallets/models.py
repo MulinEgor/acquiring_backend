@@ -15,6 +15,7 @@ class WalletModel(Base):
 
     id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
     address: Mapped[str] = mapped_column(String(length=42), unique=True)
+    private_key: Mapped[str] = mapped_column(String(length=66), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True),
         default=datetime.now,

@@ -2,12 +2,16 @@
 
 import httpx
 from fastapi import status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import src.modules.auth.schemas as auth_schemas
 from src.core import constants
 from src.modules.blockchain import schemas as blockchain_schemas
-from src.modules.blockchain.models import BlockchainTransactionModel
+from src.modules.blockchain.models import BlockchainTransactionModel, StatusEnum
+from src.modules.blockchain.repository import BlockchainTransactionRepository
 from src.modules.blockchain.router import blockchain_transactions_router
+from src.modules.users.models import UserModel
+from src.modules.wallets.models import WalletModel
 from tests.integration.conftest import BaseTestRouter
 
 
@@ -16,6 +20,7 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
 
     router = blockchain_transactions_router
 
+    # MARK: Get
     async def test_get_transaction_by_id(
         self,
         router_client: httpx.AsyncClient,
@@ -94,3 +99,81 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    # MARK: Patch
+    async def test_confirm_transaction(
+        self,
+        router_client: httpx.AsyncClient,
+        blockchain_transaction_pay_out_db: BlockchainTransactionModel,
+        admin_jwt_tokens: auth_schemas.JWTGetSchema,
+        user_trader_db: UserModel,
+        wallet_db: WalletModel,
+        session: AsyncSession,
+        mocker,
+    ):
+        """Тест на подтверждение транзакции."""
+
+        hash = "0x123"
+        trader_balance_before = user_trader_db.balance
+
+        mocker.patch(
+            "src.modules.blockchain.services.tron_service.TronService.create_and_sign_transaction",
+            return_value=hash,
+        )
+
+        response = await router_client.patch(
+            f"/blockchain-transactions/{blockchain_transaction_pay_out_db.id}",
+            headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
+        )
+
+        assert response.status_code == status.HTTP_202_ACCEPTED
+
+        transaction_db = await BlockchainTransactionRepository.get_one_or_none(
+            session=session,
+            id=blockchain_transaction_pay_out_db.id,
+        )
+
+        assert transaction_db is not None
+        assert transaction_db.status == StatusEnum.CONFIRMED
+        assert transaction_db.hash == hash
+
+        await session.refresh(user_trader_db)
+        assert user_trader_db.balance == trader_balance_before - transaction_db.amount
+
+    async def test_confirm_transaction_with_wrong_status(
+        self,
+        router_client: httpx.AsyncClient,
+        blockchain_transaction_db: BlockchainTransactionModel,
+        admin_jwt_tokens: auth_schemas.JWTGetSchema,
+        user_trader_db: UserModel,
+        session: AsyncSession,
+        mocker,
+    ):
+        """Тест на подтверждение транзакции."""
+
+        hash = "0x123"
+        trader_balance_before = user_trader_db.balance
+
+        mocker.patch(
+            "src.modules.blockchain.services.tron_service.TronService.create_and_sign_transaction",
+            return_value=hash,
+        )
+
+        response = await router_client.patch(
+            f"/blockchain-transactions/{blockchain_transaction_db.id}",
+            headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        transaction_db = await BlockchainTransactionRepository.get_one_or_none(
+            session=session,
+            id=blockchain_transaction_db.id,
+        )
+
+        assert transaction_db is not None
+        assert transaction_db.status == StatusEnum.PENDING
+        assert transaction_db.hash is None
+
+        await session.refresh(user_trader_db)
+        assert user_trader_db.balance == trader_balance_before

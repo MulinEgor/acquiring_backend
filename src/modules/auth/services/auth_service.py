@@ -1,7 +1,6 @@
 """Модуль для работы с авторизацией пользователей"""
 
-import json
-
+import orjson
 from fastapi import BackgroundTasks
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -51,9 +50,6 @@ class AuthService:
         redis_key_hash = HashService.generate(f"2fa_code:{user.id}")
         # Если в Redis есть ключ, то письмо уже отправлено
         if await RedisService.get(redis_key_hash):
-            logger.info(
-                "Письмо с кодом подтверждения уже отправлено на почту: {}", user.email
-            )
             return {"message": "Письмо с кодом подтверждения уже отправлено на почту."}
 
         # Сгенерировать код и сохранить его хэш в Redis
@@ -61,7 +57,7 @@ class AuthService:
         code_hash = HashService.generate(code)
         await RedisService.set(
             redis_key_hash,
-            json.dumps(
+            orjson.dumps(
                 auth_schemas.Redis2FAValueSchema(code_hash=code_hash).model_dump()
             ),
         )
@@ -93,54 +89,40 @@ class AuthService:
             BadRequestException: Нет действующих кодов подтверждения или код неверен.
         """
 
-        logger.info("Проверка кода 2FA для пользователя: {}", user.email)
+        logger.info(
+            "Проверка кода 2FA для пользователя: {}, код: {}",
+            user.email,
+            code,
+        )
 
         redis_key_hash = HashService.generate(f"2fa_code:{user.id}")
         raw_redis_value = await RedisService.get(redis_key_hash)
 
         if not raw_redis_value:
-            logger.warning(
-                "Нет действующих кодов подтверждения, \
-                 отправьте новый код для пользователя: {}",
-                user.email,
-            )
             raise exceptions.BadRequestException(
                 "Нет действующих кодов подтверждения, отправьте новый код."
             )
 
         redis_value_schema = auth_schemas.Redis2FAValueSchema(
-            **json.loads(raw_redis_value)
+            **orjson.loads(raw_redis_value)
         )
         # Проверить количество попыток ввода кода
         if redis_value_schema.tries >= constants.TWO_FACTOR_MAX_CODE_TRIES:
-            logger.warning(
-                "Превышено количество попыток ввода кода для пользователя: {}",
-                user.email,
-            )
             raise exceptions.BadRequestException(
                 "Превышено количество попыток ввода кода."
             )
 
         # Если код неверный, увеличить количество попыток и вернуть ошибку
         if HashService.generate(code) != redis_value_schema.code_hash:
-            logger.warning(
-                "Неверный код для пользователя: {}, \
-                 увеличиваем количество попыток до: {}",
-                user.email,
-                redis_value_schema.tries + 1,
-            )
             redis_value_schema.tries += 1
             await RedisService.set(
                 redis_key_hash,
-                json.dumps(redis_value_schema.model_dump()),
+                orjson.dumps(redis_value_schema.model_dump()),
             )
             raise exceptions.BadRequestException("Неверный код.")
 
         # Удалить код из Redis
         await RedisService.delete(redis_key_hash)
-        logger.success(
-            "Код 2FA для пользователя: {} проверен и удален из Redis", user.email
-        )
 
     # MARK: Login
     @classmethod
@@ -167,7 +149,7 @@ class AuthService:
             NotFoundException: Пользователь не найден.
         """
 
-        logger.info("Запрос на вход от пользователя: {}", schema.email)
+        logger.info("Запрос на вход от пользователя: {}", schema.model_dump())
 
         # Хэширование пароля
         hashed_password = HashService.generate(schema.password)
@@ -180,7 +162,6 @@ class AuthService:
         )
 
         if user is None:
-            logger.warning("Пользователь не найден: {}", schema.email)
             raise exceptions.NotFoundException()
 
         if user.is_2fa_enabled:
@@ -188,7 +169,6 @@ class AuthService:
 
         # Создание токенов
         tokens = await JWTService.create_tokens(user_id=user.id)
-        logger.success("Токены созданы для пользователя: {}", schema.email)
 
         return tokens
 
@@ -215,7 +195,9 @@ class AuthService:
                 нет действующих кодов подтверждения или код неверен.
         """
 
-        logger.info("Попытка входа с 2FA для пользователя: {}", code_schema.email)
+        logger.info(
+            "Попытка входа с 2FA для пользователя: {}", code_schema.model_dump()
+        )
 
         user = await UserRepository.get_one_or_none(
             session=session,
@@ -223,18 +205,15 @@ class AuthService:
         )
 
         if user is None:
-            logger.warning("Пользователь не найден: {}", code_schema.email)
             raise exceptions.NotFoundException()
 
         if not user.is_2fa_enabled:
-            logger.warning("2FA не включено для пользователя: {}", code_schema.email)
             raise exceptions.BadRequestException("2FA не включено.")
 
         await cls._check_and_delete_2fa_code(code_schema.code, user)
 
         # Создание токенов
         tokens = await JWTService.create_tokens(user_id=user.id)
-        logger.success("Токены созданы для пользователя: {}", code_schema.email)
 
         return tokens
 
@@ -268,7 +247,6 @@ class AuthService:
         )
 
         if user is None:
-            logger.warning("Пользователь не найден: {}", email)
             raise exceptions.NotFoundException()
 
         return await cls._send_2fa_code(user, background_tasks)
@@ -299,9 +277,8 @@ class AuthService:
         """
 
         logger.info(
-            "Включение/выключение 2FA для пользователя: {}, \
-             флаг: {}",
-            code_schema.email,
+            "Включение/выключение 2FA для пользователя: {}, флаг: {}",
+            code_schema.model_dump(),
             should_enable,
         )
 
@@ -311,15 +288,9 @@ class AuthService:
         )
 
         if not user:
-            logger.warning("Пользователь не найден: {}", code_schema.email)
             raise exceptions.NotFoundException()
 
         if user.is_2fa_enabled == should_enable:
-            logger.warning(
-                "2FA уже {} для пользователя: {}",
-                "включено" if should_enable else "выключено",
-                code_schema.email,
-            )
             raise exceptions.BadRequestException(
                 f"2FA уже {'включено' if should_enable else 'выключено'}."
             )
@@ -328,12 +299,6 @@ class AuthService:
 
         user.is_2fa_enabled = should_enable
         await session.commit()
-
-        logger.success(
-            "2FA для пользователя: {} {}.",
-            code_schema.email,
-            "включено" if should_enable else "выключено",
-        )
 
         return {
             "message": "2FA успешно включено."

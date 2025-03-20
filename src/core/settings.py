@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     SMTP_SENDER_EMAIL: str
     SMTP_SENDER_PASSWORD: str
 
+    # Tron
+    TRON_API_KEY: str
+
     @property
     def DATABASE_URL(self):
         return (

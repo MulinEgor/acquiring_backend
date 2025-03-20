@@ -83,7 +83,7 @@ class TestPermissionsRouter(BaseTestRouter):
         assert response.status_code == status.HTTP_200_OK
 
         data = schemas.PermissionGetSchema(**response.json())
-        assert str(data.id) == str(permission_db.id)
+        assert data.id == permission_db.id
         assert data.name == permission_db.name
 
     async def test_get_all_permissions_admin_no_query(
@@ -126,7 +126,7 @@ class TestPermissionsRouter(BaseTestRouter):
         data = schemas.PermissionListGetSchema(**response.json())
 
         assert data.count == 1
-        assert str(data.data[0].id) == str(permission_db.id)
+        assert data.data[0].id == permission_db.id
         assert data.data[0].name == permission_db.name
 
     # MARK: Update
@@ -147,7 +147,7 @@ class TestPermissionsRouter(BaseTestRouter):
         assert response.status_code == status.HTTP_202_ACCEPTED
 
         data = schemas.PermissionGetSchema(**response.json())
-        assert str(data.id) == str(permission_db.id)
+        assert data.id == permission_db.id
         assert data.name == "new_name"
 
     # MARK: Delete

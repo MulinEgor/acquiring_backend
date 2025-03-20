@@ -15,15 +15,18 @@ class RedisService:
     )
 
     @classmethod
-    async def set(cls, key: str, value: str) -> None:
+    async def set(
+        cls, key: str, value: str, expire: int = constants.REDIS_EXPIRE_SECONDS
+    ) -> None:
         """
         Метод для установки значения в Redis с автоматическим удалением через 15 минут.
 
         Args:
             key (str): Ключ для установки значения.
             value (str): Значение для установки.
+            expire (int): Время жизни ключа в секундах.
         """
-        await cls._redis.set(key, value, ex=constants.REDIS_EXPIRE_SECONDS)
+        await cls._redis.set(key, value, ex=expire)
 
     @classmethod
     async def get(cls, key: str) -> str | None:

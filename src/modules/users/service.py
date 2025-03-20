@@ -1,7 +1,5 @@
 """Модуль для сервиса пользователей."""
 
-import uuid
-
 from loguru import logger
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -92,10 +90,7 @@ class UserService(
             await session.refresh(user)
 
         except IntegrityError as ex:
-            logger.warning("Ошибка при создании пользователя: {}", ex)
             raise exceptions.ConflictException(exc=ex)
-
-        logger.success("Пользователь создан с ID: {}", user.id)
 
         return schemas.UserCreatedGetSchema(
             **schemas.UserGetSchema.model_validate(user).model_dump(),
@@ -107,7 +102,7 @@ class UserService(
     async def update(
         cls,
         session: AsyncSession,
-        user_id: uuid.UUID,
+        user_id: int,
         data: schemas.UserUpdateSchema,
     ) -> schemas.UserGetSchema:
         """
@@ -115,7 +110,7 @@ class UserService(
 
         Args:
             session (AsyncSession): Сессия для работы с базой данных.
-            user_id (uuid.UUID): ID пользователя.
+            user_id (int): ID пользователя.
             data (UserUpdateSchema): Данные для обновления пользователя.
 
         Returns:
@@ -136,10 +131,6 @@ class UserService(
             session=session,
             ids=data.permissions_ids,
         ):
-            logger.warning(
-                "Какие то разрешения не найдены для пользователя с ID: {}",
-                user_id,
-            )
             raise exceptions.NotFoundException(
                 message="Какие то разрешения не найдены.",
             )
@@ -173,14 +164,6 @@ class UserService(
             await session.refresh(updated_user)
 
         except IntegrityError as ex:
-            logger.warning(
-                "Ошибка при обновлении пользователя с ID: {} \
-                 данными: {}",
-                user_id,
-                ex,
-            )
             raise exceptions.ConflictException(exc=ex)
-
-        logger.success("Пользователь обновлен с ID: {}", user_id)
 
         return schemas.UserGetSchema.model_validate(updated_user)

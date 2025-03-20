@@ -15,6 +15,11 @@ class WalletCreateSchema(BaseModel):
         max_length=42,
         description="Адрес кошелька на блокчейне",
     )
+    private_key: str = Field(
+        min_length=66,
+        max_length=66,
+        description="Приватный ключ кошелька",
+    )
 
 
 class WalletGetSchema(WalletCreateSchema):
@@ -50,4 +55,10 @@ class WalletPaginationSchema(PaginationBaseSchema):
         max_length=42,
         default=None,
         description="Адрес кошелька",
+    )
+    private_key: str | None = Field(
+        min_length=66,
+        max_length=66,
+        default=None,
+        description="Приватный ключ кошелька",
     )

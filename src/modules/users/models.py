@@ -1,6 +1,5 @@
 """Модуль для SQLAlchemy моделей пользователей."""
 
-import uuid
 from datetime import datetime
 
 from sqlalchemy import TIMESTAMP
@@ -9,7 +8,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.core import constants
 from src.core.database import Base
 from src.modules.blockchain.models import BlockchainTransactionModel
-from src.modules.users_permissions.models import UsersPermissionsModel
 
 
 class UserModel(Base):
@@ -17,8 +15,8 @@ class UserModel(Base):
 
     __tablename__ = "users"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        default=uuid.uuid4,
+    id: Mapped[int] = mapped_column(
+        autoincrement=True,
         primary_key=True,
         comment="Уникальный идентификатор пользователя.",
     )
@@ -55,7 +53,7 @@ class UserModel(Base):
         onupdate=constants.CURRENT_TIMESTAMP_UTC,
     )
 
-    users_permissions: Mapped[list[UsersPermissionsModel]] = relationship(
+    users_permissions: Mapped[list["UsersPermissionsModel"]] = relationship(
         back_populates="user",
         lazy="selectin",
         cascade="all, delete",

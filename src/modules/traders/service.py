@@ -27,6 +27,7 @@ class TraderService:
         cls,
         session: AsyncSession,
         min_or_max: Literal["min", "max"],
+        amount: int,
     ) -> str:
         """
         Получить адрес кошелька на блокчейне с наименьшим или наибольшим балансом.
@@ -42,11 +43,6 @@ class TraderService:
             NotFoundException: Нет кошельков, куда можно перевести средства.
         """
 
-        logger.info(
-            "Получение адреса кошелька с наименьшим или наибольшим балансом: {}",
-            min_or_max,
-        )
-
         wallets_addresses = [
             wallet.address
             for wallet in (
@@ -54,12 +50,19 @@ class TraderService:
             ).data
         ]
         if not wallets_addresses:
-            logger.warning("Не найдены кошельки для перевода средств.")
             raise exceptions.NotFoundException(
                 "Не найдены кошельки для перевода средств."
             )
 
         wallets_balances = await TronService.get_wallets_balances(wallets_addresses)
+        wallets_balances = dict(
+            filter(lambda x: x[1] >= amount, wallets_balances.items())
+        )
+
+        if not wallets_balances:
+            raise exceptions.NotFoundException(
+                "Не найдены кошельки с достаточным балансом."
+            )
 
         if min_or_max == "min":
             return min(wallets_balances.items(), key=lambda x: x[1])[0]
@@ -90,18 +93,20 @@ class TraderService:
             ConflictException: Не удалось создать транзакцию или уже есть одна.
         """
 
-        logger.info("Запрос на перевод средств: {}", amount)
+        logger.info(
+            "Запрос на перевод средств для пользователя с ID: {} суммой: {}",
+            user.id,
+            amount,
+        )
 
         # Проверка на наличие транзакции в процессе обработки в БД
         try:
             await BlockchainTransactionService.get_pending_by_user_id(
                 session=session,
                 user_id=user.id,
+                type=TypeEnum.PAY_IN,
             )
 
-            logger.warning(
-                "У пользователя: {} уже есть транзакция в процессе обработки.", user.id
-            )
             raise exceptions.ConflictException(
                 "У вас уже есть транзакция в процессе обработки."
             )
@@ -111,7 +116,7 @@ class TraderService:
 
         # Получение адресса кошелька с минимальным балансом с блокчейна
         wallet_address = await cls._get_wallet_address_with_min_or_max_balance(
-            session=session, min_or_max="min"
+            session=session, min_or_max="min", amount=amount
         )
 
         # Создание транзакции в БД
@@ -124,8 +129,6 @@ class TraderService:
                 type=TypeEnum.PAY_IN,
             ),
         )
-
-        logger.success("Транзакция создана для пользователя с ID: {}", user.id)
 
         return schemas.ResponsePayInSchema(wallet_address=wallet_address)
 
@@ -149,12 +152,18 @@ class TraderService:
             ConflictException: Не удалось обновить статус транзакции.
         """
 
-        logger.info("Подтверждение перевода средств от пользователя с ID: {}", user.id)
+        logger.info(
+            "Подтверждение перевода средств от пользователя с ID: {} \
+            транзакцией с хэшем: {}",
+            user.id,
+            transaction_hash,
+        )
 
         # Получение транзакции в процессе обработки из БД
         transaction_db = await BlockchainTransactionService.get_pending_by_user_id(
             session=session,
             user_id=user.id,
+            type=TypeEnum.PAY_IN,
         )
 
         # Получение транзакции по хэшу с блокчейна
@@ -175,13 +184,6 @@ class TraderService:
             or transaction_db.to_address != transaction["to_address"]
             or transaction_db.type != TypeEnum.PAY_IN
         ):
-            logger.warning(
-                "Транзакция с хэшем: {} \
-                 не соответствует ожидаемой для пользователя с ID: {}",
-                transaction_hash,
-                user.id,
-            )
-
             await BlockchainTransactionService.update_status_by_id(
                 session=session,
                 id=transaction_db.id,
@@ -205,7 +207,73 @@ class TraderService:
         user.balance += transaction_db.amount
         await session.commit()
 
-        logger.success(
-            "Средства зачислены на счет пользователя с ID: {}",
+    # MARK: Pay out
+    @classmethod
+    async def request_pay_out(
+        cls,
+        session: AsyncSession,
+        user: UserModel,
+        data: schemas.RequestPayOutSchema,
+    ) -> schemas.ResponsePayOutSchema:
+        """
+        Запросить вывод средств терминалом.
+
+        Проверяет баланс пользователя,
+            создает сущность блокчейн транзакции в БД со статусом "ожидание",
+            которую нужно будет подтвердить суппортом.
+
+        Args:
+            session: Сессия БД.
+            user: Пользователь, который запрашивает вывод средств.
+            data: Схема для запроса вывода средств терминалом.
+
+        Returns:
+            Схема с идентификатором транзакции.
+
+        Raises:
+            NotFoundException: Нет кошельков, куда можно перевести средства.
+            ConflictException: Не удалось создать транзакцию или уже есть одна.
+        """
+
+        logger.info(
+            "Запрос на вывод средств терминалом от пользователя с ID: {} \
+            суммой: {}",
             user.id,
+            data.amount,
         )
+
+        # Проверка на наличие транзакции в процессе обработки в БД
+        try:
+            await BlockchainTransactionService.get_pending_by_user_id(
+                session=session,
+                user_id=user.id,
+                type=TypeEnum.PAY_OUT,
+            )
+
+            raise exceptions.ConflictException(
+                "У вас уже есть транзакция в процессе обработки."
+            )
+
+        except exceptions.NotFoundException:
+            pass
+
+        # Проверка баланса
+        if user.balance < data.amount:
+            raise exceptions.BadRequestException("Недостаточно средств для вывода.")
+
+        wallet_address = await cls._get_wallet_address_with_min_or_max_balance(
+            session=session, min_or_max="max", amount=data.amount
+        )
+
+        transaction_db = await BlockchainTransactionService.create(
+            session=session,
+            data=blockchain_schemas.TransactionCreateSchema(
+                user_id=user.id,
+                to_address=data.to_address,
+                from_address=wallet_address,
+                amount=data.amount,
+                type=TypeEnum.PAY_OUT,
+            ),
+        )
+
+        return schemas.ResponsePayOutSchema(transaction_id=transaction_db.id)

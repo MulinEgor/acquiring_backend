@@ -1,7 +1,5 @@
 """Модуль для сервиса с разрешениями пользователей."""
 
-import uuid
-
 from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -24,16 +22,16 @@ class UsersPermissionsService:
     async def add_permissions_to_user(
         cls,
         session: AsyncSession,
-        user_id: uuid.UUID,
-        permission_ids: list[uuid.UUID],
+        user_id: int,
+        permission_ids: list[int],
     ):
         """
         Добавить разрешения пользователю, удалив все существующие.
 
         Args:
             session (AsyncSession): Сессия для работы с базой данных.
-            user_id (uuid.UUID): ID пользователя.
-            permission_ids (list[uuid.UUID]): ID разрешений.
+            user_id (int): ID пользователя.
+            permission_ids (list[int]): ID разрешений.
         """
 
         logger.info(
@@ -63,55 +61,33 @@ class UsersPermissionsService:
             )
 
         except IntegrityError as e:
-            logger.warning(
-                "Ошибка при добавлении разрешений пользователю с ID: {} \
-                 разрешениями: {}",
-                user_id,
-                permission_ids,
-                exc=e,
-            )
             raise exceptions.ConflictException(exc=e)
-
-        logger.success(
-            "Разрешения добавлены пользователю с ID: {} \
-             разрешениями: {}",
-            user_id,
-            permission_ids,
-        )
 
     # MARK: Get
     @classmethod
     async def get_user_permissions(
         cls,
         session: AsyncSession,
-        user_id: uuid.UUID,
+        user_id: int,
     ) -> list[PermissionModel]:
         """
         Получить разрешения пользователя.
 
         Args:
             session (AsyncSession): Сессия для работы с базой данных.
-            user_id (uuid.UUID): ID пользователя.
+            user_id (int): ID пользователя.
 
         Returns:
             list[PermissionModel]: Список разрешений.
         """
 
-        logger.info(
-            "Получение разрешений для пользователя с ID: {}",
-            user_id,
-        )
+        logger.info("Получение разрешений для пользователя с ID: {}", user_id)
 
         user_permissions = await cls.repository.get_all_with_pagination_from_stmt(
             session,
             stmt=select(UsersPermissionsModel).where(
                 UsersPermissionsModel.user_id == user_id,
             ),
-        )
-
-        logger.success(
-            "Разрешения получены для пользователя с ID: {}",
-            user_id,
         )
 
         return [permission.permission for permission in user_permissions]

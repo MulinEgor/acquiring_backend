@@ -1,7 +1,5 @@
 """Модуль для роутера для работы с разрешениями."""
 
-import uuid
-
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -43,7 +41,7 @@ async def create_route(
     status_code=status.HTTP_200_OK,
 )
 async def get_route(
-    id: uuid.UUID,
+    id: int,
     _: UserModel = Depends(
         dependencies.check_user_permissions([constants.PermissionEnum.GET_PERMISSION])
     ),
@@ -84,7 +82,7 @@ async def get_all_route(
     status_code=status.HTTP_202_ACCEPTED,
 )
 async def update_route(
-    id: uuid.UUID,
+    id: int,
     data: schemas.PermissionCreateSchema,
     _: UserModel = Depends(
         dependencies.check_user_permissions(
@@ -108,7 +106,7 @@ async def update_route(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_route(
-    id: uuid.UUID,
+    id: int,
     _: UserModel = Depends(
         dependencies.check_user_permissions(
             [constants.PermissionEnum.DELETE_PERMISSION]
