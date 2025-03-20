@@ -13,6 +13,7 @@ dependencies = [
     "aiohttp>=3.11.14",
     "loguru>=0.7.3",
     "web3>=7.9.0",
+    "granian>=2.1.1",
 ]
 
 [dependency-groups]
