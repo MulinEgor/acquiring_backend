@@ -1,6 +1,5 @@
 """Модуль для интерфейсов сервисов, выполняющих CRUD операции."""
 
-import uuid
 from typing import Generic, TypeVar
 
 from loguru import logger
@@ -103,14 +102,14 @@ class BaseService(
     async def get_by_id(
         cls,
         session: AsyncSession,
-        id: int | uuid.UUID,
+        id: int,
     ) -> types.GetSchemaType:
         """
         Поиск объекта по ID.
 
         Args:
             session (AsyncSession): Сессия для работы с базой данных.
-            id (int | uuid.UUID): ID объекта.
+            id (int): ID объекта.
 
         Returns:
             GetSchemaType: Найденный объект.
@@ -193,7 +192,7 @@ class BaseService(
     async def update(
         cls,
         session: AsyncSession,
-        id: int | uuid.UUID,
+        id: int,
         data: types.UpdateSchemaType,
     ) -> types.GetSchemaType:
         """
@@ -201,7 +200,7 @@ class BaseService(
 
         Args:
             session (AsyncSession): Сессия для работы с базой данных.
-            id (int | uuid.UUID): ID объекта.
+            id (int): ID объекта.
             data (UpdateSchemaType): Данные для обновления объекта.
 
         Returns:
@@ -238,14 +237,14 @@ class BaseService(
     async def delete(
         cls,
         session: AsyncSession,
-        id: int | uuid.UUID,
+        id: int,
     ):
         """
         Удалить объект.
 
         Args:
             session (AsyncSession): Сессия для работы с базой данных.
-            id (int | uuid.UUID): ID объекта.
+            id (int): ID объекта.
 
         Raises:
             NotFoundException: Объект не найден.

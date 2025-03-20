@@ -1,8 +1,8 @@
 """Основной модуль `conftest` для всех тестов."""
 
 import asyncio
+import random
 import sys
-import uuid
 from typing import AsyncGenerator
 
 import pytest
@@ -129,6 +129,16 @@ def output_to_stdout():
     sys.stdout = sys.stderr
 
 
+# MARK: Redis
+@pytest_asyncio.fixture(autouse=True)
+async def mock_redis(mocker):
+    """Мокирование Redis."""
+
+    mocker.patch("src.modules.services.RedisService.get", return_value=None)
+    mocker.patch("src.modules.services.RedisService.set", return_value=None)
+    mocker.patch("src.modules.services.RedisService.delete", return_value=None)
+
+
 # MARK: Permissions
 @pytest_asyncio.fixture
 async def permission_db(session: AsyncSession) -> PermissionModel:
@@ -158,7 +168,7 @@ async def user_db(session: AsyncSession) -> UserModel:
     """Добавить пользователя в БД."""
 
     user_db = UserModel(
-        id=str(uuid.uuid4()),
+        id=random.randint(1, 100),
         email=faker.email(),
         hashed_password=HashService.generate(faker.password()),
     )
@@ -201,7 +211,7 @@ async def user_admin_db(
     """Добавить пользователя-администратора в БД."""
 
     user_admin = UserModel(
-        id=str(uuid.uuid4()),
+        id=random.randint(1, 100),
         email=faker.email(),
         hashed_password=HashService.generate(faker.password()),
     )
@@ -233,7 +243,7 @@ async def user_trader_db(
     """Добавить пользователя-трейдера в БД."""
 
     user_trader = UserModel(
-        id=str(uuid.uuid4()),
+        id=random.randint(1, 100),
         email=faker.email(),
         hashed_password=HashService.generate(faker.password()),
     )

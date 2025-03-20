@@ -1,7 +1,5 @@
 """Модуль для сервиса пользователей."""
 
-import uuid
-
 from loguru import logger
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -103,7 +101,7 @@ class UserService(
     async def update(
         cls,
         session: AsyncSession,
-        user_id: uuid.UUID,
+        user_id: int,
         data: schemas.UserUpdateSchema,
     ) -> schemas.UserGetSchema:
         """
@@ -111,7 +109,7 @@ class UserService(
 
         Args:
             session (AsyncSession): Сессия для работы с базой данных.
-            user_id (uuid.UUID): ID пользователя.
+            user_id (int): ID пользователя.
             data (UserUpdateSchema): Данные для обновления пользователя.
 
         Returns:

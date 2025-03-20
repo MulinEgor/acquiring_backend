@@ -82,7 +82,7 @@ class JWTService:
 
         encoded_jwt = jwt.encode(
             payload={
-                "id": str(user_id),
+                "id": user_id,
                 "exp": expires_at,
             },
             key=secret_key,

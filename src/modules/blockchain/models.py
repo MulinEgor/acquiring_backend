@@ -1,10 +1,9 @@
 """Модуль для моделей транзакций на блокчейне."""
 
-import uuid
 from datetime import datetime, timedelta
 from enum import Enum
 
-from sqlalchemy import TIMESTAMP, UUID, ForeignKey, Integer, String
+from sqlalchemy import TIMESTAMP, ForeignKey, String
 from sqlalchemy import Enum as SQLAlchemyEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -32,8 +31,8 @@ class BlockchainTransactionModel(Base):
 
     __tablename__ = "blockchain_transactions"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID, ForeignKey("users.id"))
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     amount: Mapped[int] = mapped_column()
     type: Mapped[TypeEnum] = mapped_column(SQLAlchemyEnum(TypeEnum))
     from_address: Mapped[str] = mapped_column(String(42), nullable=True)

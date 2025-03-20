@@ -1,6 +1,5 @@
 """Сервис для работы с транзакциями на блокчейне."""
 
-import uuid
 from datetime import datetime
 
 from loguru import logger
@@ -38,7 +37,7 @@ class BlockchainTransactionService(
     async def get_pending_by_user_id(
         cls,
         session: AsyncSession,
-        user_id: uuid.UUID,
+        user_id: int,
         type: TypeEnum,
     ) -> BlockchainTransactionModel:
         """

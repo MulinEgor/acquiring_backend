@@ -1,9 +1,8 @@
 """Модуль для моделей SQLAlchemy для связи пользователей и разрешений."""
 
 import datetime
-import uuid
 
-from sqlalchemy import TIMESTAMP, UUID, ForeignKey
+from sqlalchemy import TIMESTAMP, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.database import Base
@@ -16,13 +15,11 @@ class UsersPermissionsModel(Base):
 
     __tablename__ = "users_permissions"
 
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID,
+    user_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"),
         primary_key=True,
     )
-    permission_id: Mapped[uuid.UUID] = mapped_column(
-        UUID,
+    permission_id: Mapped[int] = mapped_column(
         ForeignKey("permissions.id", ondelete="CASCADE"),
         primary_key=True,
     )

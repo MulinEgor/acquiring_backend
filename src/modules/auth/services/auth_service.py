@@ -1,7 +1,6 @@
 """Модуль для работы с авторизацией пользователей"""
 
-import json
-
+import orjson
 from fastapi import BackgroundTasks
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -54,7 +53,7 @@ class AuthService:
         code_hash = HashService.generate(code)
         await RedisService.set(
             redis_key_hash,
-            json.dumps(
+            orjson.dumps(
                 auth_schemas.Redis2FAValueSchema(code_hash=code_hash).model_dump()
             ),
         )
@@ -101,7 +100,7 @@ class AuthService:
             )
 
         redis_value_schema = auth_schemas.Redis2FAValueSchema(
-            **json.loads(raw_redis_value)
+            **orjson.loads(raw_redis_value)
         )
         # Проверить количество попыток ввода кода
         if redis_value_schema.tries >= constants.TWO_FACTOR_MAX_CODE_TRIES:
@@ -114,7 +113,7 @@ class AuthService:
             redis_value_schema.tries += 1
             await RedisService.set(
                 redis_key_hash,
-                json.dumps(redis_value_schema.model_dump()),
+                orjson.dumps(redis_value_schema.model_dump()),
             )
             raise exceptions.BadRequestException("Неверный код.")
 

@@ -1,7 +1,5 @@
 """Модуль для сервиса с разрешениями пользователей."""
 
-import uuid
-
 from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -24,16 +22,16 @@ class UsersPermissionsService:
     async def add_permissions_to_user(
         cls,
         session: AsyncSession,
-        user_id: uuid.UUID,
-        permission_ids: list[uuid.UUID],
+        user_id: int,
+        permission_ids: list[int],
     ):
         """
         Добавить разрешения пользователю, удалив все существующие.
 
         Args:
             session (AsyncSession): Сессия для работы с базой данных.
-            user_id (uuid.UUID): ID пользователя.
-            permission_ids (list[uuid.UUID]): ID разрешений.
+            user_id (int): ID пользователя.
+            permission_ids (list[int]): ID разрешений.
         """
 
         logger.info(
@@ -70,14 +68,14 @@ class UsersPermissionsService:
     async def get_user_permissions(
         cls,
         session: AsyncSession,
-        user_id: uuid.UUID,
+        user_id: int,
     ) -> list[PermissionModel]:
         """
         Получить разрешения пользователя.
 
         Args:
             session (AsyncSession): Сессия для работы с базой данных.
-            user_id (uuid.UUID): ID пользователя.
+            user_id (int): ID пользователя.
 
         Returns:
             list[PermissionModel]: Список разрешений.
