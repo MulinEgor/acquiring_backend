@@ -1,4 +1,7 @@
-"""Модуль для тестирования роутера users_router."""
+"""
+Модуль для тестирования роутера src.api.admin.routers.users_router.
+Этот роутер также включает в себя роутер src.api.common.routers.users_router.
+"""
 
 import httpx
 from fastapi import status
@@ -14,7 +17,7 @@ from tests.integration.conftest import BaseTestRouter
 
 
 class TestUserRouter(BaseTestRouter):
-    """Класс для тестирования роутера users_router."""
+    """Класс для тестирования роутера."""
 
     router = users_router
 
@@ -25,7 +28,7 @@ class TestUserRouter(BaseTestRouter):
         user_db: UserModel,
         user_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Проверка получения информации о пользователе."""
+        """Получение информации о текущем пользователе."""
 
         response = await router_client.get(
             url="/users/me",
@@ -45,10 +48,7 @@ class TestUserRouter(BaseTestRouter):
         user_admin_db: UserModel,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """
-        Авторизованный пользователь может получить
-        данные другого пользователя по id.
-        """
+        """Получение информации о пользователе по id."""
 
         response = await router_client.get(
             url=f"/users/{user_admin_db.id}",
@@ -69,12 +69,7 @@ class TestUserRouter(BaseTestRouter):
         user_db: UserModel,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """
-        Администратор может получить список
-        пользователей без учета фильтрации.
-
-        `user_db` передается для создания второго пользователя.
-        """
+        """Получение списка пользователей без учета фильтрации."""
 
         response = await router_client.get(
             url="/users",
@@ -87,7 +82,6 @@ class TestUserRouter(BaseTestRouter):
         users_count = await UserRepository.count(session=session)
         assert users_data.count == users_count
 
-        # Ищем первого пользователя в БД и проверяем его данные.
         first_user_db = await UserRepository.get_one_or_none(
             session=session, id=users_data.data[0].id
         )
@@ -102,10 +96,7 @@ class TestUserRouter(BaseTestRouter):
         user_db: UserModel,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """
-        Администратор может получить список
-        пользователей с учетом учета фильтрации.
-        """
+        """Получение списка пользователей с учетом фильтрации."""
 
         params = user_schemas.UsersPaginationSchema(email=user_db.email)
 
@@ -129,7 +120,7 @@ class TestUserRouter(BaseTestRouter):
         user_create_data: user_schemas.UserCreateSchema,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Администратор может создать пользователя."""
+        """Создание пользователя."""
 
         response = await router_client.post(
             url="/users",
@@ -153,12 +144,9 @@ class TestUserRouter(BaseTestRouter):
         user_db: UserModel,
         user_update_data: user_schemas.UserUpdateSchema,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
+        session: AsyncSession,
     ):
-        """
-        Администратор может обновить данные другого пользователя.
-
-        Изменяем только поля `level`, `exchange_url`.
-        """
+        """Обновление данных пользователя."""
 
         response = await router_client.put(
             url=f"/users/{user_db.id}",
@@ -172,6 +160,10 @@ class TestUserRouter(BaseTestRouter):
         assert updated_user.id == user_db.id
         assert updated_user.email == user_update_data.email
 
+        user_db = await UserRepository.get_one_or_none(session=session, id=user_db.id)
+        assert user_db is not None
+        assert user_db.email == user_update_data.email
+
     # MARK: Delete
     async def test_delete_user_by_admin(
         self,
@@ -180,7 +172,7 @@ class TestUserRouter(BaseTestRouter):
         user_db: UserModel,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Администратор может удалить пользователя."""
+        """Удаление пользователя."""
 
         response = await router_client.delete(
             url=f"/users/{user_db.id}",

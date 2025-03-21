@@ -1,4 +1,4 @@
-"""Модуль для тестирования роутера src.healthcheck.health_check_router"""
+"""Модуль для тестирования роутера src.api.common.routers.health_check_router"""
 
 import httpx
 from fastapi import status
@@ -10,7 +10,7 @@ from tests.integration.conftest import BaseTestRouter
 
 
 class TestHealtcheckRouter(BaseTestRouter):
-    """Класс для тестирования роутера health_check_router."""
+    """Класс для тестирования роутера."""
 
     router = health_check_router
 
@@ -18,7 +18,7 @@ class TestHealtcheckRouter(BaseTestRouter):
         self,
         router_client: httpx.AsyncClient,
     ):
-        """Возможно проверить состояние работы API."""
+        """Проверка состояния работы API."""
 
         response = await router_client.get(url="/health_check")
 

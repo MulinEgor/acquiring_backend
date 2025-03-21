@@ -1,4 +1,4 @@
-"""Модуль для тестирования роутера traders_router."""
+"""Модуль для тестирования роутера src.api.trader.routers.router."""
 
 from datetime import datetime, timedelta
 
@@ -26,7 +26,7 @@ from tests.integration.conftest import BaseTestRouter
 
 
 class TestTradersRouter(BaseTestRouter):
-    """Класс для тестирования роутера traders_router."""
+    """Класс для тестирования роутера."""
 
     router = traders_router
 
@@ -40,7 +40,7 @@ class TestTradersRouter(BaseTestRouter):
         wallet_db: WalletModel,
         mocker,
     ):
-        """Тест на запрос пополнения средств как трейдер."""
+        """Запрос пополнения средств как трейдер."""
 
         mocker.patch(
             "src.apps.blockchain.services.tron_service.TronService.get_wallets_balances",
@@ -67,7 +67,7 @@ class TestTradersRouter(BaseTestRouter):
             is not None
         )
 
-    async def test_request_pay_in_failed(
+    async def test_request_pay_in_conflict(
         self,
         router_client: httpx.AsyncClient,
         trader_jwt_tokens: auth_schemas.JWTGetSchema,
@@ -77,7 +77,7 @@ class TestTradersRouter(BaseTestRouter):
         mocker,
     ):
         """
-        Тест на запрос пополнения средств как трейдер,
+        Запрос пополнения средств как трейдер,
         когда уже есть транзакция в процессе обработки.
         """
 
@@ -108,7 +108,7 @@ class TestTradersRouter(BaseTestRouter):
         blockchain_transaction_db: BlockchainTransactionModel,
         mocker,
     ):
-        """Тест на подтверждение пополнения средств как трейдер."""
+        """Подтверждение пополнения средств как трейдер."""
 
         mocker.patch(
             "src.apps.blockchain.services.tron_service.TronService.get_transaction_by_hash",
@@ -155,7 +155,7 @@ class TestTradersRouter(BaseTestRouter):
         mocker,
     ):
         """
-        Тест на подтверждение пополнения средств как трейдер,
+        Подтверждение пополнения средств как трейдер,
         когда транзакция не соответствует ожидаемой.
         """
 
@@ -204,7 +204,7 @@ class TestTradersRouter(BaseTestRouter):
         mocker,
     ):
         """
-        Тест на подтверждение пополнения средств как трейдер,
+        Подтверждение пополнения средств как трейдер,
         когда транзакция просрочена.
         """
 
@@ -257,7 +257,7 @@ class TestTradersRouter(BaseTestRouter):
         wallet_db: WalletModel,
         mocker,
     ):
-        """Тест на запрос вывода средств как трейдер."""
+        """Запрос вывода средств как трейдер."""
 
         user_trader_db.balance = 200
         await session.commit()
@@ -304,7 +304,7 @@ class TestTradersRouter(BaseTestRouter):
         user_trader_db: UserModel,
         wallet_db: WalletModel,
     ):
-        """Тест на запрос вывода средств как трейдер, когда недостаточно средств."""
+        """Запрос вывода средств как трейдер, когда недостаточно средств."""
 
         user_trader_db.balance = 100
         await session.commit()

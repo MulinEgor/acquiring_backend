@@ -148,7 +148,6 @@ services:
       alembic upgrade heads &&
       coverage run --source='.' \
       -m pytest \
-      tests/integration/requisites_router_test.py \
       --dist loadscope \
       -s -r A \
       --rootdir=/app/ \

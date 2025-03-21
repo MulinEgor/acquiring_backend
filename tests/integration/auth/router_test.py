@@ -1,4 +1,4 @@
-"""Модуль для тестирования роутера src.users.routers.auth_router"""
+"""Модуль для тестирования роутера auth_router."""
 
 import httpx
 from fastapi import status
@@ -19,13 +19,13 @@ class TestAuthRouter(BaseTestRouter):
 
     router = auth_router
 
-    # MARK: Patch
+    # MARK: Login
     async def test_login_without_2fa(
         self,
         router_client: httpx.AsyncClient,
         session: AsyncSession,
     ):
-        """Проверка авторизации пользователя."""
+        """Проверка авторизации пользователя без 2FA."""
 
         email, password = faker.email(), faker.password()
         await UserRepository.create(
@@ -122,13 +122,13 @@ class TestAuthRouter(BaseTestRouter):
         assert tokens.access_token is not None
         assert tokens.refresh_token is not None
 
-    async def test_enable_2fa(
+    async def test_enable_2fa_with_enabled_2fa(
         self,
         router_client: httpx.AsyncClient,
         user_db_2fa: UserModel,
         mocker,
     ):
-        """Проверка включения 2FA."""
+        """Проверка включения 2FA, если 2FA уже включено."""
 
         mocker.patch(
             "src.apps.auth.services.auth_service.AuthService._check_and_delete_2fa_code",
@@ -155,7 +155,7 @@ class TestAuthRouter(BaseTestRouter):
         user_db: UserModel,
         mocker,
     ):
-        """Проверка включения 2FA."""
+        """Проверка включения 2FA, если 2FA еще не включено."""
 
         mocker.patch(
             "src.apps.auth.services.auth_service.AuthService._check_and_delete_2fa_code",

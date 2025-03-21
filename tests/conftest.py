@@ -7,6 +7,7 @@ from typing import AsyncGenerator
 import pytest
 import pytest_asyncio
 from faker import Faker
+from loguru import logger
 from sqlalchemy import NullPool
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -92,6 +93,12 @@ async def session(engine: AsyncEngine) -> AsyncGenerator[AsyncSession, None]:
             if nested_tsx.is_active:
                 await nested_tsx.rollback()
             await tsx.rollback()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def disable_logger():
+    """Отключить логирование для тестов."""
+    logger.configure(handlers=[{"sink": sys.stderr, "level": "CRITICAL"}])
 
 
 @pytest.fixture()
@@ -308,6 +315,7 @@ def user_update_data() -> user_schemas.UserUpdateSchema:
     )
 
 
+# MARK: JWT tokens
 @pytest_asyncio.fixture
 async def user_jwt_tokens(user_db: UserModel) -> auth_schemas.JWTGetSchema:
     """Создать JWT токены  для тестового пользователя."""

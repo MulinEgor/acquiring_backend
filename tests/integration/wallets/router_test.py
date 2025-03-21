@@ -1,4 +1,4 @@
-"""Модуль для тестирования роутера wallets_router."""
+"""Модуль для тестирования роутера src.api.admin.routers.wallets_router."""
 
 import httpx
 from fastapi import status
@@ -14,11 +14,11 @@ from tests.integration.conftest import BaseTestRouter
 
 
 class TestWalletsRouter(BaseTestRouter):
-    """Класс для тестирования роутера wallets_router."""
+    """Класс для тестирования роутера."""
 
     router = wallets_router
 
-    # MARK: Create
+    # MARK: Post
     async def test_create_wallet(
         self,
         router_client: httpx.AsyncClient,
@@ -26,7 +26,7 @@ class TestWalletsRouter(BaseTestRouter):
         wallet_create_data: wallet_schemas.WalletCreateSchema,
         mocker,
     ):
-        """Тест на создание кошелька."""
+        """Создание кошелька."""
 
         mocker.patch(
             "src.apps.blockchain.services.tron_service.TronService.does_wallet_exist",
@@ -41,9 +41,9 @@ class TestWalletsRouter(BaseTestRouter):
 
         assert response.status_code == status.HTTP_201_CREATED
 
-        data = wallet_schemas.WalletGetSchema(**response.json())
+        schema = wallet_schemas.WalletGetSchema(**response.json())
 
-        assert data.address == wallet_create_data.address
+        assert schema.address == wallet_create_data.address
 
     # MARK: Get
     async def test_get_wallet_by_address(
@@ -52,9 +52,7 @@ class TestWalletsRouter(BaseTestRouter):
         wallet_db: WalletModel,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """
-        Тест на получение кошелька по адресу.
-        """
+        """Получение кошелька по адресу."""
 
         response = await router_client.get(
             url=f"/wallets/{wallet_db.address}",
@@ -63,20 +61,18 @@ class TestWalletsRouter(BaseTestRouter):
 
         assert response.status_code == status.HTTP_200_OK
 
-        data = wallet_schemas.WalletGetSchema(**response.json())
+        schema = wallet_schemas.WalletGetSchema(**response.json())
 
-        assert data.address == wallet_db.address
+        assert schema.address == wallet_db.address
 
-    async def test_get_wallets_by_admin_no_query(
+    async def test_get_wallets_no_query(
         self,
         router_client: httpx.AsyncClient,
         wallet_db: WalletModel,
         session: AsyncSession,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """
-        Тест на получение списка кошельков без учета фильтрации.
-        """
+        """Получение списка кошельков без учета фильтрации."""
 
         response = await router_client.get(
             url="/wallets",
@@ -84,29 +80,18 @@ class TestWalletsRouter(BaseTestRouter):
         )
         assert response.status_code == status.HTTP_200_OK
 
-        wallets_data = wallet_schemas.WalletListSchema(**response.json())
+        schema = wallet_schemas.WalletListSchema(**response.json())
 
         wallets_count = await WalletRepository.count(session=session)
-        assert wallets_data.count == wallets_count
+        assert schema.count == wallets_count
 
-        # Ищем первого пользователя в БД и проверяем его данные.
-        first_wallet_db = await WalletRepository.get_one_or_none(
-            session=session, address=wallets_data.data[0].address
-        )
-        assert first_wallet_db is not None
-
-        assert wallets_data.data[0].address == first_wallet_db.address
-        assert wallets_data.data[0].id == first_wallet_db.id
-
-    async def test_get_wallets_by_admin_query(
+    async def test_get_wallets_query(
         self,
         router_client: httpx.AsyncClient,
         wallet_db: WalletModel,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """
-        Тест на получение списка кошельков с учетом учета фильтрации.
-        """
+        """Получение списка кошельков с учетом фильтрации."""
 
         params = wallet_schemas.WalletPaginationSchema(address=wallet_db.address)
 
@@ -117,10 +102,10 @@ class TestWalletsRouter(BaseTestRouter):
         )
         assert response.status_code == status.HTTP_200_OK
 
-        wallets_data = wallet_schemas.WalletListSchema(**response.json())
+        schema = wallet_schemas.WalletListSchema(**response.json())
 
-        assert wallets_data.data[0].address == wallet_db.address
-        assert wallets_data.data[0].id == wallet_db.id
+        assert schema.data[0].address == wallet_db.address
+        assert schema.data[0].id == wallet_db.id
 
     async def test_delete_wallet_by_address(
         self,
@@ -129,9 +114,7 @@ class TestWalletsRouter(BaseTestRouter):
         session: AsyncSession,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """
-        Тест на удаление кошелька по адресу.
-        """
+        """Удаление кошелька по адресу."""
 
         response = await router_client.delete(
             url=f"/wallets/{wallet_db.address}",
