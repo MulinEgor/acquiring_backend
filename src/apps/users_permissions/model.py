@@ -5,8 +5,8 @@ import datetime
 from sqlalchemy import TIMESTAMP, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.apps.permissions.models import PermissionModel
-from src.apps.users.models import UserModel
+from src.apps.permissions.model import PermissionModel
+from src.apps.users.model import UserModel
 from src.core.database import Base
 
 

@@ -12,9 +12,9 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
 from alembic import op
-from src.apps.permissions.models import PermissionModel
-from src.apps.users.models import UserModel
-from src.apps.users_permissions.models import UsersPermissionsModel
+from src.apps.permissions.model import PermissionModel
+from src.apps.users.model import UserModel
+from src.apps.users_permissions.model import UsersPermissionsModel
 from src.core import constants
 from src.lib.services.hash_service import HashService
 

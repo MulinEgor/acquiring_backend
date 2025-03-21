@@ -1,15 +1,15 @@
-"""Модуль для тестирования src.api.merchant.routers.blockchain_router."""
+"""Модуль для тестирования src.api.trader.routers.blockchain_router."""
 
 import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.merchant.routers.blockchain_router import (
-    router as merchant_blockchain_transactions_router,
+from src.api.trader.routers.blockchain_router import (
+    router as blockchain_transactions_router,
 )
 from src.apps.auth import schemas as auth_schemas
 from src.apps.blockchain import schemas as blockchain_schemas
-from src.apps.blockchain.models import BlockchainTransactionModel
+from src.apps.blockchain.model import BlockchainTransactionModel
 from src.apps.blockchain.repository import BlockchainTransactionRepository
 from src.core import constants
 from tests.integration.conftest import BaseTestRouter
@@ -18,7 +18,7 @@ from tests.integration.conftest import BaseTestRouter
 class TestMerchantBlockchainTransactionsRouter(BaseTestRouter):
     """Класс для тестирования роутера."""
 
-    router = merchant_blockchain_transactions_router
+    router = blockchain_transactions_router
 
     # MARK: Get
     async def test_get_my_transactions(

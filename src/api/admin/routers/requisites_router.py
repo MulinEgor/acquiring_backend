@@ -12,7 +12,7 @@ from src.core.dependencies import get_session
 router = APIRouter(prefix="/requisites", tags=["Реквизиты"])
 
 
-# MARK: POST
+# MARK: Post
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def create_requisite(
     data: schemas.RequisiteCreateAdminSchema,
@@ -32,7 +32,7 @@ async def create_requisite(
     )
 
 
-# MARK: GET
+# MARK: Get
 @router.get("/{id}", status_code=status.HTTP_200_OK)
 async def get_requisite(
     id: int,
@@ -71,7 +71,7 @@ async def get_requisites(
     )
 
 
-# MARK: PUT
+# MARK: Put
 @router.put("/{id}", status_code=status.HTTP_202_ACCEPTED)
 async def update_requisite(
     id: int,
@@ -93,7 +93,7 @@ async def update_requisite(
     )
 
 
-# MARK: DELETE
+# MARK: Delete
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_requisite(
     id: int,

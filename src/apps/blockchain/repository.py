@@ -5,7 +5,7 @@ from typing import Tuple
 from sqlalchemy import Select, select
 
 from src.apps.blockchain import schemas
-from src.apps.blockchain.models import BlockchainTransactionModel
+from src.apps.blockchain.model import BlockchainTransactionModel
 from src.lib.base.repository import BaseRepository
 
 

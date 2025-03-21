@@ -1,3 +1,5 @@
+"""Модуль для роутера транзакций блокчейна."""
+
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -5,7 +7,7 @@ from src.apps.blockchain import schemas
 from src.apps.blockchain.services.transaction_service import (
     BlockchainTransactionService,
 )
-from src.apps.users.models import UserModel
+from src.apps.users.model import UserModel
 from src.core import constants, dependencies
 
 router = APIRouter(

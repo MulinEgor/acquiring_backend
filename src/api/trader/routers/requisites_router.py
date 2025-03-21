@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.requisites import schemas
 from src.apps.requisites.service import RequisiteService
-from src.apps.users.models import UserModel
+from src.apps.users.model import UserModel
 from src.core import dependencies
 from src.core.constants import PermissionEnum
 from src.core.dependencies import get_session

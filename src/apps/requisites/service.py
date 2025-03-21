@@ -3,9 +3,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.requisites import schemas
-from src.apps.requisites.models import RequisiteModel
+from src.apps.requisites.model import RequisiteModel
 from src.apps.requisites.repository import RequisiteRepository
-from src.apps.users.models import UserModel
+from src.apps.users.model import UserModel
 from src.core import exceptions
 from src.lib.base.service import BaseService
 

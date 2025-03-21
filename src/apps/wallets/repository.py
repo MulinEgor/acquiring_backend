@@ -5,7 +5,7 @@ from typing import Tuple
 from sqlalchemy import Select, select
 
 from src.apps.wallets import schemas
-from src.apps.wallets.models import WalletModel
+from src.apps.wallets.model import WalletModel
 from src.lib.base.repository import BaseRepository
 
 

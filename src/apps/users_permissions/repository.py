@@ -4,7 +4,7 @@ from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.users_permissions import schemas
-from src.apps.users_permissions.models import UsersPermissionsModel
+from src.apps.users_permissions.model import UsersPermissionsModel
 from src.lib.base.repository import BaseRepository
 
 

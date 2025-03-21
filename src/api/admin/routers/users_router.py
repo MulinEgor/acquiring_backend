@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.users import schemas
-from src.apps.users.models import UserModel
+from src.apps.users.model import UserModel
 from src.apps.users.service import UserService
 from src.core import constants, dependencies
 
@@ -12,6 +12,27 @@ router = APIRouter(
     prefix="/users",
     tags=["Пользователи"],
 )
+
+
+# MARK: Post
+@router.post(
+    "",
+    summary="Создать нового пользователя.",
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_user_by_admin_route(
+    data: schemas.UserCreateSchema,
+    _=Depends(
+        dependencies.check_user_permissions([constants.PermissionEnum.CREATE_USER])
+    ),
+    session: AsyncSession = Depends(dependencies.get_session),
+):
+    """
+    Создать нового пользователя.
+
+    Требуется разрешение: `создать пользователя`.
+    """
+    return await UserService.create(session, data)
 
 
 # MARK: Get
@@ -68,27 +89,6 @@ async def get_users_by_admin_route(
     Требуется разрешение: `получить пользователя`.
     """
     return await UserService.get_all(session, query_params)
-
-
-# MARK: Post
-@router.post(
-    "",
-    summary="Создать нового пользователя.",
-    status_code=status.HTTP_201_CREATED,
-)
-async def create_user_by_admin_route(
-    data: schemas.UserCreateSchema,
-    _=Depends(
-        dependencies.check_user_permissions([constants.PermissionEnum.CREATE_USER])
-    ),
-    session: AsyncSession = Depends(dependencies.get_session),
-):
-    """
-    Создать нового пользователя.
-
-    Требуется разрешение: `создать пользователя`.
-    """
-    return await UserService.create(session, data)
 
 
 # MARK: Put

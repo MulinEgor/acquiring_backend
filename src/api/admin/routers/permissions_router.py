@@ -5,13 +5,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.permissions import schemas
 from src.apps.permissions.service import PermissionService
-from src.apps.users.models import UserModel
+from src.apps.users.model import UserModel
 from src.core import constants, dependencies
 
 router = APIRouter(prefix="/permissions", tags=["Разрешения"])
 
 
-# MARK: Create
+# MARK: Post
 @router.post(
     "",
     summary="Создать новое разрешение.",

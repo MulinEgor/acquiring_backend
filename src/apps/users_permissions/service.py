@@ -5,9 +5,9 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.apps.permissions.models import PermissionModel
+from src.apps.permissions.model import PermissionModel
 from src.apps.users_permissions import schemas
-from src.apps.users_permissions.models import UsersPermissionsModel
+from src.apps.users_permissions.model import UsersPermissionsModel
 from src.apps.users_permissions.repository import UsersPermissionsRepository
 from src.core import exceptions
 

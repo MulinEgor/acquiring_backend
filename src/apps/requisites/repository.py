@@ -5,7 +5,7 @@ from typing import Tuple
 from sqlalchemy import Select, select
 
 from src.apps.requisites import schemas
-from src.apps.requisites.models import RequisiteModel
+from src.apps.requisites.model import RequisiteModel
 from src.lib.base.repository import BaseRepository
 
 

@@ -6,13 +6,13 @@ from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.blockchain import schemas as blockchain_schemas
-from src.apps.blockchain.models import StatusEnum, TypeEnum
+from src.apps.blockchain.model import StatusEnum, TypeEnum
 from src.apps.blockchain.services.transaction_service import (
     BlockchainTransactionService,
 )
 from src.apps.blockchain.services.tron_service import TronService
 from src.apps.traders import schemas
-from src.apps.users.models import UserModel
+from src.apps.users.model import UserModel
 from src.apps.wallets.schemas import WalletPaginationSchema
 from src.apps.wallets.service import WalletService
 from src.core import exceptions

@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.blockchain.services.tron_service import TronService
 from src.apps.wallets import schemas
-from src.apps.wallets.models import WalletModel
+from src.apps.wallets.model import WalletModel
 from src.apps.wallets.repository import WalletRepository
 from src.core import exceptions
 from src.lib.base.service import BaseService

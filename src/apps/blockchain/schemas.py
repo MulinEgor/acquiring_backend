@@ -4,7 +4,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-from src.apps.blockchain.models import StatusEnum, TypeEnum
+from src.apps.blockchain.model import StatusEnum, TypeEnum
 from src.lib.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
 
 

@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.trader.routers.router import router as traders_router
 from src.apps.auth import schemas as auth_schemas
-from src.apps.blockchain.models import (
+from src.apps.blockchain.model import (
     BlockchainTransactionModel,
     StatusEnum,
     TypeEnum,
@@ -18,8 +18,8 @@ from src.apps.blockchain.services.transaction_service import (
     BlockchainTransactionService,
 )
 from src.apps.traders import schemas as traders_schemas
-from src.apps.users.models import UserModel
-from src.apps.wallets.models import WalletModel
+from src.apps.users.model import UserModel
+from src.apps.wallets.model import WalletModel
 from src.core import constants
 from tests.conftest import faker
 from tests.integration.conftest import BaseTestRouter

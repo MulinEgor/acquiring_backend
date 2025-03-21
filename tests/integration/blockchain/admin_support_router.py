@@ -9,10 +9,10 @@ from src.api.common.routers.blockchain_router import (
 )
 from src.apps.auth import schemas as auth_schemas
 from src.apps.blockchain import schemas as blockchain_schemas
-from src.apps.blockchain.models import BlockchainTransactionModel, StatusEnum
+from src.apps.blockchain.model import BlockchainTransactionModel, StatusEnum
 from src.apps.blockchain.repository import BlockchainTransactionRepository
-from src.apps.users.models import UserModel
-from src.apps.wallets.models import WalletModel
+from src.apps.users.model import UserModel
+from src.apps.wallets.model import WalletModel
 from src.core import constants
 from tests.integration.conftest import BaseTestRouter
 

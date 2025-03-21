@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.api.admin.routers.wallets_router import router as wallets_router
 from src.apps.auth import schemas as auth_schemas
 from src.apps.wallets import schemas as wallet_schemas
-from src.apps.wallets.models import WalletModel
+from src.apps.wallets.model import WalletModel
 from src.apps.wallets.repository import WalletRepository
 from src.core import constants
 from tests.integration.conftest import BaseTestRouter

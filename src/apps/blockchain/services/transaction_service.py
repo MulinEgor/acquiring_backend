@@ -6,7 +6,7 @@ from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.blockchain import schemas
-from src.apps.blockchain.models import (
+from src.apps.blockchain.model import (
     BlockchainTransactionModel,
     StatusEnum,
     TypeEnum,

@@ -18,18 +18,18 @@ from sqlalchemy.ext.asyncio import (
 
 from src.apps.auth import schemas as auth_schemas
 from src.apps.auth.services.jwt_service import JWTService
-from src.apps.blockchain.models import BlockchainTransactionModel, TypeEnum
+from src.apps.blockchain.model import BlockchainTransactionModel, TypeEnum
 from src.apps.permissions import schemas as permission_schemas
-from src.apps.permissions.models import PermissionModel
+from src.apps.permissions.model import PermissionModel
 from src.apps.permissions.repository import PermissionRepository
 from src.apps.requisites import schemas as requisite_schemas
-from src.apps.requisites.models import RequisiteModel
+from src.apps.requisites.model import RequisiteModel
 from src.apps.requisites.repository import RequisiteRepository
 from src.apps.users import schemas as user_schemas
-from src.apps.users.models import UserModel
+from src.apps.users.model import UserModel
 from src.apps.users_permissions.repository import UsersPermissionsRepository
 from src.apps.wallets import schemas as wallet_schemas
-from src.apps.wallets.models import WalletModel
+from src.apps.wallets.model import WalletModel
 from src.core import constants
 from src.core.settings import settings
 from src.lib.services.hash_service import HashService

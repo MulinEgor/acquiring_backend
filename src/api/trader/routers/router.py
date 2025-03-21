@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.traders import schemas
 from src.apps.traders.service import TraderService
-from src.apps.users.models import UserModel
+from src.apps.users.model import UserModel
 from src.core import constants, dependencies
 
 router = APIRouter(

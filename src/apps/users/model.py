@@ -5,8 +5,8 @@ from datetime import datetime
 from sqlalchemy import TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.apps.blockchain.models import BlockchainTransactionModel
-from src.apps.requisites.models import RequisiteModel
+from src.apps.blockchain.model import BlockchainTransactionModel
+from src.apps.requisites.model import RequisiteModel
 from src.core import constants
 from src.core.database import Base
 
