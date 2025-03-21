@@ -21,6 +21,9 @@ from src.apps.blockchain.models import BlockchainTransactionModel, TypeEnum
 from src.apps.permissions import schemas as permission_schemas
 from src.apps.permissions.models import PermissionModel
 from src.apps.permissions.repository import PermissionRepository
+from src.apps.requisites import schemas as requisite_schemas
+from src.apps.requisites.models import RequisiteModel
+from src.apps.requisites.repository import RequisiteRepository
 from src.apps.users import schemas as user_schemas
 from src.apps.users.models import UserModel
 from src.apps.users_permissions.repository import UsersPermissionsRepository
@@ -254,6 +257,10 @@ async def user_trader_db(
         constants.PermissionEnum.CONFIRM_PAY_IN_TRADER,
         constants.PermissionEnum.REQUEST_PAY_OUT_TRADER,
         constants.PermissionEnum.GET_MY_BLOCKCHAIN_TRANSACTION,
+        constants.PermissionEnum.CREATE_MY_REQUISITE,
+        constants.PermissionEnum.GET_MY_REQUISITE,
+        constants.PermissionEnum.UPDATE_MY_REQUISITE,
+        constants.PermissionEnum.DELETE_MY_REQUISITE,
     ]
     permissions = await PermissionRepository.get_all(session)
     await UsersPermissionsRepository.create_bulk(
@@ -385,3 +392,68 @@ async def blockchain_transaction_pay_out_db(
     await session.commit()
 
     return transaction
+
+
+# MARK: Requisites
+@pytest_asyncio.fixture
+async def requisite_trader_db(
+    session: AsyncSession,
+    user_trader_db: UserModel,
+) -> RequisiteModel:
+    """Добавить реквизит в БД."""
+
+    return await RequisiteRepository.create(
+        session=session,
+        obj_in={
+            "user_id": user_trader_db.id,
+            "full_name": faker.word(),
+            "phone_number": faker.phone_number(),
+            "bank_name": faker.word(),
+        },
+    )
+
+
+@pytest.fixture
+def requisite_trader_create_data() -> requisite_schemas.RequisiteCreateSchema:
+    """Подготовленные данные для создания реквизита в БД."""
+
+    return requisite_schemas.RequisiteCreateSchema(
+        full_name=faker.word(),
+        phone_number=faker.word(),
+        bank_name=faker.word(),
+    )
+
+
+@pytest.fixture
+def requisite_admin_create_data(
+    user_trader_db: UserModel,
+) -> requisite_schemas.RequisiteCreateAdminSchema:
+    """Подготовленные данные для создания реквизита в БД администратором."""
+
+    return requisite_schemas.RequisiteCreateAdminSchema(
+        user_id=user_trader_db.id,
+        full_name=faker.word(),
+        phone_number=faker.phone_number(),
+        bank_name=faker.word(),
+    )
+
+
+@pytest.fixture
+def requisite_trader_update_data() -> requisite_schemas.RequisiteUpdateSchema:
+    """Подготовленные данные для обновления реквизита в БД."""
+
+    return requisite_schemas.RequisiteUpdateSchema(
+        full_name=faker.word(),
+    )
+
+
+@pytest.fixture
+def requisite_admin_update_data(
+    user_admin_db: UserModel,
+) -> requisite_schemas.RequisiteUpdateAdminSchema:
+    """Подготовленные данные для обновления реквизита в БД администратором."""
+
+    return requisite_schemas.RequisiteUpdateAdminSchema(
+        user_id=user_admin_db.id,
+        full_name=faker.word(),
+    )

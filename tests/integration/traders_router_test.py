@@ -6,7 +6,7 @@ import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.trader.router.router import router as traders_router
+from src.api.trader.routers.router import router as traders_router
 from src.apps.auth import schemas as auth_schemas
 from src.apps.blockchain.models import (
     BlockchainTransactionModel,

@@ -32,9 +32,12 @@ def setup_exception_handlers(api: FastAPI):
 
 def include_routers(api: FastAPI) -> None:
     """Подключение роутеров."""
-    api.include_router(health_check_router)
-    api.include_router(users_router)
-    api.include_router(auth_router)
+    for router in [
+        health_check_router,
+        users_router,
+        auth_router,
+    ]:
+        api.include_router(router)
 
 
 def get_api(title: str) -> FastAPI:

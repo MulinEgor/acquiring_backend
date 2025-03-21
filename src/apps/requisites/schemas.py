@@ -2,6 +2,8 @@
 
 from pydantic import BaseModel, Field, model_validator
 
+from src.lib.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
+
 
 # MARK: Trader
 class RequisiteCreateSchema(BaseModel):
@@ -10,7 +12,7 @@ class RequisiteCreateSchema(BaseModel):
     full_name: str = Field(description="ФИО")
 
     phone_number: str | None = Field(defualt=None, description="Номер телефона для СБП")
-    bank_name: str | None = Field(default=None, escription="Название банка для СБП")
+    bank_name: str | None = Field(default=None, description="Название банка для СБП")
 
     card_number: str | None = Field(default=None, description="Номер карты")
 
@@ -44,9 +46,64 @@ class RequisiteGetSchema(RequisiteCreateSchema):
     id: int = Field(description="ID реквизитов")
     user_id: int = Field(description="ID пользователя")
 
+    class Config:
+        from_attributes = True
+
+
+class RequisiteUpdateSchema(BaseModel):
+    """Pydanitc схема для обновления реквизитов."""
+
+    full_name: str | None = Field(default=None, description="ФИО")
+
+    phone_number: str | None = Field(default=None, description="Номер телефона для СБП")
+    bank_name: str | None = Field(default=None, description="Название банка для СБП")
+
+    card_number: str | None = Field(default=None, description="Номер карты")
+
+    min_amount: int | None = Field(default=None, ge=0, description="Минимальная сумма")
+    max_amount: int | None = Field(default=None, ge=0, description="Максимальная сумма")
+    max_daily_amount: int | None = Field(
+        default=None, ge=0, description="Максимальная сумма в день"
+    )
+
+
+class RequisiteListGetSchema(DataListGetBaseSchema):
+    """Pydanitc схема для получения списка реквизитов."""
+
+    data: list[RequisiteGetSchema] = Field(description="Список реквизитов")
+
+
+class RequisitePaginationSchema(PaginationBaseSchema):
+    """Pydanitc схема для пагинации реквизитов."""
+
+    full_name: str | None = Field(default=None, description="ФИО")
+
+    phone_number: str | None = Field(default=None, description="Номер телефона для СБП")
+    bank_name: str | None = Field(default=None, description="Название банка для СБП")
+
+    card_number: str | None = Field(default=None, description="Номер карты")
+
+    min_amount: int | None = Field(default=None, ge=0, description="Минимальная сумма")
+    max_amount: int | None = Field(default=None, ge=0, description="Максимальная сумма")
+    max_daily_amount: int | None = Field(
+        default=None, ge=0, description="Максимальная сумма в день"
+    )
+
 
 # MARK: Admin
 class RequisiteCreateAdminSchema(RequisiteCreateSchema):
     """Pydanitc схема для создания реквизитов админом."""
 
     user_id: int = Field(description="ID пользователя")
+
+
+class RequisiteUpdateAdminSchema(RequisiteUpdateSchema):
+    """Pydanitc схема для обновления реквизитов."""
+
+    user_id: int | None = Field(default=None, description="ID пользователя")
+
+
+class RequisitePaginationAdminSchema(RequisitePaginationSchema):
+    """Pydanitc схема для пагинации реквизитов админом."""
+
+    user_id: int | None = Field(default=None, description="ID пользователя")

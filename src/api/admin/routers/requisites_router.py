@@ -1,0 +1,113 @@
+"""Модуль для роутера админа для работы с реквизитами."""
+
+from fastapi import APIRouter, Depends, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.apps.requisites import schemas
+from src.apps.requisites.service import RequisiteService
+from src.core import dependencies
+from src.core.constants import PermissionEnum
+from src.core.dependencies import get_session
+
+router = APIRouter(prefix="/requisites", tags=["Реквизиты"])
+
+
+# MARK: POST
+@router.post("", status_code=status.HTTP_201_CREATED)
+async def create_requisite(
+    data: schemas.RequisiteCreateAdminSchema,
+    _: bool = Depends(
+        dependencies.check_user_permissions([PermissionEnum.CREATE_REQUISITE])
+    ),
+    session: AsyncSession = Depends(get_session),
+):
+    """
+    Создать реквизиты.
+
+    Требуется разрешение: `создать реквизиты`.
+    """
+    return await RequisiteService.create(
+        session=session,
+        data=data,
+    )
+
+
+# MARK: GET
+@router.get("/{id}", status_code=status.HTTP_200_OK)
+async def get_requisite(
+    id: int,
+    _: bool = Depends(
+        dependencies.check_user_permissions([PermissionEnum.GET_REQUISITE])
+    ),
+    session: AsyncSession = Depends(get_session),
+):
+    """
+    Получить реквизиты по ID.
+
+    Требуется разрешение: `получить реквизиты`.
+    """
+    return await RequisiteService.get_by_id(
+        session=session,
+        id=id,
+    )
+
+
+@router.get("", status_code=status.HTTP_200_OK)
+async def get_requisites(
+    query_params: schemas.RequisitePaginationAdminSchema = Query(),
+    _: bool = Depends(
+        dependencies.check_user_permissions([PermissionEnum.GET_REQUISITE])
+    ),
+    session: AsyncSession = Depends(get_session),
+):
+    """
+    Получить все реквизиты.
+
+    Требуется разрешение: `получить реквизиты`.
+    """
+    return await RequisiteService.get_all(
+        session=session,
+        query_params=query_params,
+    )
+
+
+# MARK: PUT
+@router.put("/{id}", status_code=status.HTTP_202_ACCEPTED)
+async def update_requisite(
+    id: int,
+    data: schemas.RequisiteUpdateAdminSchema,
+    _: bool = Depends(
+        dependencies.check_user_permissions([PermissionEnum.UPDATE_REQUISITE])
+    ),
+    session: AsyncSession = Depends(get_session),
+):
+    """
+    Обновить реквизиты по ID.
+
+    Требуется разрешение: `обновить реквизиты`.
+    """
+    return await RequisiteService.update(
+        session=session,
+        id=id,
+        data=data,
+    )
+
+
+# MARK: DELETE
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_requisite(
+    id: int,
+    _: bool = Depends(
+        dependencies.check_user_permissions([PermissionEnum.DELETE_REQUISITE])
+    ),
+    session: AsyncSession = Depends(get_session),
+):
+    """
+    Удалить реквизиты по ID.
+
+    Требуется разрешение: `удалить реквизиты`.
+    """
+    return await RequisiteService.delete(
+        session=session,
+        id=id,
+    )
