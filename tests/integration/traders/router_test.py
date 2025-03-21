@@ -8,16 +8,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.trader.routers.router import router as traders_router
 from src.apps.auth import schemas as auth_schemas
-from src.apps.blockchain.model import (
-    BlockchainTransactionModel,
-    StatusEnum,
-    TypeEnum,
-)
+from src.apps.blockchain.model import BlockchainTransactionModel
 from src.apps.blockchain.repository import BlockchainTransactionRepository
 from src.apps.blockchain.services.transaction_service import (
     BlockchainTransactionService,
 )
 from src.apps.traders import schemas as traders_schemas
+from src.apps.transactions.model import TransactionStatusEnum, TransactionTypeEnum
 from src.apps.users.model import UserModel
 from src.apps.wallets.model import WalletModel
 from src.core import constants
@@ -62,7 +59,7 @@ class TestTradersRouter(BaseTestRouter):
             await BlockchainTransactionService.get_pending_by_user_id(
                 session=session,
                 user_id=user_trader_db.id,
-                type=TypeEnum.PAY_IN,
+                type=TransactionTypeEnum.PAY_IN,
             )
             is not None
         )
@@ -137,7 +134,7 @@ class TestTradersRouter(BaseTestRouter):
                 session=session,
                 user_id=user_trader_db.id,
             )
-        ).status == StatusEnum.CONFIRMED
+        ).status == TransactionStatusEnum.CONFIRMED
 
         await session.refresh(user_trader_db)
         assert (
@@ -186,7 +183,7 @@ class TestTradersRouter(BaseTestRouter):
                 session=session,
                 user_id=user_trader_db.id,
             )
-        ).status == StatusEnum.FAILED
+        ).status == TransactionStatusEnum.FAILED
 
         await session.refresh(user_trader_db)
         assert (
@@ -239,7 +236,7 @@ class TestTradersRouter(BaseTestRouter):
                 session=session,
                 user_id=user_trader_db.id,
             )
-        ).status == StatusEnum.FAILED
+        ).status == TransactionStatusEnum.FAILED
 
         await session.refresh(user_trader_db)
         assert (
@@ -290,8 +287,8 @@ class TestTradersRouter(BaseTestRouter):
         )
 
         assert transaction_db is not None
-        assert transaction_db.status == StatusEnum.PENDING
-        assert transaction_db.type == TypeEnum.PAY_OUT
+        assert transaction_db.status == TransactionStatusEnum.PENDING
+        assert transaction_db.type == TransactionTypeEnum.PAY_OUT
         assert transaction_db.amount == amount
         assert transaction_db.to_address == to_address
         assert transaction_db.from_address == wallet_db.address

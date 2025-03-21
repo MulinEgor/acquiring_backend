@@ -6,12 +6,12 @@ from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.blockchain import schemas as blockchain_schemas
-from src.apps.blockchain.model import StatusEnum, TypeEnum
 from src.apps.blockchain.services.transaction_service import (
     BlockchainTransactionService,
 )
 from src.apps.blockchain.services.tron_service import TronService
 from src.apps.traders import schemas
+from src.apps.transactions.model import TransactionStatusEnum, TransactionTypeEnum
 from src.apps.users.model import UserModel
 from src.apps.wallets.schemas import WalletPaginationSchema
 from src.apps.wallets.service import WalletService
@@ -104,7 +104,7 @@ class TraderService:
             await BlockchainTransactionService.get_pending_by_user_id(
                 session=session,
                 user_id=user.id,
-                type=TypeEnum.PAY_IN,
+                type=TransactionTypeEnum.PAY_IN,
             )
 
             raise exceptions.ConflictException(
@@ -126,7 +126,7 @@ class TraderService:
                 user_id=user.id,
                 to_address=wallet_address,
                 amount=amount,
-                type=TypeEnum.PAY_IN,
+                type=TransactionTypeEnum.PAY_IN,
             ),
         )
 
@@ -163,7 +163,7 @@ class TraderService:
         transaction_db = await BlockchainTransactionService.get_pending_by_user_id(
             session=session,
             user_id=user.id,
-            type=TypeEnum.PAY_IN,
+            type=TransactionTypeEnum.PAY_IN,
         )
 
         # Получение транзакции по хэшу с блокчейна
@@ -174,7 +174,7 @@ class TraderService:
             await BlockchainTransactionService.update_status_by_id(
                 session=session,
                 id=transaction_db.id,
-                status=StatusEnum.FAILED,
+                status=TransactionStatusEnum.FAILED,
             )
             raise e
 
@@ -182,12 +182,12 @@ class TraderService:
         if (
             transaction_db.amount != transaction["amount"]
             or transaction_db.to_address != transaction["to_address"]
-            or transaction_db.type != TypeEnum.PAY_IN
+            or transaction_db.type != TransactionTypeEnum.PAY_IN
         ):
             await BlockchainTransactionService.update_status_by_id(
                 session=session,
                 id=transaction_db.id,
-                status=StatusEnum.FAILED,
+                status=TransactionStatusEnum.FAILED,
             )
             raise exceptions.ConflictException("Транзакция не соответствует ожидаемой.")
 
@@ -198,7 +198,7 @@ class TraderService:
             data=blockchain_schemas.TransactionUpdateSchema(
                 hash=transaction_hash,
                 from_address=transaction["from_address"],
-                status=StatusEnum.CONFIRMED,
+                status=TransactionStatusEnum.CONFIRMED,
                 created_at=transaction["created_at"],
             ),
         )
@@ -247,7 +247,7 @@ class TraderService:
             await BlockchainTransactionService.get_pending_by_user_id(
                 session=session,
                 user_id=user.id,
-                type=TypeEnum.PAY_OUT,
+                type=TransactionTypeEnum.PAY_OUT,
             )
 
             raise exceptions.ConflictException(
@@ -272,7 +272,7 @@ class TraderService:
                 to_address=data.to_address,
                 from_address=wallet_address,
                 amount=data.amount,
-                type=TypeEnum.PAY_OUT,
+                type=TransactionTypeEnum.PAY_OUT,
             ),
         )
 

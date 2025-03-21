@@ -31,7 +31,7 @@ class TestTraderRequisitesRouter(BaseTestRouter):
         """Создание реквизита трейдером."""
 
         response = await router_client.post(
-            "/requisites/me",
+            "/requisites",
             json=requisite_trader_create_data.model_dump(),
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
         )
@@ -67,7 +67,7 @@ class TestTraderRequisitesRouter(BaseTestRouter):
         """Получение реквизита трейдера."""
 
         response = await router_client.get(
-            f"/requisites/me/{requisite_trader_db.id}",
+            f"/requisites/{requisite_trader_db.id}",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
         )
 
@@ -100,7 +100,7 @@ class TestTraderRequisitesRouter(BaseTestRouter):
         await session.commit()
 
         response = await router_client.get(
-            f"/requisites/me/{requisite_trader_db.id}",
+            f"/requisites/{requisite_trader_db.id}",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
         )
 
@@ -116,7 +116,7 @@ class TestTraderRequisitesRouter(BaseTestRouter):
         """Получение всех реквизитов трейдера без параметров."""
 
         response = await router_client.get(
-            "/requisites/me",
+            "/requisites",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
         )
 
@@ -142,7 +142,7 @@ class TestTraderRequisitesRouter(BaseTestRouter):
         )
 
         response = await router_client.get(
-            "/requisites/me",
+            "/requisites",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
             params=query_params.model_dump(exclude_none=True),
         )
@@ -168,7 +168,7 @@ class TestTraderRequisitesRouter(BaseTestRouter):
         """Обновление реквизита трейдера."""
 
         response = await router_client.put(
-            f"/requisites/me/{requisite_trader_db.id}",
+            f"/requisites/{requisite_trader_db.id}",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
             json=requisite_trader_update_data.model_dump(),
         )
@@ -201,7 +201,7 @@ class TestTraderRequisitesRouter(BaseTestRouter):
         """Удаление реквизита трейдера."""
 
         response = await router_client.delete(
-            f"/requisites/me/{requisite_trader_db.id}",
+            f"/requisites/{requisite_trader_db.id}",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
         )
 

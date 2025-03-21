@@ -18,11 +18,11 @@ router = APIRouter(
 
 # MARK: Get
 @router.get(
-    "/me",
-    summary="Получить мои транзакции",
+    "",
+    summary="Получить транзакции текущего пользователя.",
     status_code=status.HTTP_200_OK,
 )
-async def get_my_transactions(
+async def get_my_transactions_route(
     query_params: schemas.TransactionPaginationSchema = Query(),
     user: UserModel = Depends(dependencies.get_current_user),
     _=Depends(

@@ -1,29 +1,14 @@
 """Модуль для моделей транзакций на блокчейне."""
 
 from datetime import datetime, timedelta
-from enum import Enum
 
 from sqlalchemy import TIMESTAMP, ForeignKey, String
 from sqlalchemy import Enum as SQLAlchemyEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from src.apps.transactions.model import TransactionStatusEnum, TransactionTypeEnum
 from src.core import constants
 from src.core.database import Base
-
-
-class StatusEnum(str, Enum):
-    """Статус транзакции на блокчейне."""
-
-    PENDING = "в процессе обработки"
-    CONFIRMED = "подтверждена"
-    FAILED = "не удачна"
-
-
-class TypeEnum(str, Enum):
-    """Тип транзакции на блокчейне."""
-
-    PAY_IN = "входящая"
-    PAY_OUT = "исходящая"
 
 
 class BlockchainTransactionModel(Base):
@@ -34,11 +19,13 @@ class BlockchainTransactionModel(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     amount: Mapped[int] = mapped_column()
-    type: Mapped[TypeEnum] = mapped_column(SQLAlchemyEnum(TypeEnum))
+    type: Mapped[TransactionTypeEnum] = mapped_column(
+        SQLAlchemyEnum(TransactionTypeEnum)
+    )
     from_address: Mapped[str] = mapped_column(String(42), nullable=True)
     to_address: Mapped[str] = mapped_column(String(42))
-    status: Mapped[StatusEnum] = mapped_column(
-        SQLAlchemyEnum(StatusEnum), default=StatusEnum.PENDING
+    status: Mapped[TransactionStatusEnum] = mapped_column(
+        SQLAlchemyEnum(TransactionStatusEnum), default=TransactionStatusEnum.PENDING
     )
     hash: Mapped[str] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now)

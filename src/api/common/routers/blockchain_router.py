@@ -24,7 +24,7 @@ router = APIRouter(
     summary="Получить транзакцию по ID",
     status_code=status.HTTP_200_OK,
 )
-async def get_transaction_by_id(
+async def get_transaction_by_id_route(
     id: int,
     _=Depends(
         dependencies.check_user_permissions(
@@ -49,7 +49,7 @@ async def get_transaction_by_id(
     summary="Получить транзакции",
     status_code=status.HTTP_200_OK,
 )
-async def get_transactions(
+async def get_transactions_route(
     query_params: schemas.TransactionPaginationSchema = Query(),
     _=Depends(
         dependencies.check_user_permissions(
@@ -75,7 +75,7 @@ async def get_transactions(
     summary="Подтвердить исходящую транзакцию по ID",
     status_code=status.HTTP_202_ACCEPTED,
 )
-async def confirm_transaction(
+async def confirm_transaction_route(
     id: int,
     _=Depends(
         dependencies.check_user_permissions(

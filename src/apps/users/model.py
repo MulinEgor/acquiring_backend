@@ -7,6 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.apps.blockchain.model import BlockchainTransactionModel
 from src.apps.requisites.model import RequisiteModel
+from src.apps.transactions.model import TransactionModel
 from src.core import constants
 from src.core.database import Base
 
@@ -59,11 +60,19 @@ class UserModel(Base):
         lazy="selectin",
         cascade="all, delete",
     )
-    blockchain_transactions: Mapped[list[BlockchainTransactionModel]] = relationship(
-        back_populates="user",
-    )
     requisites: Mapped[list[RequisiteModel]] = relationship(
         back_populates="user",
         lazy="selectin",
         cascade="all, delete",
+    )
+    blockchain_transactions: Mapped[list[BlockchainTransactionModel]] = relationship(
+        back_populates="user",
+    )
+    trader_transactions: Mapped[list[TransactionModel]] = relationship(
+        back_populates="trader",
+        foreign_keys=[TransactionModel.trader_id],
+    )
+    merchant_transactions: Mapped[list[TransactionModel]] = relationship(
+        back_populates="merchant",
+        foreign_keys=[TransactionModel.merchant_id],
     )

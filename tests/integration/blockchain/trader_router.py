@@ -39,7 +39,7 @@ class TestMerchantBlockchainTransactionsRouter(BaseTestRouter):
             status=blockchain_transaction_db.status.value,
         )
         response = await router_client.get(
-            "/blockchain-transactions/me",
+            "/blockchain-transactions",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
             params=query_params.model_dump(exclude_none=True),
         )
@@ -82,7 +82,7 @@ class TestMerchantBlockchainTransactionsRouter(BaseTestRouter):
             status=blockchain_transaction_db.status.value,
         )
         response = await router_client.get(
-            "/blockchain-transactions/me",
+            "/blockchain-transactions",
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
             params=query_params.model_dump(exclude_none=True),
         )

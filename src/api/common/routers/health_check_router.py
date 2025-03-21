@@ -12,7 +12,7 @@ router = APIRouter(prefix="/health_check", tags=["Проверка состоя�
     summary="Проверить состояние работы API",
     status_code=status.HTTP_200_OK,
 )
-async def health_check() -> HealthCheckSchema:
+async def health_check_route() -> HealthCheckSchema:
     """Проверить состояние работы API."""
 
     return HealthCheckSchema()

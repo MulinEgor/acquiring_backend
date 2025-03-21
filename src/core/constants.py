@@ -5,7 +5,7 @@ from enum import StrEnum
 from sqlalchemy import TextClause, text
 
 # MARK: Security
-AUTH_HEADER_NAME: str = "X-Authorization"
+AUTH_HEADER_NAME: str = "Authorization"
 ALGORITHM: str = "HS256"
 
 CORS_HEADERS: list[str] = [
@@ -13,7 +13,7 @@ CORS_HEADERS: list[str] = [
     "Set-Cookie",
     "Access-Control-Allow-Headers",
     "Access-Control-Allow-Origin",
-    "X-Authorization",
+    AUTH_HEADER_NAME,
 ]
 CORS_METHODS: list[str] = [
     "GET",
@@ -43,6 +43,7 @@ class PermissionEnum(StrEnum):
 
     # MARK: User
     GET_MY_USER = "получить своего пользователя"
+
     GET_USER = "получить пользователя"
     CREATE_USER = "создать пользователя"
     UPDATE_USER = "обновить пользователя"
@@ -61,10 +62,19 @@ class PermissionEnum(StrEnum):
 
     # MARK: Blockchain Transaction
     GET_MY_BLOCKCHAIN_TRANSACTION = "получить свои транзакции блокчейна"
+
     GET_BLOCKCHAIN_TRANSACTION = "получить транзакцию блокчейна"
     CONFIRM_PAY_OUT_BLOCKCHAIN_TRANSACTION = (
         "подтвердить исходящую транзакцию блокчейна"
     )
+
+    # MARK: Transactions
+    GET_MY_TRANSACTION = "получить свои транзакции"
+
+    GET_TRANSACTION = "получить транзакцию"
+    CREATE_TRANSACTION = "создать транзакцию"
+    UPDATE_TRANSACTION = "обновить транзакцию"
+    DELETE_TRANSACTION = "удалить транзакцию"
 
     # MARK: Trader
     REQUEST_PAY_IN_TRADER = "запросить пополнение средств как трейдер"

@@ -5,8 +5,8 @@ from datetime import datetime
 
 from loguru import logger
 
-from src.apps.blockchain.model import StatusEnum
 from src.apps.blockchain.repository import BlockchainTransactionRepository
+from src.apps.transactions.model import TransactionStatusEnum
 from src.core.dependencies import get_session
 from tasks.celery_worker import worker
 
@@ -34,7 +34,7 @@ async def _check_pending_transactions() -> None:
                 session=session,
                 limit=batch_size * (i + 1),
                 offset=batch_size * i,
-                status=StatusEnum.PENDING,
+                status=TransactionStatusEnum.PENDING,
             )
             if not transactions:
                 logger.info("Транзакций блокчейна в ожидании больше нет.")
@@ -43,7 +43,7 @@ async def _check_pending_transactions() -> None:
 
             for transaction in transactions:
                 if transaction.expires_at < datetime.now():
-                    transaction.status = StatusEnum.CANCELLED
+                    transaction.status = TransactionStatusEnum.FAILED
 
             await session.commit()
             logger.info(f"Обработано транзакций: {i * batch_size + len(transactions)}")

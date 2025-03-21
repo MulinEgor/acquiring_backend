@@ -16,7 +16,7 @@ router = APIRouter(prefix="/wallets", tags=["Кошельки"])
     summary="Создать кошелек",
     status_code=status.HTTP_201_CREATED,
 )
-async def create_wallet(
+async def create_wallet_route(
     data: schemas.WalletCreateSchema,
     _=Depends(
         dependencies.check_user_permissions([constants.PermissionEnum.CREATE_WALLET])

@@ -14,7 +14,7 @@ router = APIRouter(prefix="/requisites", tags=["Реквизиты"])
 
 # MARK: Post
 @router.post("", status_code=status.HTTP_201_CREATED)
-async def create_requisite(
+async def create_requisite_route(
     data: schemas.RequisiteCreateAdminSchema,
     _: bool = Depends(
         dependencies.check_user_permissions([PermissionEnum.CREATE_REQUISITE])
@@ -34,7 +34,7 @@ async def create_requisite(
 
 # MARK: Get
 @router.get("/{id}", status_code=status.HTTP_200_OK)
-async def get_requisite(
+async def get_requisite_route(
     id: int,
     _: bool = Depends(
         dependencies.check_user_permissions([PermissionEnum.GET_REQUISITE])
@@ -53,7 +53,7 @@ async def get_requisite(
 
 
 @router.get("", status_code=status.HTTP_200_OK)
-async def get_requisites(
+async def get_requisites_route(
     query_params: schemas.RequisitePaginationAdminSchema = Query(),
     _: bool = Depends(
         dependencies.check_user_permissions([PermissionEnum.GET_REQUISITE])
@@ -73,7 +73,7 @@ async def get_requisites(
 
 # MARK: Put
 @router.put("/{id}", status_code=status.HTTP_202_ACCEPTED)
-async def update_requisite(
+async def update_requisite_route(
     id: int,
     data: schemas.RequisiteUpdateAdminSchema,
     _: bool = Depends(
@@ -95,7 +95,7 @@ async def update_requisite(
 
 # MARK: Delete
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_requisite(
+async def delete_requisite_route(
     id: int,
     _: bool = Depends(
         dependencies.check_user_permissions([PermissionEnum.DELETE_REQUISITE])

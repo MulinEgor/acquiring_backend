@@ -6,13 +6,10 @@ from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.blockchain import schemas
-from src.apps.blockchain.model import (
-    BlockchainTransactionModel,
-    StatusEnum,
-    TypeEnum,
-)
+from src.apps.blockchain.model import BlockchainTransactionModel
 from src.apps.blockchain.repository import BlockchainTransactionRepository
 from src.apps.blockchain.services.tron_service import TronService
+from src.apps.transactions.model import TransactionStatusEnum, TransactionTypeEnum
 from src.apps.users.repository import UserRepository
 from src.apps.wallets.repository import WalletRepository
 from src.core import exceptions
@@ -39,7 +36,7 @@ class BlockchainTransactionService(
         cls,
         session: AsyncSession,
         user_id: int,
-        type: TypeEnum,
+        type: TransactionTypeEnum,
     ) -> BlockchainTransactionModel:
         """
         Получить транзакцию по идентификатору пользователя.
@@ -66,7 +63,7 @@ class BlockchainTransactionService(
         transaction_db = await cls.repository.get_one_or_none(
             session=session,
             user_id=user_id,
-            status=StatusEnum.PENDING,
+            status=TransactionStatusEnum.PENDING,
             type=type,
         )
 
@@ -77,7 +74,7 @@ class BlockchainTransactionService(
             await cls.update_status_by_id(
                 session=session,
                 id=transaction_db.id,
-                status=StatusEnum.FAILED,
+                status=TransactionStatusEnum.FAILED,
             )
 
             raise exceptions.NotFoundException(
@@ -92,7 +89,7 @@ class BlockchainTransactionService(
         cls,
         session: AsyncSession,
         id: int,
-        status: StatusEnum,
+        status: TransactionStatusEnum,
     ) -> None:
         """
         Обновить статус транзакции по хэшу.
@@ -156,9 +153,9 @@ class BlockchainTransactionService(
             raise exceptions.NotFoundException("Транзакция не найдена.")
 
         err_msgs = []
-        if transaction_db.status != StatusEnum.PENDING:
+        if transaction_db.status != TransactionStatusEnum.PENDING:
             err_msgs.append("не в статусе PENDING")
-        elif transaction_db.type != TypeEnum.PAY_OUT:
+        elif transaction_db.type != TransactionTypeEnum.PAY_OUT:
             err_msgs.append("не является выводом средств")
         elif transaction_db.expires_at < datetime.now():
             err_msgs.append("просрочена")
@@ -181,7 +178,7 @@ class BlockchainTransactionService(
             private_key=wallet_db.private_key,
         )
 
-        transaction_db.status = StatusEnum.CONFIRMED
+        transaction_db.status = TransactionStatusEnum.CONFIRMED
         transaction_db.hash = hash
 
         user = await UserRepository.get_one_or_none(

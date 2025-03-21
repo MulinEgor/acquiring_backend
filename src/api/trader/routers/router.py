@@ -14,12 +14,12 @@ router = APIRouter(
 )
 
 
-# MARK: Pay in
+# MARK: Post
 @router.post(
     "/request-pay-in",
     summary="Запросить пополнение средств как трейдер",
 )
-async def request_pay_in(
+async def request_pay_in_route(
     body: schemas.RequestPayInSchema,
     user: UserModel = Depends(dependencies.get_current_user),
     _=Depends(
@@ -46,7 +46,7 @@ async def request_pay_in(
     summary="Подтвердить пополнение средств как трейдер",
     status_code=status.HTTP_202_ACCEPTED,
 )
-async def confirm_pay_in(
+async def confirm_pay_in_route(
     body: schemas.ConfirmPayInSchema,
     user: UserModel = Depends(dependencies.get_current_user),
     _=Depends(
@@ -68,13 +68,12 @@ async def confirm_pay_in(
     )
 
 
-# MARK: Pay out
 @router.post(
     "/request-pay-out",
     summary="Запросить вывод средств как трейдер",
     status_code=status.HTTP_202_ACCEPTED,
 )
-async def request_pay_out(
+async def request_pay_out_route(
     body: schemas.RequestPayOutSchema,
     user: UserModel = Depends(dependencies.get_current_user),
     _=Depends(

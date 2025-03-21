@@ -14,8 +14,8 @@ router = APIRouter(prefix="/requisites", tags=["Реквизиты"])
 
 
 # MARK: POST
-@router.post("/me", status_code=status.HTTP_201_CREATED)
-async def create_requisite(
+@router.post("", status_code=status.HTTP_201_CREATED)
+async def create_requisite_route(
     data: schemas.RequisiteCreateSchema,
     user: UserModel = Depends(dependencies.get_current_user),
     _: bool = Depends(
@@ -35,8 +35,8 @@ async def create_requisite(
 
 
 # MARK: GET
-@router.get("/me/{id}", status_code=status.HTTP_200_OK)
-async def get_my_requisite(
+@router.get("/{id}", status_code=status.HTTP_200_OK)
+async def get_my_requisite_route(
     id: int,
     user: UserModel = Depends(dependencies.get_current_user),
     _: bool = Depends(
@@ -56,8 +56,8 @@ async def get_my_requisite(
     )
 
 
-@router.get("/me", status_code=status.HTTP_200_OK)
-async def get_my_requisites(
+@router.get("", status_code=status.HTTP_200_OK)
+async def get_my_requisites_route(
     query_params: schemas.RequisitePaginationSchema = Query(),
     user: UserModel = Depends(dependencies.get_current_user),
     _: bool = Depends(
@@ -78,8 +78,8 @@ async def get_my_requisites(
 
 
 # MARK: PUT
-@router.put("/me/{id}", status_code=status.HTTP_202_ACCEPTED)
-async def update_my_requisite(
+@router.put("/{id}", status_code=status.HTTP_202_ACCEPTED)
+async def update_my_requisite_route(
     id: int,
     data: schemas.RequisiteUpdateSchema,
     user: UserModel = Depends(dependencies.get_current_user),
@@ -102,8 +102,8 @@ async def update_my_requisite(
 
 
 # MARK: DELETE
-@router.delete("/me/{id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_my_requisite(
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_my_requisite_route(
     id: int,
     user: UserModel = Depends(dependencies.get_current_user),
     _: bool = Depends(

@@ -4,7 +4,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-from src.apps.blockchain.model import StatusEnum, TypeEnum
+from src.apps.transactions.model import TransactionStatusEnum, TransactionTypeEnum
 from src.lib.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
 
 
@@ -17,7 +17,7 @@ class TransactionCreateSchema(BaseModel):
         default=None, description="Адрес кошелька, откуда будет переведена сумма"
     )
     amount: int = Field(description="Сумма перевода")
-    type: TypeEnum = Field(description="Тип транзакции")
+    type: TransactionTypeEnum = Field(description="Тип транзакции")
 
 
 class TransactionUpdateSchema(BaseModel):
@@ -25,7 +25,7 @@ class TransactionUpdateSchema(BaseModel):
 
     hash: str = Field(description="Хэш транзакции")
     from_address: str = Field(description="Адрес кошелька, откуда переведена сумма")
-    status: StatusEnum = Field(description="Статус транзакции")
+    status: TransactionStatusEnum = Field(description="Статус транзакции")
     created_at: datetime = Field(description="Временная метка транзакции")
 
 
@@ -40,7 +40,7 @@ class TransactionGetSchema(BaseModel):
     from_address: str | None = Field(
         default=None, description="Адрес кошелька, откуда переведена сумма"
     )
-    status: StatusEnum = Field(description="Статус транзакции")
+    status: TransactionStatusEnum = Field(description="Статус транзакции")
     created_at: datetime = Field(description="Временная метка транзакции")
 
     class Config:
@@ -68,10 +68,10 @@ class TransactionPaginationSchema(PaginationBaseSchema):
     type: str | None = Field(
         default=None,
         description="Тип транзакции",
-        enum=[type.value for type in TypeEnum],
+        enum=[type.value for type in TransactionTypeEnum],
     )
     status: str | None = Field(
         default=None,
         description="Статус транзакции",
-        enum=[status.value for status in StatusEnum],
+        enum=[status.value for status in TransactionStatusEnum],
     )
