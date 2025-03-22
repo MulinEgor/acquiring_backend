@@ -301,6 +301,9 @@ async def user_trader_db(
     session.add(requisite_db)
     await session.commit()
 
+    user_trader_db.balance = 1000000
+    await session.commit()
+
     return user_trader_db
 
 
