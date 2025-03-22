@@ -357,6 +357,7 @@ class TraderService:
         )
 
         # Разморозка средств трейдера с учетом комиссии
+        trader_db.balance -= trader_db.amount_frozen
         trader_db.balance += trader_db.amount_frozen * constants.TRADER_COMMISSION
         trader_db.amount_frozen = 0
 

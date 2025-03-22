@@ -364,7 +364,12 @@ class TestTradersRouter(BaseTestRouter):
 
         await session.refresh(user_trader_db)
         await session.refresh(user_merchant_db)
-        assert user_trader_db.balance > user_trader_balance_before
+        assert (
+            user_trader_db.balance
+            == user_trader_balance_before
+            - transaction_merchant_pay_in_db.amount
+            + transaction_merchant_pay_in_db.amount * constants.TRADER_COMMISSION
+        )
         assert (
             user_merchant_db.balance
             == transaction_merchant_pay_in_db.amount
