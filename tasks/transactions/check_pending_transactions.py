@@ -7,6 +7,7 @@ from loguru import logger
 
 from src.apps.transactions.model import TransactionStatusEnum
 from src.apps.transactions.repository import TransactionRepository
+from src.apps.users.repository import UserRepository
 from src.core.dependencies import get_session
 from tasks.celery_worker import worker
 
@@ -21,7 +22,7 @@ async def _check_pending_transactions() -> None:
     """
     Проверка ожидающих транзакций на платформе,
     а именно если транзакция не подтверждена и время ожидания истекло,
-    то транзакция отменяется.
+    то транзакция отменяется, и баланс трейдера возвращаются на место.
 
     Проходимся по всем транзакциям с пагинацией.
     """
@@ -44,6 +45,12 @@ async def _check_pending_transactions() -> None:
             for transaction in transactions_db:
                 if transaction.expires_at < datetime.now():
                     transaction.status = TransactionStatusEnum.FAILED
+                    # Разморозка средств трейдера
+                    trader_db = await UserRepository.get_one_or_none(
+                        session=session,
+                        id=transaction.trader_id,
+                    )
+                    trader_db.amount_frozen -= transaction.amount
 
             await session.commit()
             logger.info(
