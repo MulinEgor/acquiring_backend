@@ -3,6 +3,7 @@
 from datetime import datetime, timedelta
 
 import httpx
+import pytest
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,10 +15,15 @@ from src.apps.blockchain.services.transaction_service import (
     BlockchainTransactionService,
 )
 from src.apps.traders import schemas as traders_schemas
-from src.apps.transactions.model import TransactionStatusEnum, TransactionTypeEnum
+from src.apps.transactions.model import (
+    TransactionModel,
+    TransactionStatusEnum,
+    TransactionTypeEnum,
+)
+from src.apps.transactions.service import TransactionService
 from src.apps.users.model import UserModel
 from src.apps.wallets.model import WalletModel
-from src.core import constants
+from src.core import constants, exceptions
 from tests.conftest import faker
 from tests.integration.conftest import BaseTestRouter
 
@@ -55,13 +61,10 @@ class TestTradersRouter(BaseTestRouter):
         assert response.status_code == status.HTTP_200_OK
         assert traders_schemas.ResponsePayInSchema.model_validate(response.json())
 
-        assert (
-            await BlockchainTransactionService.get_pending_by_user_id(
-                session=session,
-                user_id=user_trader_db.id,
-                type=TransactionTypeEnum.PAY_IN,
-            )
-            is not None
+        assert await BlockchainTransactionService.get_pending_by_user_id(
+            session=session,
+            user_id=user_trader_db.id,
+            type=TransactionTypeEnum.PAY_IN,
         )
 
     async def test_request_pay_in_conflict(
@@ -326,3 +329,45 @@ class TestTradersRouter(BaseTestRouter):
         )
 
         assert len(transactions_db) == 0
+
+    # MARK: Confirm merchant pay in
+    async def test_confirm_merchant_pay_in(
+        self,
+        router_client: httpx.AsyncClient,
+        trader_jwt_tokens: auth_schemas.JWTGetSchema,
+        session: AsyncSession,
+        transaction_merchant_pay_in_db: TransactionModel,
+        user_trader_db: UserModel,
+        user_merchant_db: UserModel,
+    ):
+        """Подтверждение пополнения средств мерчантом от трейдера."""
+
+        response = await router_client.post(
+            "/traders/confirm-merchant-pay-in",
+            headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
+        )
+
+        assert response.status_code == status.HTTP_202_ACCEPTED
+
+        with pytest.raises(exceptions.NotFoundException):
+            await TransactionService.get_pending_by_user_id(
+                session=session,
+                user_id=transaction_merchant_pay_in_db.trader_id,
+                type=TransactionTypeEnum.PAY_IN,
+                role="trader",
+            )
+
+        await session.refresh(user_trader_db)
+        await session.refresh(user_merchant_db)
+        assert (
+            user_trader_db.balance
+            == user_trader_db.amount_frozen
+            + user_trader_db.amount_frozen * constants.MERCHANT_COMMISSION
+        )
+        assert (
+            user_merchant_db.balance
+            == transaction_merchant_pay_in_db.amount
+            - transaction_merchant_pay_in_db.amount * constants.MERCHANT_COMMISSION
+        )
+
+        assert transaction_merchant_pay_in_db.status == TransactionStatusEnum.CONFIRMED

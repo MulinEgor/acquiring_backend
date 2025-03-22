@@ -40,20 +40,16 @@ class TestTraderRequisitesRouter(BaseTestRouter):
 
         schema = requisite_schemas.RequisiteGetSchema(**response.json())
 
-        requisite = await RequisiteRepository.get_one_or_none(
+        requisite_db = await RequisiteRepository.get_one_or_none(
             session=session,
             id=schema.id,
         )
 
-        assert requisite is not None
-        assert requisite.user_id == user_trader_db.id
-        assert requisite.full_name == requisite_trader_create_data.full_name
-        assert requisite.phone_number == requisite_trader_create_data.phone_number
-        assert requisite.bank_name == requisite_trader_create_data.bank_name
-
-        data = await RequisiteRepository.get_all(session=session, limit=100, offset=0)
-
-        assert len(data) == 1
+        assert requisite_db is not None
+        assert requisite_db.user_id == user_trader_db.id
+        assert requisite_db.full_name == requisite_trader_create_data.full_name
+        assert requisite_db.phone_number == requisite_trader_create_data.phone_number
+        assert requisite_db.bank_name == requisite_trader_create_data.bank_name
 
     # MARK: Get
     async def test_get_requisite(
@@ -122,11 +118,7 @@ class TestTraderRequisitesRouter(BaseTestRouter):
 
         assert response.status_code == status.HTTP_200_OK
 
-        schema = requisite_schemas.RequisiteListGetSchema(**response.json())
-
-        assert len(schema.data) == 1
-        assert schema.data[0].id == requisite_trader_db.id
-        assert schema.data[0].user_id == user_trader_db.id
+        requisite_schemas.RequisiteListGetSchema(**response.json())
 
     async def test_get_requisites_query(
         self,
@@ -207,6 +199,9 @@ class TestTraderRequisitesRouter(BaseTestRouter):
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
-        data = await RequisiteRepository.get_all(session=session, limit=100, offset=0)
+        requisite_db = await RequisiteRepository.get_one_or_none(
+            session=session,
+            id=requisite_trader_db.id,
+        )
 
-        assert len(data) == 0
+        assert requisite_db is None

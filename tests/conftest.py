@@ -275,6 +275,7 @@ async def user_trader_db(
         constants.PermissionEnum.UPDATE_MY_REQUISITE,
         constants.PermissionEnum.DELETE_MY_REQUISITE,
         constants.PermissionEnum.GET_MY_TRANSACTION,
+        constants.PermissionEnum.CONFIRM_MERCHANT_PAY_IN_TRADER,
     ]
     permissions_db = await PermissionRepository.get_all(session)
     await UsersPermissionsRepository.create_bulk(
@@ -319,6 +320,7 @@ async def user_merchant_db(
 
     merchant_permissions = [
         constants.PermissionEnum.GET_MY_TRANSACTION,
+        constants.PermissionEnum.REQUEST_PAY_IN_MERCHANT,
     ]
     permissions_db = await PermissionRepository.get_all(session)
     await UsersPermissionsRepository.create_bulk(
@@ -470,6 +472,27 @@ async def transaction_db(
 
     transaction_db = TransactionModel(
         merchant_id=user_merchant_db.id,
+        amount=100,
+        type=TransactionTypeEnum.PAY_IN,
+        payment_method=TransactionPaymentMethodEnum.CARD,
+    )
+    session.add(transaction_db)
+    await session.commit()
+
+    return transaction_db
+
+
+@pytest_asyncio.fixture
+async def transaction_merchant_pay_in_db(
+    session: AsyncSession,
+    user_merchant_db: UserModel,
+    user_trader_db: UserModel,
+) -> TransactionModel:
+    """Добавить транзакцию в БД, которую обрабатывает трейдер."""
+
+    transaction_db = TransactionModel(
+        merchant_id=user_merchant_db.id,
+        trader_id=user_trader_db.id,
         amount=100,
         type=TransactionTypeEnum.PAY_IN,
         payment_method=TransactionPaymentMethodEnum.CARD,

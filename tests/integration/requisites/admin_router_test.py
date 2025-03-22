@@ -67,8 +67,12 @@ class TestAdminRequisitesRouter(BaseTestRouter):
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
-        requisites_db = await RequisiteRepository.get_all(session=session)
-        assert len(requisites_db) == 0
+        requisites_db = await RequisiteRepository.get_one_or_none(
+            session=session,
+            id=requisite_admin_create_data.user_id,
+        )
+
+        assert requisites_db is None
 
     # MARK: Get
     async def test_get_requisite(
@@ -194,5 +198,9 @@ class TestAdminRequisitesRouter(BaseTestRouter):
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
-        requisites_db = await RequisiteRepository.get_all(session=session)
-        assert len(requisites_db) == 0
+        requisites_db = await RequisiteRepository.get_one_or_none(
+            session=session,
+            id=requisite_trader_db.id,
+        )
+
+        assert requisites_db is None
