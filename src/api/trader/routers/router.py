@@ -10,12 +10,12 @@ from src.core import constants, dependencies
 
 router = APIRouter(
     prefix="/traders",
-    tags=["Трейдеры"],
+    tags=["Трейдер"],
 )
 
 
-# MARK: Post
-@router.post(
+# MARK: Patch
+@router.patch(
     "/request-pay-in",
     summary="Запросить пополнение средств как трейдер",
 )
@@ -41,7 +41,7 @@ async def request_pay_in_route(
     )
 
 
-@router.post(
+@router.patch(
     "/confirm-pay-in",
     summary="Подтвердить пополнение средств как трейдер",
     status_code=status.HTTP_202_ACCEPTED,
@@ -68,7 +68,7 @@ async def confirm_pay_in_route(
     )
 
 
-@router.post(
+@router.patch(
     "/request-pay-out",
     summary="Запросить вывод средств как трейдер",
     status_code=status.HTTP_202_ACCEPTED,
@@ -92,4 +92,29 @@ async def request_pay_out_route(
         session=session,
         user=user,
         data=body,
+    )
+
+
+@router.patch(
+    "/confirm-merchant-pay-in",
+    summary="Подтвердить пополнение средств мерчантом",
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def confirm_merchant_pay_in_route(
+    user: UserModel = Depends(dependencies.get_current_user),
+    _=Depends(
+        dependencies.check_user_permissions(
+            [constants.PermissionEnum.CONFIRM_MERCHANT_PAY_IN_TRADER]
+        )
+    ),
+    session: AsyncSession = Depends(dependencies.get_session),
+) -> None:
+    """
+    Подтвердить пополнение средств мерчантом.
+
+    Требуется разрешение: `подтвердить пополнение средств мерчантом`.
+    """
+    return await TraderService.confirm_merchant_pay_in(
+        session=session,
+        trader_db=user,
     )

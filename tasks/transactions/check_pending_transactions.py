@@ -1,43 +1,43 @@
-"""Модуль для проверки ожидающих транзакций на блокчейне."""
+"""Модуль для проверки ожидающих транзакций на платформе."""
 
 import asyncio
 from datetime import datetime
 
 from loguru import logger
 
-from src.apps.blockchain.repository import BlockchainTransactionRepository
 from src.apps.transactions.model import TransactionStatusEnum
+from src.apps.transactions.repository import TransactionRepository
 from src.core.dependencies import get_session
 from tasks.celery_worker import worker
 
 
 @worker.task
 def check_pending_transactions() -> None:
-    """Задача для проверки ожидающих транзакций на блокчейне."""
+    """Задача для проверки ожидающих транзакций на платформе."""
     asyncio.run(_check_pending_transactions())
 
 
 async def _check_pending_transactions() -> None:
     """
-    Проверка ожидающих транзакций на блокчейне,
+    Проверка ожидающих транзакций на платформе,
     а именно если транзакция не подтверждена и время ожидания истекло,
     то транзакция отменяется.
 
     Проходимся по всем транзакциям с пагинацией.
     """
     async for session in get_session():
-        logger.info("Получение ожидающих транзакций блокчейна...")
+        logger.info("Получение ожидающих транзакций платформы...")
 
         i, batch_size = 0, 100
         while True:
-            transactions_db = await BlockchainTransactionRepository.get_all(
+            transactions_db = await TransactionRepository.get_all(
                 session=session,
                 limit=batch_size * (i + 1),
                 offset=batch_size * i,
                 status=TransactionStatusEnum.PENDING,
             )
             if not transactions_db:
-                logger.info("Транзакций блокчейна в ожидании больше нет.")
+                logger.info("Транзакций платформы в ожидании больше нет.")
                 break
             i += 1
 
@@ -50,4 +50,4 @@ async def _check_pending_transactions() -> None:
                 f"Обработано транзакций: {i * batch_size + len(transactions_db)}"
             )
 
-        logger.info("Ожидающие транзакции блокчейна проверены.")
+        logger.info("Ожидающие транзакции платформы проверены.")

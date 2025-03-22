@@ -7,6 +7,7 @@ from pydantic import (
 )
 
 from src.apps.permissions.schemas import PermissionGetSchema
+from src.apps.requisites.schemas import RequisiteGetSchema
 from src.core.database import Base
 from src.lib.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
 
@@ -22,6 +23,7 @@ class UserGetSchema(BaseModel):
     permissions: list[PermissionGetSchema] = Field(
         description="Разрешения пользователя."
     )
+    requisites: list[RequisiteGetSchema] = Field(description="Реквизиты пользователя.")
     is_2fa_enabled: bool = Field(description="Является ли 2FA включенным.")
 
     class Config:

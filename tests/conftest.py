@@ -291,6 +291,15 @@ async def user_trader_db(
 
     await session.commit()
 
+    requisite_db = RequisiteModel(
+        user_id=user_trader_db.id,
+        full_name=faker.word(),
+        phone_number=faker.phone_number(),
+        bank_name=faker.word(),
+    )
+    session.add(requisite_db)
+    await session.commit()
+
     return user_trader_db
 
 

@@ -27,6 +27,7 @@ class TransactionGetSchema(TransactionCreateSchema):
     id: int = Field(description="Идентификатор транзакции")
     status: TransactionStatusEnum = Field(description="Статус транзакции")
     trader_id: int | None = Field(default=None, description="Идентификатор трейдера")
+    expires_at: datetime = Field(description="Время истечения транзакции")
     created_at: datetime = Field(description="Время создания транзакции")
     updated_at: datetime = Field(description="Время обновления транзакции")
 

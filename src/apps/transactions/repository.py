@@ -1,11 +1,16 @@
 """Модуль для репозитория для работы с транзакциями."""
 
-from typing import Tuple
+from typing import Literal, Tuple
 
 from sqlalchemy import Select, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.transactions import schemas
-from src.apps.transactions.model import TransactionModel
+from src.apps.transactions.model import (
+    TransactionModel,
+    TransactionStatusEnum,
+    TransactionTypeEnum,
+)
 from src.lib.base.repository import BaseRepository
 
 
@@ -64,3 +69,39 @@ class TransactionRepository(
             stmt = stmt.order_by(cls.model.created_at)
 
         return stmt
+
+    @classmethod
+    async def get_pending_by_user_id(
+        cls,
+        session: AsyncSession,
+        user_id: int,
+        type: TransactionTypeEnum,
+        role: Literal["merchant", "trader"],
+    ) -> TransactionModel | None:
+        """
+        Получить транзакцию в процессе обработки.
+
+        Args:
+            session: Сессия базы данных.
+            user_id: Идентификатор пользователя.
+            type: Тип транзакции.
+            role: Роль пользователя.
+
+        Returns:
+            Транзакция.
+        """
+
+        stmt = select(TransactionModel).where(
+            cls.model.type == type,
+            cls.model.status == TransactionStatusEnum.PENDING,
+        )
+
+        if role == "merchant":
+            stmt = stmt.where(cls.model.merchant_id == user_id)
+        else:
+            stmt = stmt.where(cls.model.trader_id == user_id)
+
+        transaction = await session.execute(stmt)
+        transaction = transaction.scalar_one_or_none()
+
+        return transaction

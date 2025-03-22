@@ -1,12 +1,13 @@
 """Модуль для SQLAlchemy моделей транзакций на платформе."""
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 
 from sqlalchemy import TIMESTAMP, ForeignKey
 from sqlalchemy import Enum as SQLAlchemyEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from src.core import constants
 from src.core.database import Base
 
 
@@ -50,6 +51,11 @@ class TransactionModel(Base):
         SQLAlchemyEnum(TransactionTypeEnum)
     )
     trader_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
+    expires_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        default=lambda: datetime.now(timezone.utc)
+        + timedelta(seconds=constants.PENDING_TRANSACTION_TIMEOUT),
+    )
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True),
         default=datetime.now(timezone.utc),

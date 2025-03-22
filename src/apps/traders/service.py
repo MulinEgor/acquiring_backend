@@ -5,17 +5,24 @@ from typing import Literal
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from apps.users.repository import UserRepository
 from src.apps.blockchain import schemas as blockchain_schemas
 from src.apps.blockchain.services.transaction_service import (
     BlockchainTransactionService,
 )
 from src.apps.blockchain.services.tron_service import TronService
+from src.apps.requisites.model import RequisiteModel
 from src.apps.traders import schemas
-from src.apps.transactions.model import TransactionStatusEnum, TransactionTypeEnum
+from src.apps.traders.repository import TraderRepository
+from src.apps.transactions.model import (
+    TransactionPaymentMethodEnum,
+    TransactionStatusEnum,
+    TransactionTypeEnum,
+)
 from src.apps.users.model import UserModel
 from src.apps.wallets.schemas import WalletPaginationSchema
 from src.apps.wallets.service import WalletService
-from src.core import exceptions
+from src.core import constants, exceptions
 
 
 class TraderService:
@@ -277,3 +284,95 @@ class TraderService:
         )
 
         return schemas.ResponsePayOutSchema(transaction_id=transaction_db.id)
+
+    # MARK: Get trader by payment method
+    @classmethod
+    async def get_by_payment_method(
+        cls,
+        session: AsyncSession,
+        payment_method: TransactionPaymentMethodEnum,
+    ) -> tuple[UserModel, RequisiteModel]:
+        """
+        Получить трейдера по методу оплаты.
+
+        Args:
+            session: Сессия БД.
+            payment_method: Метод оплаты.
+
+        Returns:
+            Кортеж из трейдера и его реквизитов.
+
+        Raises:
+            NotFoundException: Нет трейдеров с таким методом оплаты.
+        """
+
+        trader, requisite = await TraderRepository.get_by_payment_method(
+            session=session,
+            payment_method=payment_method,
+        )
+
+        if not trader:
+            raise exceptions.NotFoundException(
+                "Трейдер с таким методом оплаты не найден"
+            )
+
+        return trader, requisite
+
+    # MARK: Confirm merchant pay in
+    @classmethod
+    async def confirm_merchant_pay_in(
+        cls,
+        session: AsyncSession,
+        trader_db: UserModel,
+    ) -> None:
+        """
+        Подтвердить пополнение средств мерчантом,
+            разморозить средства трейдера с учетом комиссии,
+            пополнить баланс мерчанта с учетом комиссии,
+            изменить статус транзакции на "подтвержден".
+
+        Args:
+            session: Сессия БД.
+            trader_db: Трейдер, который подтверждает пополнение средств.
+
+        Raises:
+            NotFoundException: Транзакция или мерчант не найдены.
+        """
+
+        logger.info(
+            "Подтверждение пополнения средств мерчантом от трейдера с ID: {}",
+            trader_db.id,
+        )
+
+        # Получение транзакции в процессе обработки из БД
+        transaction_db = await BlockchainTransactionService.get_pending_by_user_id(
+            session=session,
+            user_id=trader_db.id,
+            type=TransactionTypeEnum.PAY_IN,
+            role="merchant",
+        )
+
+        # Разморозка средств трейдера с учетом комиссии
+        trader_db.balance += (
+            trader_db.amount_frozen
+            + trader_db.amount_frozen * constants.MERCHANT_COMMISSION
+        )
+        trader_db.amount_frozen = 0
+
+        # Пополнение баланса мерчанта с учетом комиссии
+        merchant_db = await UserRepository.get_one_or_none(
+            session=session,
+            id=transaction_db.merchant_id,
+        )
+
+        if not merchant_db:
+            raise exceptions.NotFoundException("Мерчант не найден")
+
+        merchant_db.balance += (
+            transaction_db.amount
+            - transaction_db.amount * constants.MERCHANT_COMMISSION
+        )
+
+        transaction_db.status = TransactionStatusEnum.CONFIRMED
+
+        await session.commit()

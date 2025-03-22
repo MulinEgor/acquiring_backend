@@ -76,11 +76,6 @@ class PermissionEnum(StrEnum):
     UPDATE_TRANSACTION = "обновить транзакцию"
     DELETE_TRANSACTION = "удалить транзакцию"
 
-    # MARK: Trader
-    REQUEST_PAY_IN_TRADER = "запросить пополнение средств как трейдер"
-    CONFIRM_PAY_IN_TRADER = "подтвердить пополнение средств как трейдер"
-    REQUEST_PAY_OUT_TRADER = "запросить вывод средств как трейдер"
-
     # MARK: Requisite
     CREATE_MY_REQUISITE = "создать свои реквизиты"
     GET_MY_REQUISITE = "получить свои реквизиты"
@@ -91,6 +86,17 @@ class PermissionEnum(StrEnum):
     GET_REQUISITE = "получить реквизиты"
     UPDATE_REQUISITE = "обновить реквизиты"
     DELETE_REQUISITE = "удалить реквизиты"
+
+    # MARK: Trader
+    REQUEST_PAY_IN_TRADER = "запросить пополнение средств как трейдер"
+    CONFIRM_PAY_IN_TRADER = "подтвердить пополнение средств как трейдер"
+    REQUEST_PAY_OUT_TRADER = "запросить вывод средств как трейдер"
+    CONFIRM_MERCHANT_PAY_IN_TRADER = (
+        "подтвердить пополнение средств мерчантом как трейдер"
+    )
+
+    # MARK: Merchant
+    REQUEST_PAY_IN_MERCHANT = "запросить пополнение средств как мерчант"
 
 
 # MARK: Redis
@@ -118,6 +124,15 @@ TRON_BROADCAST_TRANSACTION_URL: str = (
 
 # MARK: Blockchain transactions
 PENDING_BLOCKCHAIN_TRANSACTION_TIMEOUT: int = 60 * 60 * 24  # 1 день
+PENDING_TRANSACTION_TIMEOUT: int = 60 * 15  # 15 минут
+
+# MARK: Commissions
+MERCHANT_COMMISSION: float = (
+    0.1  # коммисия которая вычитается с баланса мерчанта, после проведения транзакции
+)
+TRADER_COMMISSION: float = (
+    0.1  # коммисия которая идет на счет трейдера, после проведения транзакции
+)
 
 # MARK: Celery
 CELERY_BEAT_CHECK_BLOCKCHAIN_TRANSACTIONS_PERIOD: int = 60 * 10  # 10 минут

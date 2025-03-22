@@ -14,16 +14,18 @@ worker = Celery(
 
 # Конфигурация Celery
 worker.conf.imports = [
-    # "tasks.transactions.check_pending_transactions",
+    "tasks.transactions.check_pending_transactions",
     "tasks.blockchain.check_pending_transactions",
 ]
 
 
 worker.conf.beat_schedule = {
-    # "check_pending_transactions": {
-    #     "task": "tasks.transactions.check_pending_transactions",
-    #     "schedule": constants.CELERY_BEAT_CHECK_TRANSACTIONS_PERIOD,
-    # },
+    "check_pending_transactions": {
+        "task": (
+            "tasks.transactions.check_pending_transactions.check_pending_transactions"
+        ),
+        "schedule": constants.CELERY_BEAT_CHECK_TRANSACTIONS_PERIOD,
+    },
     "check_pending_blockchain_transactions": {
         "task": (
             "tasks.blockchain.check_pending_transactions.check_pending_transactions"
