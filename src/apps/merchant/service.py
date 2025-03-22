@@ -72,9 +72,10 @@ class MerchantService:
             pass
 
         # Получение трейдера и его реквизитов
-        trader_db, requisite_db = await TraderService.get_by_payment_method(
+        trader_db, requisite_db = await TraderService.get_by_payment_method_and_amount(
             session=session,
             payment_method=schema.payment_method,
+            amount=schema.amount,
         )
 
         # Заморозка средств трейдера

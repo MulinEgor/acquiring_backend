@@ -266,7 +266,7 @@ class TraderService:
             pass
 
         # Проверка баланса
-        if user.balance < data.amount:
+        if user.balance - user.amount_frozen < data.amount:
             raise exceptions.BadRequestException("Недостаточно средств для вывода.")
 
         wallet_address = await cls._get_wallet_address_with_min_or_max_balance(
@@ -288,10 +288,11 @@ class TraderService:
 
     # MARK: Get trader by payment method
     @classmethod
-    async def get_by_payment_method(
+    async def get_by_payment_method_and_amount(
         cls,
         session: AsyncSession,
         payment_method: TransactionPaymentMethodEnum,
+        amount: int,
     ) -> tuple[UserModel, RequisiteModel]:
         """
         Получить трейдера по методу оплаты.
@@ -299,6 +300,7 @@ class TraderService:
         Args:
             session: Сессия БД.
             payment_method: Метод оплаты.
+            amount: Сумма транзакции.
 
         Returns:
             Кортеж из трейдера и его реквизитов.
@@ -307,9 +309,10 @@ class TraderService:
             NotFoundException: Нет трейдеров с таким методом оплаты.
         """
 
-        result = await TraderRepository.get_by_payment_method(
+        result = await TraderRepository.get_by_payment_method_and_amount(
             session=session,
             payment_method=payment_method,
+            amount=amount,
         )
 
         if not result:

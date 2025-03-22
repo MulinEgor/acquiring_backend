@@ -29,10 +29,11 @@ class TraderRepository(
     model = UserModel
 
     @classmethod
-    async def get_by_payment_method(
+    async def get_by_payment_method_and_amount(
         cls,
         session: AsyncSession,
         payment_method: TransactionPaymentMethodEnum,
+        amount: int,
     ) -> tuple[UserModel, RequisiteModel]:
         """
         Получить трейдера по методу оплаты,
@@ -41,6 +42,7 @@ class TraderRepository(
         Args:
             session: Сессия для работы с БД.
             payment_method: Метод оплаты.
+            amount: Сумма транзакции.
 
         Returns:
             tuple[UserModel, RequisiteModel]: Тренер и его реквизиты.
@@ -71,7 +73,13 @@ class TraderRepository(
         stmt = (
             select(cls.model, RequisiteModel)
             .outerjoin(cls.model.trader_transactions)
-            .where(and_(requisite_join_condition, ~exists(subquery)))
+            .where(
+                and_(
+                    requisite_join_condition,
+                    ~exists(subquery),
+                    cls.model.balance - cls.model.amount_frozen >= amount,
+                )
+            )
         )
         result = await session.execute(stmt)
 
