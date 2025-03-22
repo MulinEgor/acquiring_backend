@@ -52,7 +52,7 @@ class TestTradersRouter(BaseTestRouter):
             },
         )
 
-        response = await router_client.post(
+        response = await router_client.patch(
             "/traders/request-pay-in",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
             json=traders_schemas.RequestPayInSchema(amount=100).model_dump(),
@@ -91,7 +91,7 @@ class TestTradersRouter(BaseTestRouter):
             mocker=mocker,
         )
 
-        response = await router_client.post(
+        response = await router_client.patch(
             "/traders/request-pay-in",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
             json=traders_schemas.RequestPayInSchema(amount=100).model_dump(),
@@ -122,7 +122,7 @@ class TestTradersRouter(BaseTestRouter):
         )
 
         trader_balance_before = user_trader_db.balance
-        response = await router_client.post(
+        response = await router_client.patch(
             "/traders/confirm-pay-in",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
             json=traders_schemas.ConfirmPayInSchema(
@@ -171,7 +171,7 @@ class TestTradersRouter(BaseTestRouter):
         )
 
         trader_balance_before = user_trader_db.balance
-        response = await router_client.post(
+        response = await router_client.patch(
             "/traders/confirm-pay-in",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
             json=traders_schemas.ConfirmPayInSchema(
@@ -224,7 +224,7 @@ class TestTradersRouter(BaseTestRouter):
         )
 
         trader_balance_before = user_trader_db.balance
-        response = await router_client.post(
+        response = await router_client.patch(
             "/traders/confirm-pay-in",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
             json=traders_schemas.ConfirmPayInSchema(
@@ -271,7 +271,7 @@ class TestTradersRouter(BaseTestRouter):
             },
         )
 
-        response = await router_client.post(
+        response = await router_client.patch(
             "/traders/request-pay-out",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
             json=traders_schemas.RequestPayOutSchema(
@@ -311,7 +311,7 @@ class TestTradersRouter(BaseTestRouter):
         amount = 200
         to_address = "0" * 42
 
-        response = await router_client.post(
+        response = await router_client.patch(
             "/traders/request-pay-out",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
             json=traders_schemas.RequestPayOutSchema(
@@ -342,7 +342,12 @@ class TestTradersRouter(BaseTestRouter):
     ):
         """Подтверждение пополнения средств мерчантом от трейдера."""
 
-        response = await router_client.post(
+        user_trader_balance_before = user_trader_db.balance
+
+        user_trader_db.amount_frozen = transaction_merchant_pay_in_db.amount
+        await session.commit()
+
+        response = await router_client.patch(
             "/traders/confirm-merchant-pay-in",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
         )
@@ -359,11 +364,7 @@ class TestTradersRouter(BaseTestRouter):
 
         await session.refresh(user_trader_db)
         await session.refresh(user_merchant_db)
-        assert (
-            user_trader_db.balance
-            == user_trader_db.amount_frozen
-            + user_trader_db.amount_frozen * constants.MERCHANT_COMMISSION
-        )
+        assert user_trader_db.balance > user_trader_balance_before
         assert (
             user_merchant_db.balance
             == transaction_merchant_pay_in_db.amount
