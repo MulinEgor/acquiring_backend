@@ -1,7 +1,6 @@
 """Модуль для репозиториев трейдеров."""
 
-import select
-
+from sqlalchemy import and_, exists, not_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.requisites.model import RequisiteModel
@@ -50,18 +49,29 @@ class TraderRepository(
             NotFoundException: Тренер с таким методом оплаты не найден.
         """
 
-        stmt = (
-            select(cls.model, RequisiteModel)
-            .join(
-                cls.model.requisites,
-                cls.model.trader_transactions,
-                RequisiteModel.payment_method == payment_method,
-            )
-            .where(
-                cls.model.trader_transactions.all_(
-                    TransactionModel.status != TransactionStatusEnum.PENDING
+        if payment_method == TransactionPaymentMethodEnum.CARD:
+            requisite_join_condition = not_(RequisiteModel.card_number.is_(None))
+        else:
+            requisite_join_condition = not_(
+                or_(
+                    RequisiteModel.phone_number.is_(None),
+                    RequisiteModel.bank_name.is_(None),
                 )
             )
+
+        subquery = (
+            select(TransactionModel).where(
+                and_(
+                    TransactionModel.trader_id == cls.model.id,
+                    TransactionModel.status == TransactionStatusEnum.PENDING.value,
+                )
+            )
+        ).correlate(None)
+
+        stmt = (
+            select(cls.model, RequisiteModel)
+            .outerjoin(cls.model.trader_transactions)
+            .where(and_(requisite_join_condition, ~exists(subquery)))
         )
         result = await session.execute(stmt)
 

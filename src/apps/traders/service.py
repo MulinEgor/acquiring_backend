@@ -5,7 +5,6 @@ from typing import Literal
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from apps.users.repository import UserRepository
 from src.apps.blockchain import schemas as blockchain_schemas
 from src.apps.blockchain.services.transaction_service import (
     BlockchainTransactionService,
@@ -20,6 +19,7 @@ from src.apps.transactions.model import (
     TransactionTypeEnum,
 )
 from src.apps.users.model import UserModel
+from src.apps.users.repository import UserRepository
 from src.apps.wallets.schemas import WalletPaginationSchema
 from src.apps.wallets.service import WalletService
 from src.core import constants, exceptions
@@ -306,17 +306,17 @@ class TraderService:
             NotFoundException: Нет трейдеров с таким методом оплаты.
         """
 
-        trader, requisite = await TraderRepository.get_by_payment_method(
+        result = await TraderRepository.get_by_payment_method(
             session=session,
             payment_method=payment_method,
         )
 
-        if not trader:
+        if not result:
             raise exceptions.NotFoundException(
                 "Трейдер с таким методом оплаты не найден"
             )
 
-        return trader, requisite
+        return result
 
     # MARK: Confirm merchant pay in
     @classmethod
@@ -336,7 +336,7 @@ class TraderService:
             trader_db: Трейдер, который подтверждает пополнение средств.
 
         Raises:
-            NotFoundException: Транзакция или мерчант не найдены.
+            NotFoundException: Транзакция   или мерчант не найдены.
         """
 
         logger.info(
