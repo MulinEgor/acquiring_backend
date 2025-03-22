@@ -18,6 +18,7 @@ from src.apps.transactions.model import (
     TransactionStatusEnum,
     TransactionTypeEnum,
 )
+from src.apps.transactions.service import TransactionService
 from src.apps.users.model import UserModel
 from src.apps.users.repository import UserRepository
 from src.apps.wallets.schemas import WalletPaginationSchema
@@ -345,18 +346,15 @@ class TraderService:
         )
 
         # Получение транзакции в процессе обработки из БД
-        transaction_db = await BlockchainTransactionService.get_pending_by_user_id(
+        transaction_db = await TransactionService.get_pending_by_user_id(
             session=session,
             user_id=trader_db.id,
             type=TransactionTypeEnum.PAY_IN,
-            role="merchant",
+            role="trader",
         )
 
         # Разморозка средств трейдера с учетом комиссии
-        trader_db.balance += (
-            trader_db.amount_frozen
-            + trader_db.amount_frozen * constants.MERCHANT_COMMISSION
-        )
+        trader_db.balance += trader_db.amount_frozen * constants.TRADER_COMMISSION
         trader_db.amount_frozen = 0
 
         # Пополнение баланса мерчанта с учетом комиссии
