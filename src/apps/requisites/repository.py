@@ -64,10 +64,6 @@ class RequisiteRepository(
             stmt = stmt.where(cls.model.min_amount >= query_params.min_amount)
         if query_params.max_amount is not None:
             stmt = stmt.where(cls.model.max_amount <= query_params.max_amount)
-        if query_params.max_daily_amount is not None:
-            stmt = stmt.where(
-                cls.model.max_daily_amount <= query_params.max_daily_amount
-            )
 
         # Сортировка по дате создания.
         if not query_params.asc:

@@ -1,7 +1,6 @@
 """Модуль для тестирования роутера src.api.merchant.routers.router."""
 
 import httpx
-import pytest
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,11 +9,10 @@ from src.apps.auth import schemas as auth_schemas
 from src.apps.merchant import schemas as merchants_schemas
 from src.apps.transactions.model import (
     TransactionPaymentMethodEnum,
-    TransactionTypeEnum,
 )
-from src.apps.transactions.service import TransactionService
+from src.apps.transactions.repository import TransactionRepository
 from src.apps.users.model import UserModel
-from src.core import constants, exceptions
+from src.core import constants
 from tests.integration.conftest import BaseTestRouter
 
 
@@ -48,12 +46,12 @@ class TestMerchantsRouter(BaseTestRouter):
             response.json()
         )
 
-        await TransactionService.get_pending_by_user_id(
-            session=session,
-            user_id=user_merchant_db.id,
-            type=TransactionTypeEnum.PAY_IN,
-            role="merchant",
-        )
+        assert (
+            await TransactionRepository.get_one_or_none(
+                session=session,
+                merchant_id=user_merchant_db.id,
+            )
+        ) is not None
 
     async def test_request_pay_in_conflict(
         self,
@@ -112,10 +110,9 @@ class TestMerchantsRouter(BaseTestRouter):
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-        with pytest.raises(exceptions.NotFoundException):
-            await TransactionService.get_pending_by_user_id(
+        assert (
+            await TransactionRepository.get_one_or_none(
                 session=session,
-                user_id=user_merchant_db.id,
-                type=TransactionTypeEnum.PAY_IN,
-                role="merchant",
+                merchant_id=user_merchant_db.id,
             )
+        ) is None

@@ -51,6 +51,9 @@ class TransactionModel(Base):
         SQLAlchemyEnum(TransactionTypeEnum)
     )
     trader_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
+    requisite_id: Mapped[int] = mapped_column(
+        ForeignKey("requisites.id"), nullable=True
+    )
     expires_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True),
         default=lambda: datetime.now(timezone.utc)
@@ -73,4 +76,8 @@ class TransactionModel(Base):
     trader: Mapped["UserModel"] = relationship(
         back_populates="trader_transactions",
         foreign_keys=[trader_id],
+    )
+    requisite: Mapped["RequisiteModel"] = relationship(
+        back_populates="transactions",
+        foreign_keys=[requisite_id],
     )

@@ -96,11 +96,12 @@ async def request_pay_out_route(
 
 
 @router.patch(
-    "/confirm-merchant-pay-in",
+    "/confirm-merchant-pay-in/{transaction_id}",
     summary="Подтвердить пополнение средств мерчантом",
     status_code=status.HTTP_202_ACCEPTED,
 )
 async def confirm_merchant_pay_in_route(
+    transaction_id: int,
     user: UserModel = Depends(dependencies.get_current_user),
     _=Depends(
         dependencies.check_user_permissions(
@@ -116,5 +117,6 @@ async def confirm_merchant_pay_in_route(
     """
     return await TraderService.confirm_merchant_pay_in(
         session=session,
+        transaction_id=transaction_id,
         trader_db=user,
     )

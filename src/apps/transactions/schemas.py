@@ -27,6 +27,9 @@ class TransactionGetSchema(TransactionCreateSchema):
     id: int = Field(description="Идентификатор транзакции")
     status: TransactionStatusEnum = Field(description="Статус транзакции")
     trader_id: int | None = Field(default=None, description="Идентификатор трейдера")
+    trader_requisite_id: int | None = Field(
+        default=None, description="Идентификатор реквизитов трейдера"
+    )
     expires_at: datetime = Field(description="Время истечения транзакции")
     created_at: datetime = Field(description="Время создания транзакции")
     updated_at: datetime = Field(description="Время обновления транзакции")
@@ -53,21 +56,15 @@ class TransactionPaginationSchema(PaginationBaseSchema):
         default=None, description="Способ оплаты"
     )
     type: TransactionTypeEnum | None = Field(default=None, description="Тип транзакции")
+    requisite_id: int | None = Field(
+        default=None, description="Идентификатор реквизитов"
+    )
 
 
-class TransactionAdminPaginationSchema(PaginationBaseSchema):
+class TransactionAdminPaginationSchema(TransactionPaginationSchema):
     """Схема для пагинации транзакций для админа."""
 
     merchant_id: int | None = Field(default=None, description="Идентификатор мерчанта")
-    min_amount: int | None = Field(default=None, description="Минимальная сумма")
-    max_amount: int | None = Field(default=None, description="Максимальная сумма")
-    status: TransactionStatusEnum | None = Field(
-        default=None, description="Статус транзакции"
-    )
-    payment_method: TransactionPaymentMethodEnum | None = Field(
-        default=None, description="Способ оплаты"
-    )
-    type: TransactionTypeEnum | None = Field(default=None, description="Тип транзакции")
     trader_id: int | None = Field(default=None, description="Идентификатор трейдера")
 
 
@@ -81,6 +78,9 @@ class TransactionUpdateSchema(BaseModel):
     )
     type: TransactionTypeEnum | None = Field(default=None, description="Тип транзакции")
     trader_id: int | None = Field(default=None, description="Идентификатор трейдера")
+    requisite_id: int | None = Field(
+        default=None, description="Идентификатор реквизитов трейдера"
+    )
     status: TransactionStatusEnum | None = Field(
         default=None, description="Статус транзакции"
     )

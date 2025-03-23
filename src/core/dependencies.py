@@ -83,9 +83,6 @@ async def get_current_user(
     if user_db is None:
         raise exceptions.NotFoundException()
 
-    if not user_db.is_active:
-        raise exceptions.ForbiddenException("Ваш аккаунт заблокирован.")
-
     return user_db
 
 

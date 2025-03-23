@@ -38,8 +38,8 @@ class UserModel(Base):
         comment="Замороженные средства пользователя.",
     )
     is_active: Mapped[bool] = mapped_column(
-        default=True,
-        comment="Является ли аккаунт пользователя активным.",
+        default=False,
+        comment="Применяется для трейдера, а именно находится ли он в работе.",
     )
     is_2fa_enabled: Mapped[bool] = mapped_column(
         default=False,

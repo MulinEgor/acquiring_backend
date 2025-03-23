@@ -4,12 +4,13 @@ from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.merchant import schemas
-from src.apps.traders.service import TraderService
+from src.apps.traders.repository import TraderRepository
 from src.apps.transactions import schemas as transaction_schemas
 from src.apps.transactions.model import (
     TransactionPaymentMethodEnum,
     TransactionTypeEnum,
 )
+from src.apps.transactions.repository import TransactionRepository
 from src.apps.transactions.service import TransactionService
 from src.apps.users.model import UserModel
 from src.core import exceptions
@@ -56,27 +57,27 @@ class MerchantService:
         )
 
         # Проверка на наличие транзакции в процессе обработки
-        try:
-            await TransactionService.get_pending_by_user_id(
-                session=session,
-                user_id=user.id,
-                type=TransactionTypeEnum.PAY_IN,
-                role="merchant",
-            )
-
+        if await TransactionRepository.get_pending_by_user_and_requisite_id(
+            session=session,
+            merchant_id=user.id,
+        ):
             raise exceptions.ConflictException(
                 "Уже есть транзакция в процессе обработки."
             )
 
-        except exceptions.NotFoundException:
-            pass
-
         # Получение трейдера и его реквизитов
-        trader_db, requisite_db = await TraderService.get_by_payment_method_and_amount(
-            session=session,
-            payment_method=schema.payment_method,
-            amount=schema.amount,
+        trader_db, requisite_db = (
+            await TraderRepository.get_by_payment_method_and_amount(
+                session=session,
+                payment_method=schema.payment_method,
+                amount=schema.amount,
+            )
+            or (None, None)
         )
+        if not trader_db:
+            raise exceptions.NotFoundException(
+                "Трейдер с таким методом оплаты не найден"
+            )
 
         # Заморозка средств трейдера
         trader_db.amount_frozen += schema.amount
@@ -87,6 +88,7 @@ class MerchantService:
             data=transaction_schemas.TransactionUpdateSchema(
                 merchant_id=user.id,
                 trader_id=trader_db.id,
+                requisite_id=requisite_db.id,
                 amount=schema.amount,
                 payment_method=schema.payment_method,
                 type=TransactionTypeEnum.PAY_IN,

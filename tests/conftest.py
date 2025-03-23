@@ -260,6 +260,7 @@ async def user_trader_db(
     user_trader_db = UserModel(
         email=faker.email(),
         hashed_password=HashService.generate(faker.password()),
+        is_active=True,
     )
     session.add(user_trader_db)
 

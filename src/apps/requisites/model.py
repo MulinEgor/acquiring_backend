@@ -21,7 +21,6 @@ class RequisiteModel(Base):
     card_number: Mapped[str] = mapped_column(nullable=True)
     min_amount: Mapped[int] = mapped_column(nullable=True)
     max_amount: Mapped[int] = mapped_column(nullable=True)
-    max_daily_amount: Mapped[int] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True),
         default=datetime.now(timezone.utc),
@@ -33,3 +32,6 @@ class RequisiteModel(Base):
     )
 
     user: Mapped["UserModel"] = relationship(back_populates="requisites")
+    transactions: Mapped[list["TransactionModel"]] = relationship(
+        back_populates="requisite",
+    )

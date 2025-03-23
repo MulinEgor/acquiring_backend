@@ -10,15 +10,12 @@ from src.apps.blockchain.services.transaction_service import (
     BlockchainTransactionService,
 )
 from src.apps.blockchain.services.tron_service import TronService
-from src.apps.requisites.model import RequisiteModel
 from src.apps.traders import schemas
-from src.apps.traders.repository import TraderRepository
 from src.apps.transactions.model import (
-    TransactionPaymentMethodEnum,
     TransactionStatusEnum,
     TransactionTypeEnum,
 )
-from src.apps.transactions.service import TransactionService
+from src.apps.transactions.repository import TransactionRepository
 from src.apps.users.model import UserModel
 from src.apps.users.repository import UserRepository
 from src.apps.wallets.schemas import WalletPaginationSchema
@@ -286,47 +283,12 @@ class TraderService:
 
         return schemas.ResponsePayOutSchema(transaction_id=transaction_db.id)
 
-    # MARK: Get trader by payment method
-    @classmethod
-    async def get_by_payment_method_and_amount(
-        cls,
-        session: AsyncSession,
-        payment_method: TransactionPaymentMethodEnum,
-        amount: int,
-    ) -> tuple[UserModel, RequisiteModel]:
-        """
-        Получить трейдера по методу оплаты.
-
-        Args:
-            session: Сессия БД.
-            payment_method: Метод оплаты.
-            amount: Сумма транзакции.
-
-        Returns:
-            Кортеж из трейдера и его реквизитов.
-
-        Raises:
-            NotFoundException: Нет трейдеров с таким методом оплаты.
-        """
-
-        result = await TraderRepository.get_by_payment_method_and_amount(
-            session=session,
-            payment_method=payment_method,
-            amount=amount,
-        )
-
-        if not result:
-            raise exceptions.NotFoundException(
-                "Трейдер с таким методом оплаты не найден"
-            )
-
-        return result
-
     # MARK: Confirm merchant pay in
     @classmethod
     async def confirm_merchant_pay_in(
         cls,
         session: AsyncSession,
+        transaction_id: int,
         trader_db: UserModel,
     ) -> None:
         """
@@ -340,7 +302,7 @@ class TraderService:
             trader_db: Трейдер, который подтверждает пополнение средств.
 
         Raises:
-            NotFoundException: Транзакция   или мерчант не найдены.
+            NotFoundException: Транзакция или мерчант не найдены.
         """
 
         logger.info(
@@ -349,12 +311,16 @@ class TraderService:
         )
 
         # Получение транзакции в процессе обработки из БД
-        transaction_db = await TransactionService.get_pending_by_user_id(
+        transaction_db = await TransactionRepository.get_one_or_none(
             session=session,
-            user_id=trader_db.id,
+            id=transaction_id,
             type=TransactionTypeEnum.PAY_IN,
-            role="trader",
+            status=TransactionStatusEnum.PENDING,
         )
+        if not transaction_db:
+            raise exceptions.NotFoundException(
+                "Транзакция для пополнения средств не найдена"
+            )
 
         # Разморозка средств трейдера с учетом комиссии
         trader_db.balance -= trader_db.amount_frozen

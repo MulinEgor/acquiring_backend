@@ -1,6 +1,6 @@
 """Модуль для репозиториев трейдеров."""
 
-from sqlalchemy import and_, exists, not_, or_, select
+from sqlalchemy import and_, not_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.requisites.model import RequisiteModel
@@ -51,33 +51,53 @@ class TraderRepository(
             NotFoundException: Тренер с таким методом оплаты не найден.
         """
 
+        # Определение условия для фильтрации по методу оплаты
         if payment_method == TransactionPaymentMethodEnum.CARD:
-            requisite_join_condition = not_(RequisiteModel.card_number.is_(None))
+            payment_method_stmt = not_(RequisiteModel.card_number.is_(None))
         else:
-            requisite_join_condition = not_(
+            payment_method_stmt = not_(
                 or_(
                     RequisiteModel.phone_number.is_(None),
                     RequisiteModel.bank_name.is_(None),
                 )
             )
 
-        subquery = (
-            select(TransactionModel).where(
-                and_(
-                    TransactionModel.trader_id == cls.model.id,
-                    TransactionModel.status == TransactionStatusEnum.PENDING.value,
-                )
+        # Определение условия для фильтрации по реквизитам,
+        #   которые не находятся в процессе обработки
+        requisite_not_pending_stm = RequisiteModel.id.notin_(
+            select(TransactionModel.requisite_id).where(
+                TransactionModel.status == TransactionStatusEnum.PENDING.value
             )
-        ).correlate(None)
+        )
+
+        # Определение условий для фильтрации по трейдеру
+        trader_checks = [
+            cls.model.is_active,
+            cls.model.balance - cls.model.amount_frozen >= amount,
+        ]
+
+        # Определение условий для фильтрации по сумме транзакции,
+        #   относительно ограничений реквизита.
+        requisite_amount_checks = [
+            or_(
+                RequisiteModel.min_amount.is_(None),
+                amount >= RequisiteModel.min_amount,
+            ),
+            or_(
+                RequisiteModel.max_amount.is_(None),
+                amount <= RequisiteModel.max_amount,
+            ),
+        ]
 
         stmt = (
             select(cls.model, RequisiteModel)
             .outerjoin(cls.model.trader_transactions)
             .where(
                 and_(
-                    requisite_join_condition,
-                    ~exists(subquery),
-                    cls.model.balance - cls.model.amount_frozen >= amount,
+                    payment_method_stmt,
+                    requisite_not_pending_stm,
+                    *trader_checks,
+                    *requisite_amount_checks,
                 )
             )
         )

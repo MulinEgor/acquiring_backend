@@ -1,6 +1,6 @@
 """Модуль для репозитория для работы с транзакциями."""
 
-from typing import Literal, Tuple
+from typing import Tuple
 
 from sqlalchemy import Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,7 +9,6 @@ from src.apps.transactions import schemas
 from src.apps.transactions.model import (
     TransactionModel,
     TransactionStatusEnum,
-    TransactionTypeEnum,
 )
 from src.lib.base.repository import BaseRepository
 
@@ -71,35 +70,45 @@ class TransactionRepository(
         return stmt
 
     @classmethod
-    async def get_pending_by_user_id(
+    async def get_pending_by_user_and_requisite_id(
         cls,
         session: AsyncSession,
-        user_id: int,
-        type: TransactionTypeEnum,
-        role: Literal["merchant", "trader"],
+        merchant_id: int | None = None,
+        trader_id: int | None = None,
+        requisite_id: int | None = None,
     ) -> TransactionModel | None:
         """
-        Получить транзакцию в процессе обработки.
+        Получить транзакцию в процессе обработки
+            по идентификатору мерчанта или трейдера и идентификатору реквизитов.
 
         Args:
             session: Сессия базы данных.
-            user_id: Идентификатор пользователя.
-            type: Тип транзакции.
-            role: Роль пользователя.
+            merchant_id | trader_id: Идентификатор мерчанта или трейдера.
+            requisite_id: Идентификатор реквизитов трейдера.
 
         Returns:
             Транзакция.
+
+        Raises:
+            ValueError:
+                Необходимо указать либо merchant_id, либо trader_id и requisite_id.
         """
 
         stmt = select(TransactionModel).where(
-            cls.model.type == type,
             cls.model.status == TransactionStatusEnum.PENDING,
         )
 
-        if role == "merchant":
-            stmt = stmt.where(cls.model.merchant_id == user_id)
+        if merchant_id:
+            stmt = stmt.where(cls.model.merchant_id == merchant_id)
+        elif trader_id and requisite_id:
+            stmt = stmt.where(
+                cls.model.trader_id == trader_id
+                and cls.model.requisite_id == requisite_id
+            )
         else:
-            stmt = stmt.where(cls.model.trader_id == user_id)
+            raise ValueError(
+                "Необходимо указать либо merchant_id, либо trader_id и requisite_id"
+            )
 
         transaction = await session.execute(stmt)
         transaction = transaction.scalar_one_or_none()

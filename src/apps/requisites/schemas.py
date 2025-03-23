@@ -18,9 +18,6 @@ class RequisiteCreateSchema(BaseModel):
 
     min_amount: int | None = Field(default=None, ge=0, description="Минимальная сумма")
     max_amount: int | None = Field(default=None, ge=0, description="Максимальная сумма")
-    max_daily_amount: int | None = Field(
-        default=None, ge=0, description="Максимальная сумма в день"
-    )
 
     @model_validator(mode="after")
     def validate_model(self) -> "RequisiteCreateSchema":
@@ -62,9 +59,6 @@ class RequisiteUpdateSchema(BaseModel):
 
     min_amount: int | None = Field(default=None, ge=0, description="Минимальная сумма")
     max_amount: int | None = Field(default=None, ge=0, description="Максимальная сумма")
-    max_daily_amount: int | None = Field(
-        default=None, ge=0, description="Максимальная сумма в день"
-    )
 
 
 class RequisiteListGetSchema(DataListGetBaseSchema):
@@ -85,9 +79,6 @@ class RequisitePaginationSchema(PaginationBaseSchema):
 
     min_amount: int | None = Field(default=None, ge=0, description="Минимальная сумма")
     max_amount: int | None = Field(default=None, ge=0, description="Максимальная сумма")
-    max_daily_amount: int | None = Field(
-        default=None, ge=0, description="Максимальная сумма в день"
-    )
 
 
 # MARK: Admin

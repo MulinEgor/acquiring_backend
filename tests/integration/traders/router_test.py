@@ -3,7 +3,6 @@
 from datetime import datetime, timedelta
 
 import httpx
-import pytest
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,10 +19,10 @@ from src.apps.transactions.model import (
     TransactionStatusEnum,
     TransactionTypeEnum,
 )
-from src.apps.transactions.service import TransactionService
+from src.apps.transactions.repository import TransactionRepository
 from src.apps.users.model import UserModel
 from src.apps.wallets.model import WalletModel
-from src.core import constants, exceptions
+from src.core import constants
 from tests.conftest import faker
 from tests.integration.conftest import BaseTestRouter
 
@@ -348,19 +347,18 @@ class TestTradersRouter(BaseTestRouter):
         await session.commit()
 
         response = await router_client.patch(
-            "/traders/confirm-merchant-pay-in",
+            f"/traders/confirm-merchant-pay-in/{transaction_merchant_pay_in_db.id}",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
         )
 
         assert response.status_code == status.HTTP_202_ACCEPTED
 
-        with pytest.raises(exceptions.NotFoundException):
-            await TransactionService.get_pending_by_user_id(
+        assert (
+            await TransactionRepository.get_one_or_none(
                 session=session,
-                user_id=transaction_merchant_pay_in_db.trader_id,
-                type=TransactionTypeEnum.PAY_IN,
-                role="trader",
+                id=transaction_merchant_pay_in_db.id,
             )
+        ) is not None
 
         await session.refresh(user_trader_db)
         await session.refresh(user_merchant_db)
