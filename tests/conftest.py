@@ -277,6 +277,8 @@ async def user_trader_db(
         constants.PermissionEnum.DELETE_MY_REQUISITE,
         constants.PermissionEnum.GET_MY_TRANSACTION,
         constants.PermissionEnum.CONFIRM_MERCHANT_PAY_IN_TRADER,
+        constants.PermissionEnum.START_WORKING_TRADER,
+        constants.PermissionEnum.STOP_WORKING_TRADER,
     ]
     permissions_db = await PermissionRepository.get_all(session)
     await UsersPermissionsRepository.create_bulk(

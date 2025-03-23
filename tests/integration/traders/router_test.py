@@ -32,6 +32,48 @@ class TestTradersRouter(BaseTestRouter):
 
     router = traders_router
 
+    # MARK: Start/stop working
+    async def test_start_working(
+        self,
+        router_client: httpx.AsyncClient,
+        session: AsyncSession,
+        trader_jwt_tokens: auth_schemas.JWTGetSchema,
+        user_trader_db: UserModel,
+    ):
+        """Начать работу как трейдер, буучи уже активным."""
+
+        response = await router_client.patch(
+            "/traders/start",
+            headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
+        )
+
+        assert response.status_code == status.HTTP_409_CONFLICT
+
+        await session.refresh(user_trader_db)
+        assert user_trader_db.is_active is True
+
+    async def test_start_working_not_active(
+        self,
+        router_client: httpx.AsyncClient,
+        session: AsyncSession,
+        trader_jwt_tokens: auth_schemas.JWTGetSchema,
+        user_trader_db: UserModel,
+    ):
+        """Начать работу как трейдер, буучи не активным."""
+
+        user_trader_db.is_active = False
+        await session.commit()
+
+        response = await router_client.patch(
+            "/traders/start",
+            headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
+        )
+
+        assert response.status_code == status.HTTP_202_ACCEPTED
+
+        await session.refresh(user_trader_db)
+        assert user_trader_db.is_active is True
+
     # MARK: Pay in
     async def test_request_pay_in(
         self,

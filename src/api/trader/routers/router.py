@@ -120,3 +120,55 @@ async def confirm_merchant_pay_in_route(
         transaction_id=transaction_id,
         trader_db=user,
     )
+
+
+@router.patch(
+    "/start",
+    summary="Начать работу",
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def start_work_route(
+    user: UserModel = Depends(dependencies.get_current_user),
+    _=Depends(
+        dependencies.check_user_permissions(
+            [constants.PermissionEnum.START_WORKING_TRADER]
+        )
+    ),
+    session: AsyncSession = Depends(dependencies.get_session),
+) -> None:
+    """
+    Начать работу.
+
+    Требуется разрешение: `начать работу как трейдер`.
+    """
+    return await TraderService.set_is_active(
+        session=session,
+        user=user,
+        is_active=True,
+    )
+
+
+@router.patch(
+    "/stop",
+    summary="Остановить работу",
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def stop_work_route(
+    user: UserModel = Depends(dependencies.get_current_user),
+    _=Depends(
+        dependencies.check_user_permissions(
+            [constants.PermissionEnum.STOP_WORKING_TRADER]
+        )
+    ),
+    session: AsyncSession = Depends(dependencies.get_session),
+) -> None:
+    """
+    Остановить работу.
+
+    Требуется разрешение: `остановить работу как трейдер`.
+    """
+    return await TraderService.set_is_active(
+        session=session,
+        user=user,
+        is_active=False,
+    )

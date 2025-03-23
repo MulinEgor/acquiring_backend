@@ -74,6 +74,34 @@ class TraderService:
         else:
             return max(wallets_balances.items(), key=lambda x: x[1])[0]
 
+    # MARK: Is active
+    @classmethod
+    async def set_is_active(
+        cls,
+        session: AsyncSession,
+        user: UserModel,
+        is_active: bool,
+    ) -> None:
+        """
+        Установить активность трейдера.
+
+        Args:
+            session: Сессия БД.
+            user: Пользователь, который нужно установить в активный режим.
+            is_active: Активный режим.
+
+        Raises:
+            ConflictException: Пользователь уже находится в этом режиме.
+        """
+
+        if user.is_active == is_active:
+            raise exceptions.ConflictException(
+                f"Трейдер уже в {'не' if is_active else ''} активном режиме."
+            )
+
+        user.is_active = is_active
+        await session.commit()
+
     # MARK: Pay in
     @classmethod
     async def request_pay_in(
