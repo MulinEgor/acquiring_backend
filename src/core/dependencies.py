@@ -8,12 +8,12 @@ from fastapi.security import APIKeyHeader
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import src.core.exceptions as exceptions
+from src.apps.users.model import UserModel
+from src.apps.users.repository import UserRepository
+from src.apps.users_permissions.service import UsersPermissionsService
 from src.core import constants
 from src.core.database import SessionLocal
 from src.core.settings import settings
-from src.modules.users.models import UserModel
-from src.modules.users.repository import UserRepository
-from src.modules.users_permissions.service import UsersPermissionsService
 
 oauth2_scheme = APIKeyHeader(name=constants.AUTH_HEADER_NAME, auto_error=False)
 
@@ -82,9 +82,6 @@ async def get_current_user(
 
     if user_db is None:
         raise exceptions.NotFoundException()
-
-    if not user_db.is_active:
-        raise exceptions.ForbiddenException("Ваш аккаунт заблокирован.")
 
     return user_db
 

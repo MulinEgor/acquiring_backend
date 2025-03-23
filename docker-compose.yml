@@ -1,7 +1,12 @@
 # MARK: Base
 x-db-base: &db-base
+  profiles: [ "dev" ]
+  networks:
+    - dev
   image: postgres:16
   restart: always
+  env_file:
+      - ./.env
   healthcheck:
     test:
       - CMD-SHELL
@@ -10,29 +15,42 @@ x-db-base: &db-base
     timeout: 5s
     retries: 5
 
-x-api-base: &api-base
+x-app-base: &app-base
+  profiles: [ "dev" ]
+  networks:
+    - dev
   build:
     context: ./
   restart: always
+  volumes:
+      - ./:/app
+      - /app/.venv
+  env_file:
+      - ./.env
 
-# MARK: Dev
+x-api-base: &api-base
+  <<: *app-base
+  depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    
+
 services:
+  # MARK: DB
   db:
-    profiles: [ "dev" ]
     container_name: "db"
     <<: *db-base
     ports:
       - 5432:5432
-    env_file:
-      - ./.env
     expose:
       - 5432
     volumes:
       - ./volumes/postgres/docker-entrypoint-initdb.d/:/docker-entrypoint-initdb.d/
       - pgdata:/var/lib/postgresql/data
-    networks:
-      - dev
 
+  # MARK: Redis
   redis:
     profiles: [ "dev" ]
     container_name: "redis"
@@ -49,29 +67,48 @@ services:
     networks:
       - dev
 
-  api:
-    profiles: [ "dev" ]
-    container_name: "api"
-    <<: *api-base
-    command: granian --interface asgi --reload --host 0.0.0.0 --port 8000 src.main:app
-    volumes:
-      - ./:/app
-      - /app/.venv
-    env_file:
-      - ./.env
-    ports:
-      - 8000:8000
-    expose:
-      - 8000
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    networks:
-      - dev
+  # MARK: Celery
+  celery-worker:
+    container_name: "celery-worker"
+    <<: *app-base
+    command: celery -A tasks.celery_worker worker --loglevel=info
+    healthcheck:
+      test: ["CMD", "celery", "-A", "tasks.celery_worker", "inspect", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
 
-  # MARK: Test
+  celery-beat:
+    container_name: "celery-beat"
+    <<: *app-base
+    command: celery -A tasks.celery_worker beat --loglevel=info
+    healthcheck:
+      test: ["CMD", "celery", "-A", "tasks.celery_worker", "inspect", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+
+  # MARK: API
+  admin-api:
+    container_name: "admin-api"
+    <<: *api-base
+    command: granian --interface asgi --reload --host 0.0.0.0 --port 80 src.api.admin.api:api
+    ports:
+      - 80:80
+    expose:
+      - 80
+
+  user-api:
+    container_name: "user-api"
+    <<: *api-base
+    command: granian --interface asgi --reload --host 0.0.0.0 --port 81 src.api.user.api:api
+    ports:
+      - 81:81
+    expose:
+      - 81
+
+
+  # MARK: Test DB
   db-test:
     profiles: [ "test" ]
     container_name: "db-test"
@@ -81,6 +118,7 @@ services:
     networks:
       - test
 
+  # MARK: Test API
   api-test:
     profiles: [ "test" ]
     container_name: "api-test"

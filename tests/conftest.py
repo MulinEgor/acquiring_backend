@@ -7,6 +7,7 @@ from typing import AsyncGenerator
 import pytest
 import pytest_asyncio
 from faker import Faker
+from loguru import logger
 from sqlalchemy import NullPool
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -15,20 +16,29 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-import src.modules.auth.schemas as auth_schemas
-import src.modules.users.schemas as user_schemas
-import src.modules.wallets.schemas as wallet_schemas
+from src.apps.auth import schemas as auth_schemas
+from src.apps.auth.services.jwt_service import JWTService
+from src.apps.blockchain.model import BlockchainTransactionModel
+from src.apps.permissions import schemas as permission_schemas
+from src.apps.permissions.model import PermissionModel
+from src.apps.permissions.repository import PermissionRepository
+from src.apps.requisites import schemas as requisite_schemas
+from src.apps.requisites.model import RequisiteModel
+from src.apps.requisites.repository import RequisiteRepository
+from src.apps.transactions import schemas as transaction_schemas
+from src.apps.transactions.model import (
+    TransactionModel,
+    TransactionPaymentMethodEnum,
+    TransactionTypeEnum,
+)
+from src.apps.users import schemas as user_schemas
+from src.apps.users.model import UserModel
+from src.apps.users_permissions.repository import UsersPermissionsRepository
+from src.apps.wallets import schemas as wallet_schemas
+from src.apps.wallets.model import WalletModel
 from src.core import constants
 from src.core.settings import settings
-from src.modules.auth.services.jwt_service import JWTService
-from src.modules.blockchain.models import BlockchainTransactionModel, TypeEnum
-from src.modules.permissions import schemas as permission_schemas
-from src.modules.permissions.models import PermissionModel
-from src.modules.permissions.repository import PermissionRepository
-from src.modules.services.hash_service import HashService
-from src.modules.users.models import UserModel
-from src.modules.users_permissions.repository import UsersPermissionsRepository
-from src.modules.wallets.models import WalletModel
+from src.lib.services.hash_service import HashService
 
 faker = Faker()
 
@@ -91,6 +101,12 @@ async def session(engine: AsyncEngine) -> AsyncGenerator[AsyncSession, None]:
             await tsx.rollback()
 
 
+@pytest.fixture(scope="session", autouse=True)
+def disable_logger():
+    """Отключить логирование для тестов."""
+    logger.configure(handlers=[{"sink": sys.stderr, "level": "CRITICAL"}])
+
+
 @pytest.fixture()
 def task_session(
     session: AsyncSession,
@@ -133,14 +149,10 @@ def output_to_stdout():
 async def mock_redis(mocker):
     """Мокирование Redis."""
 
+    mocker.patch("src.lib.services.redis_service.RedisService.get", return_value=None)
+    mocker.patch("src.lib.services.redis_service.RedisService.set", return_value=None)
     mocker.patch(
-        "src.modules.services.redis_service.RedisService.get", return_value=None
-    )
-    mocker.patch(
-        "src.modules.services.redis_service.RedisService.set", return_value=None
-    )
-    mocker.patch(
-        "src.modules.services.redis_service.RedisService.delete", return_value=None
+        "src.lib.services.redis_service.RedisService.delete", return_value=None
     )
 
 
@@ -214,29 +226,29 @@ async def user_admin_db(
 ) -> UserModel:
     """Добавить пользователя-администратора в БД."""
 
-    user_admin = UserModel(
+    user_admin_db = UserModel(
         email=faker.email(),
         hashed_password=HashService.generate(faker.password()),
     )
-    session.add(user_admin)
+    session.add(user_admin_db)
 
     await session.commit()
 
-    permissions = await PermissionRepository.get_all(session)
+    permissions_db = await PermissionRepository.get_all(session)
     await UsersPermissionsRepository.create_bulk(
         session=session,
         data=[
             {
-                "user_id": user_admin.id,
+                "user_id": user_admin_db.id,
                 "permission_id": permission.id,
             }
-            for permission in permissions
+            for permission in permissions_db
         ],
     )
 
     await session.commit()
 
-    return user_admin
+    return user_admin_db
 
 
 @pytest_asyncio.fixture
@@ -245,11 +257,12 @@ async def user_trader_db(
 ) -> UserModel:
     """Добавить пользователя-трейдера в БД."""
 
-    user_trader = UserModel(
+    user_trader_db = UserModel(
         email=faker.email(),
         hashed_password=HashService.generate(faker.password()),
+        is_active=True,
     )
-    session.add(user_trader)
+    session.add(user_trader_db)
 
     await session.commit()
 
@@ -257,23 +270,80 @@ async def user_trader_db(
         constants.PermissionEnum.REQUEST_PAY_IN_TRADER,
         constants.PermissionEnum.CONFIRM_PAY_IN_TRADER,
         constants.PermissionEnum.REQUEST_PAY_OUT_TRADER,
+        constants.PermissionEnum.GET_MY_BLOCKCHAIN_TRANSACTION,
+        constants.PermissionEnum.CREATE_MY_REQUISITE,
+        constants.PermissionEnum.GET_MY_REQUISITE,
+        constants.PermissionEnum.UPDATE_MY_REQUISITE,
+        constants.PermissionEnum.DELETE_MY_REQUISITE,
+        constants.PermissionEnum.GET_MY_TRANSACTION,
+        constants.PermissionEnum.CONFIRM_MERCHANT_PAY_IN_TRADER,
+        constants.PermissionEnum.START_WORKING_TRADER,
+        constants.PermissionEnum.STOP_WORKING_TRADER,
     ]
-    permissions = await PermissionRepository.get_all(session)
+    permissions_db = await PermissionRepository.get_all(session)
     await UsersPermissionsRepository.create_bulk(
         session=session,
         data=[
             {
-                "user_id": user_trader.id,
+                "user_id": user_trader_db.id,
                 "permission_id": permission.id,
             }
-            for permission in permissions
+            for permission in permissions_db
             if permission.name in trader_permissions
         ],
     )
 
     await session.commit()
 
-    return user_trader
+    requisite_db = RequisiteModel(
+        user_id=user_trader_db.id,
+        full_name=faker.word(),
+        phone_number=faker.phone_number(),
+        bank_name=faker.word(),
+    )
+    session.add(requisite_db)
+    await session.commit()
+
+    user_trader_db.balance = 1000000
+    await session.commit()
+
+    return user_trader_db
+
+
+@pytest_asyncio.fixture
+async def user_merchant_db(
+    session: AsyncSession,
+) -> UserModel:
+    """Добавить пользователя-мерчанта в БД."""
+
+    user_merchant_db = UserModel(
+        email=faker.email(),
+        hashed_password=HashService.generate(faker.password()),
+    )
+    session.add(user_merchant_db)
+
+    await session.commit()
+
+    merchant_permissions = [
+        constants.PermissionEnum.GET_MY_TRANSACTION,
+        constants.PermissionEnum.REQUEST_PAY_IN_MERCHANT,
+    ]
+    permissions_db = await PermissionRepository.get_all(session)
+    await UsersPermissionsRepository.create_bulk(
+        session=session,
+        data=[
+            {
+                "user_id": user_merchant_db.id,
+                "permission_id": permission.id,
+            }
+            for permission in permissions_db
+            if permission.name in merchant_permissions
+        ],
+    )
+
+    await session.commit()
+
+    return user_merchant_db
 
 
 @pytest.fixture
@@ -304,6 +374,7 @@ def user_update_data() -> user_schemas.UserUpdateSchema:
     )
 
 
+# MARK: JWT tokens
 @pytest_asyncio.fixture
 async def user_jwt_tokens(user_db: UserModel) -> auth_schemas.JWTGetSchema:
     """Создать JWT токены  для тестового пользователя."""
@@ -323,6 +394,13 @@ async def trader_jwt_tokens(user_trader_db: UserModel) -> auth_schemas.JWTGetSch
     """Создать JWT токены  для тестового пользователя-трейдера."""
 
     return await JWTService.create_tokens(user_id=user_trader_db.id)
+
+
+@pytest_asyncio.fixture
+async def merchant_jwt_tokens(user_merchant_db: UserModel) -> auth_schemas.JWTGetSchema:
+    """Создать JWT токены  для тестового пользователя-мерчанта."""
+
+    return await JWTService.create_tokens(user_id=user_merchant_db.id)
 
 
 # MARK: Wallets
@@ -362,10 +440,11 @@ async def blockchain_transaction_db(
         user_id=user_trader_db.id,
         to_address="*" * 42,  # тестовая строка с нужной длиной
         amount=100,
-        type=TypeEnum.PAY_IN,
+        type=TransactionTypeEnum.PAY_IN,
     )
     session.add(transaction)
     await session.commit()
+    await session.refresh(transaction)
 
     return transaction
 
@@ -382,9 +461,138 @@ async def blockchain_transaction_pay_out_db(
         from_address="*" * 42,  # тестовая строка с нужной длиной
         to_address="*" * 42,  # тестовая строка с нужной длиной
         amount=100,
-        type=TypeEnum.PAY_OUT,
+        type=TransactionTypeEnum.PAY_OUT,
     )
     session.add(transaction)
     await session.commit()
 
     return transaction
+
+
+# MARK: Transactions
+@pytest_asyncio.fixture
+async def transaction_db(
+    session: AsyncSession,
+    user_merchant_db: UserModel,
+) -> TransactionModel:
+    """Добавить транзакцию в БД."""
+
+    transaction_db = TransactionModel(
+        merchant_id=user_merchant_db.id,
+        amount=100,
+        type=TransactionTypeEnum.PAY_IN,
+        payment_method=TransactionPaymentMethodEnum.CARD,
+    )
+    session.add(transaction_db)
+    await session.commit()
+
+    return transaction_db
+
+
+@pytest_asyncio.fixture
+async def transaction_merchant_pay_in_db(
+    session: AsyncSession,
+    user_merchant_db: UserModel,
+    user_trader_db: UserModel,
+) -> TransactionModel:
+    """Добавить транзакцию в БД, которую обрабатывает трейдер."""
+
+    transaction_db = TransactionModel(
+        merchant_id=user_merchant_db.id,
+        trader_id=user_trader_db.id,
+        amount=100,
+        type=TransactionTypeEnum.PAY_IN,
+        payment_method=TransactionPaymentMethodEnum.CARD,
+    )
+    session.add(transaction_db)
+    await session.commit()
+
+    return transaction_db
+
+
+@pytest.fixture
+def transaction_create_data(
+    user_merchant_db: UserModel,
+) -> transaction_schemas.TransactionCreateSchema:
+    return transaction_schemas.TransactionCreateSchema(
+        merchant_id=user_merchant_db.id,
+        amount=100,
+        type=TransactionTypeEnum.PAY_IN,
+        payment_method=TransactionPaymentMethodEnum.CARD,
+    )
+
+
+@pytest.fixture
+def transaction_update_data(
+    user_trader_db: UserModel,
+) -> transaction_schemas.TransactionUpdateSchema:
+    """Подготовленные данные для обновления транзакции в БД."""
+
+    return transaction_schemas.TransactionUpdateSchema(
+        merchant_id=user_trader_db.id,
+    )
+
+
+# MARK: Requisites
+@pytest_asyncio.fixture
+async def requisite_trader_db(
+    session: AsyncSession,
+    user_trader_db: UserModel,
+) -> RequisiteModel:
+    """Добавить реквизит в БД."""
+
+    return await RequisiteRepository.create(
+        session=session,
+        obj_in={
+            "user_id": user_trader_db.id,
+            "full_name": faker.word(),
+            "phone_number": faker.phone_number(),
+            "bank_name": faker.word(),
+        },
+    )
+
+
+@pytest.fixture
+def requisite_trader_create_data() -> requisite_schemas.RequisiteCreateSchema:
+    """Подготовленные данные для создания реквизита в БД."""
+
+    return requisite_schemas.RequisiteCreateSchema(
+        full_name=faker.word(),
+        phone_number=faker.word(),
+        bank_name=faker.word(),
+    )
+
+
+@pytest.fixture
+def requisite_admin_create_data(
+    user_trader_db: UserModel,
+) -> requisite_schemas.RequisiteCreateAdminSchema:
+    """Подготовленные данные для создания реквизита в БД администратором."""
+
+    return requisite_schemas.RequisiteCreateAdminSchema(
+        user_id=user_trader_db.id,
+        full_name=faker.word(),
+        phone_number=faker.phone_number(),
+        bank_name=faker.word(),
+    )
+
+
+@pytest.fixture
+def requisite_trader_update_data() -> requisite_schemas.RequisiteUpdateSchema:
+    """Подготовленные данные для обновления реквизита в БД."""
+
+    return requisite_schemas.RequisiteUpdateSchema(
+        full_name=faker.word(),
+    )
+
+
+@pytest.fixture
+def requisite_admin_update_data(
+    user_admin_db: UserModel,
+) -> requisite_schemas.RequisiteUpdateAdminSchema:
+    """Подготовленные данные для обновления реквизита в БД администратором."""
+
+    return requisite_schemas.RequisiteUpdateAdminSchema(
+        user_id=user_admin_db.id,
+        full_name=faker.word(),
+    )

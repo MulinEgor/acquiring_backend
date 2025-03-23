@@ -1,4 +1,4 @@
-"""Модуль `conftest` с фикстурами для пакета `tasks.integration`."""
+"""Модуль для конфигурации тестов."""
 
 from typing import AsyncGenerator
 

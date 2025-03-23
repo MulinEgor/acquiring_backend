@@ -1,0 +1,30 @@
+"""Модуль для тестирования роутера src.api.common.routers.health_check_router"""
+
+import httpx
+from fastapi import status
+
+from src.api.common.routers.health_check_router import router as health_check_router
+from src.apps.healthcheck.schemas import HealthCheckSchema
+from src.core.settings import settings
+from tests.integration.conftest import BaseTestRouter
+
+
+class TestHealtcheckRouter(BaseTestRouter):
+    """Класс для тестирования роутера."""
+
+    router = health_check_router
+
+    async def test_healthcheck(
+        self,
+        router_client: httpx.AsyncClient,
+    ):
+        """Проверка состояния работы API."""
+
+        response = await router_client.get(url="/health_check")
+
+        health_check_data = HealthCheckSchema(**response.json())
+
+        assert response.status_code == status.HTTP_200_OK
+        assert health_check_data.mode == settings.MODE
+        assert health_check_data.version == settings.APP_VERSION
+        assert health_check_data.status == "OK"

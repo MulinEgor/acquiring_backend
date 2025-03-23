@@ -5,7 +5,7 @@ from enum import StrEnum
 from sqlalchemy import TextClause, text
 
 # MARK: Security
-AUTH_HEADER_NAME: str = "X-Authorization"
+AUTH_HEADER_NAME: str = "Authorization"
 ALGORITHM: str = "HS256"
 
 CORS_HEADERS: list[str] = [
@@ -13,7 +13,7 @@ CORS_HEADERS: list[str] = [
     "Set-Cookie",
     "Access-Control-Allow-Headers",
     "Access-Control-Allow-Origin",
-    "X-Authorization",
+    AUTH_HEADER_NAME,
 ]
 CORS_METHODS: list[str] = [
     "GET",
@@ -43,6 +43,7 @@ class PermissionEnum(StrEnum):
 
     # MARK: User
     GET_MY_USER = "получить своего пользователя"
+
     GET_USER = "получить пользователя"
     CREATE_USER = "создать пользователя"
     UPDATE_USER = "обновить пользователя"
@@ -60,15 +61,44 @@ class PermissionEnum(StrEnum):
     DELETE_WALLET = "удалить кошелек"
 
     # MARK: Blockchain Transaction
+    GET_MY_BLOCKCHAIN_TRANSACTION = "получить свои транзакции блокчейна"
+
     GET_BLOCKCHAIN_TRANSACTION = "получить транзакцию блокчейна"
     CONFIRM_PAY_OUT_BLOCKCHAIN_TRANSACTION = (
         "подтвердить исходящую транзакцию блокчейна"
     )
 
+    # MARK: Transactions
+    GET_MY_TRANSACTION = "получить свои транзакции"
+
+    GET_TRANSACTION = "получить транзакцию"
+    CREATE_TRANSACTION = "создать транзакцию"
+    UPDATE_TRANSACTION = "обновить транзакцию"
+    DELETE_TRANSACTION = "удалить транзакцию"
+
+    # MARK: Requisite
+    CREATE_MY_REQUISITE = "создать свои реквизиты"
+    GET_MY_REQUISITE = "получить свои реквизиты"
+    UPDATE_MY_REQUISITE = "обновить свои реквизиты"
+    DELETE_MY_REQUISITE = "удалить свои реквизиты"
+
+    CREATE_REQUISITE = "создать реквизиты"
+    GET_REQUISITE = "получить реквизиты"
+    UPDATE_REQUISITE = "обновить реквизиты"
+    DELETE_REQUISITE = "удалить реквизиты"
+
     # MARK: Trader
     REQUEST_PAY_IN_TRADER = "запросить пополнение средств как трейдер"
     CONFIRM_PAY_IN_TRADER = "подтвердить пополнение средств как трейдер"
     REQUEST_PAY_OUT_TRADER = "запросить вывод средств как трейдер"
+    CONFIRM_MERCHANT_PAY_IN_TRADER = (
+        "подтвердить пополнение средств мерчантом как трейдер"
+    )
+    START_WORKING_TRADER = "начать работу как трейдер"
+    STOP_WORKING_TRADER = "остановить работу как трейдер"
+
+    # MARK: Merchant
+    REQUEST_PAY_IN_MERCHANT = "запросить пополнение средств как мерчант"
 
 
 # MARK: Redis
@@ -96,3 +126,16 @@ TRON_BROADCAST_TRANSACTION_URL: str = (
 
 # MARK: Blockchain transactions
 PENDING_BLOCKCHAIN_TRANSACTION_TIMEOUT: int = 60 * 60 * 24  # 1 день
+PENDING_TRANSACTION_TIMEOUT: int = 60 * 15  # 15 минут
+
+# MARK: Commissions
+MERCHANT_COMMISSION: float = (
+    0.1  # коммисия которая вычитается с баланса мерчанта, после проведения транзакции
+)
+TRADER_COMMISSION: float = (
+    0.1  # коммисия которая идет на счет трейдера, после проведения транзакции
+)
+
+# MARK: Celery
+CELERY_BEAT_CHECK_BLOCKCHAIN_TRANSACTIONS_PERIOD: int = 60 * 10  # 10 минут
+CELERY_BEAT_CHECK_TRANSACTIONS_PERIOD: int = 60 * 10  # 10 минут
