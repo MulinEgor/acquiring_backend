@@ -4,7 +4,7 @@ import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.merchant.routers.router import router as merchants_router
+from src.api.user.routers.merchant.router import router as merchants_router
 from src.apps.auth import schemas as auth_schemas
 from src.apps.merchant import schemas as merchants_schemas
 from src.apps.transactions.model import (

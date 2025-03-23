@@ -444,6 +444,7 @@ async def blockchain_transaction_db(
     )
     session.add(transaction)
     await session.commit()
+    await session.refresh(transaction)
 
     return transaction
 

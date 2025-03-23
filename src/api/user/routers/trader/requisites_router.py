@@ -10,11 +10,15 @@ from src.core import dependencies
 from src.core.constants import PermissionEnum
 from src.core.dependencies import get_session
 
-router = APIRouter(prefix="/requisites", tags=["Реквизиты"])
+router = APIRouter(prefix="/traders/requisites", tags=["Реквизиты трейдера"])
 
 
 # MARK: POST
-@router.post("", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    summary="Создать свои реквизиты.",
+    status_code=status.HTTP_201_CREATED,
+)
 async def create_requisite_route(
     data: schemas.RequisiteCreateSchema,
     user: UserModel = Depends(dependencies.get_current_user),
@@ -35,7 +39,11 @@ async def create_requisite_route(
 
 
 # MARK: GET
-@router.get("/{id}", status_code=status.HTTP_200_OK)
+@router.get(
+    "/{id}",
+    summary="Получить свои реквизиты по ID.",
+    status_code=status.HTTP_200_OK,
+)
 async def get_my_requisite_route(
     id: int,
     user: UserModel = Depends(dependencies.get_current_user),
@@ -56,7 +64,11 @@ async def get_my_requisite_route(
     )
 
 
-@router.get("", status_code=status.HTTP_200_OK)
+@router.get(
+    "",
+    summary="Получить все свои реквизиты.",
+    status_code=status.HTTP_200_OK,
+)
 async def get_my_requisites_route(
     query_params: schemas.RequisitePaginationSchema = Query(),
     user: UserModel = Depends(dependencies.get_current_user),
@@ -78,7 +90,11 @@ async def get_my_requisites_route(
 
 
 # MARK: PUT
-@router.put("/{id}", status_code=status.HTTP_202_ACCEPTED)
+@router.put(
+    "/{id}",
+    summary="Обновить свои реквизиты по ID.",
+    status_code=status.HTTP_202_ACCEPTED,
+)
 async def update_my_requisite_route(
     id: int,
     data: schemas.RequisiteUpdateSchema,
@@ -102,7 +118,11 @@ async def update_my_requisite_route(
 
 
 # MARK: DELETE
-@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{id}",
+    summary="Удалить свои реквизиты по ID.",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
 async def delete_my_requisite_route(
     id: int,
     user: UserModel = Depends(dependencies.get_current_user),

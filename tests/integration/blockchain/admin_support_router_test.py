@@ -1,15 +1,15 @@
-"""Модуль для тестирования src.api.common.routers.blockchain_router."""
+"""Модуль для тестирования src.api.user.routers.support.blockchain_router."""
 
 import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.common.routers.blockchain_router import (
+from src.api.admin.routers.blockchain_router import (
     router as blockchain_transactions_router,
 )
 from src.apps.auth import schemas as auth_schemas
 from src.apps.blockchain import schemas as blockchain_schemas
-from src.apps.blockchain.model import BlockchainTransactionModel, StatusEnum
+from src.apps.blockchain.model import BlockchainTransactionModel, TransactionStatusEnum
 from src.apps.blockchain.repository import BlockchainTransactionRepository
 from src.apps.users.model import UserModel
 from src.apps.wallets.model import WalletModel
@@ -23,7 +23,7 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
     router = blockchain_transactions_router
 
     # MARK: Get
-    async def test_get_transaction_by_id(
+    async def test_get_blockchain_transaction_by_id(
         self,
         router_client: httpx.AsyncClient,
         blockchain_transaction_db: BlockchainTransactionModel,
@@ -41,7 +41,7 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
 
         assert schema.id == blockchain_transaction_db.id
 
-    async def test_get_transaction_by_id_failed(
+    async def test_get_blockchain_transaction_by_id_failed(
         self,
         router_client: httpx.AsyncClient,
         blockchain_transaction_db: BlockchainTransactionModel,
@@ -56,7 +56,7 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    async def test_get_transactions(
+    async def test_get_blockchain_transactions(
         self,
         router_client: httpx.AsyncClient,
         blockchain_transaction_db: BlockchainTransactionModel,
@@ -85,7 +85,7 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
         assert schema.count == 1
         assert schema.data[0].id == blockchain_transaction_db.id
 
-    async def test_get_transactions_failed(
+    async def test_get_blockchain_transactions_failed(
         self,
         router_client: httpx.AsyncClient,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
@@ -108,7 +108,7 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     # MARK: Patch
-    async def test_confirm_transaction(
+    async def test_confirm_blockchain_transaction(
         self,
         router_client: httpx.AsyncClient,
         blockchain_transaction_pay_out_db: BlockchainTransactionModel,
@@ -141,12 +141,12 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
         )
 
         assert transaction_db is not None
-        assert transaction_db.status == StatusEnum.CONFIRMED
+        assert transaction_db.status == TransactionStatusEnum.CONFIRMED
 
         await session.refresh(user_trader_db)
         assert user_trader_db.balance == trader_balance_before - transaction_db.amount
 
-    async def test_confirm_transaction_with_wrong_status(
+    async def test_confirm_blockchain_transaction_with_wrong_status(
         self,
         router_client: httpx.AsyncClient,
         blockchain_transaction_db: BlockchainTransactionModel,
@@ -178,7 +178,7 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
         )
 
         assert transaction_db is not None
-        assert transaction_db.status == StatusEnum.PENDING
+        assert transaction_db.status == TransactionStatusEnum.PENDING
 
         await session.refresh(user_trader_db)
         assert user_trader_db.balance == trader_balance_before

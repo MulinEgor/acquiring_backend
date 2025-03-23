@@ -98,33 +98,15 @@ services:
     expose:
       - 80
 
-  trader-api:
-    container_name: "trader-api"
+  user-api:
+    container_name: "user-api"
     <<: *api-base
-    command: granian --interface asgi --reload --host 0.0.0.0 --port 81 src.api.trader.api:api
+    command: granian --interface asgi --reload --host 0.0.0.0 --port 81 src.api.user.api:api
     ports:
       - 81:81
     expose:
       - 81
 
-  merchant-api:
-    container_name: "merchant-api"
-    <<: *api-base
-    command: granian --interface asgi --reload --host 0.0.0.0 --port 82 src.api.merchant.api:api
-    ports:
-      - 82:82
-    expose:
-      - 82
-
-
-  support-api:
-    container_name: "support-api"
-    <<: *app-base
-    command: granian --interface asgi --reload --host 0.0.0.0 --port 83 src.api.support.api:api
-    ports:
-      - 83:83
-    expose:
-      - 83
 
   # MARK: Test DB
   db-test:

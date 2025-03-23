@@ -38,9 +38,7 @@ make migrate
 
 4. Документация API и доступные эндпоинты:
 Админка: http://localhost:80/docs
-Трейдер: http://localhost:81/docs
-Мерчант: http://localhost:82/docs
-Суппорт: http://localhost:83/redoc
+Основное API: http://localhost:81/docs
 
 5. Для остановки контейнеров выполнить
 ```bash

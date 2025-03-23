@@ -1,4 +1,4 @@
-"""Роуты для транзакций мерчанта."""
+"""Роуты для транзакций трейдера."""
 
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,15 +9,15 @@ from src.apps.users.model import UserModel
 from src.core import constants, dependencies
 
 router = APIRouter(
-    prefix="/transactions",
-    tags=["Транзакции"],
+    prefix="/traders/transactions",
+    tags=["Транзакции трейдера"],
 )
 
 
 # MARK: Get
 @router.get(
     "/{id}",
-    summary="Получить транзакцию по ID.",
+    summary="Получить свою транзакцию по ID.",
     status_code=status.HTTP_200_OK,
 )
 async def get_transaction_route(
@@ -35,14 +35,12 @@ async def get_transaction_route(
 
     Требуется разрешение: `получить свою транзакцию`.
     """
-    return await TransactionService.get_by_id(
-        session=session, id=id, merchant_id=user.id
-    )
+    return await TransactionService.get_by_id(session=session, id=id, trader_id=user.id)
 
 
 @router.get(
     "",
-    summary="Получить транзакции текущего пользователя.",
+    summary="Получить свои транзакции.",
     status_code=status.HTTP_200_OK,
 )
 async def get_transactions_route(
@@ -63,7 +61,7 @@ async def get_transactions_route(
     return await TransactionService.get_all(
         session=session,
         query_params=schemas.TransactionAdminPaginationSchema(
-            merchant_id=user.id,
+            trader_id=user.id,
             **query_params.model_dump(),
         ),
     )

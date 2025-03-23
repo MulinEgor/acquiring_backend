@@ -8,7 +8,9 @@ import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.merchant.routers.transactions_router import router as transactions_router
+from src.api.user.routers.merchant.transactions_router import (
+    router as transactions_router,
+)
 from src.apps.auth import schemas as auth_schemas
 from src.apps.transactions import schemas as transaction_schemas
 from src.apps.transactions.model import TransactionModel
@@ -33,7 +35,7 @@ class TestMerchantTraderTransactionsRouter(BaseTestRouter):
         """Получение транзакции."""
 
         response = await router_client.get(
-            f"/transactions/{transaction_db.id}",
+            f"/merchant/transactions/{transaction_db.id}",
             headers={constants.AUTH_HEADER_NAME: merchant_jwt_tokens.access_token},
         )
 
@@ -61,7 +63,7 @@ class TestMerchantTraderTransactionsRouter(BaseTestRouter):
         """Получение не своей транзакции."""
 
         response = await router_client.get(
-            f"/transactions/{transaction_db.id}",
+            f"/merchant/transactions/{transaction_db.id}",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
         )
 
@@ -76,7 +78,7 @@ class TestMerchantTraderTransactionsRouter(BaseTestRouter):
         """Получение всех транзакций мерчанта без пагинации и фильтрации."""
 
         response = await router_client.get(
-            "/transactions",
+            "/merchant/transactions",
             headers={constants.AUTH_HEADER_NAME: merchant_jwt_tokens.access_token},
         )
 
@@ -101,7 +103,7 @@ class TestMerchantTraderTransactionsRouter(BaseTestRouter):
         )
 
         response = await router_client.get(
-            "/transactions",
+            "/merchant/transactions",
             headers={constants.AUTH_HEADER_NAME: merchant_jwt_tokens.access_token},
             params=query_params.model_dump(exclude_none=True),
         )

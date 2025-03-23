@@ -13,7 +13,11 @@ router = APIRouter(prefix="/requisites", tags=["Реквизиты"])
 
 
 # MARK: Post
-@router.post("", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    summary="Создать реквизиты.",
+    status_code=status.HTTP_201_CREATED,
+)
 async def create_requisite_route(
     data: schemas.RequisiteCreateAdminSchema,
     _: bool = Depends(
@@ -33,7 +37,11 @@ async def create_requisite_route(
 
 
 # MARK: Get
-@router.get("/{id}", status_code=status.HTTP_200_OK)
+@router.get(
+    "/{id}",
+    summary="Получить реквизиты по ID.",
+    status_code=status.HTTP_200_OK,
+)
 async def get_requisite_route(
     id: int,
     _: bool = Depends(
@@ -52,7 +60,11 @@ async def get_requisite_route(
     )
 
 
-@router.get("", status_code=status.HTTP_200_OK)
+@router.get(
+    "",
+    summary="Получить все реквизиты.",
+    status_code=status.HTTP_200_OK,
+)
 async def get_requisites_route(
     query_params: schemas.RequisitePaginationAdminSchema = Query(),
     _: bool = Depends(
@@ -72,7 +84,11 @@ async def get_requisites_route(
 
 
 # MARK: Put
-@router.put("/{id}", status_code=status.HTTP_202_ACCEPTED)
+@router.put(
+    "/{id}",
+    summary="Обновить реквизиты по ID.",
+    status_code=status.HTTP_202_ACCEPTED,
+)
 async def update_requisite_route(
     id: int,
     data: schemas.RequisiteUpdateAdminSchema,
@@ -94,7 +110,11 @@ async def update_requisite_route(
 
 
 # MARK: Delete
-@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{id}",
+    summary="Удалить реквизиты по ID.",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
 async def delete_requisite_route(
     id: int,
     _: bool = Depends(

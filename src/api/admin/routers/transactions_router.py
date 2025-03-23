@@ -13,7 +13,11 @@ router = APIRouter(prefix="/transactions", tags=["Транзакции"])
 
 
 # MARK: Post
-@router.post("", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    summary="Создать транзакцию.",
+    status_code=status.HTTP_201_CREATED,
+)
 async def create_transaction_route(
     body: schemas.TransactionCreateSchema,
     _: bool = Depends(
@@ -33,7 +37,11 @@ async def create_transaction_route(
 
 
 # MARK: Get
-@router.get("/{id}", status_code=status.HTTP_200_OK)
+@router.get(
+    "/{id}",
+    summary="Получить транзакцию по ID.",
+    status_code=status.HTTP_200_OK,
+)
 async def get_transaction_route(
     id: int,
     _: bool = Depends(
@@ -52,7 +60,11 @@ async def get_transaction_route(
     )
 
 
-@router.get("", status_code=status.HTTP_200_OK)
+@router.get(
+    "",
+    summary="Получить все транзакции.",
+    status_code=status.HTTP_200_OK,
+)
 async def get_transactions_route(
     query_params: schemas.TransactionAdminPaginationSchema = Query(),
     _: bool = Depends(
@@ -72,7 +84,11 @@ async def get_transactions_route(
 
 
 # MARK: Put
-@router.put("/{id}", status_code=status.HTTP_202_ACCEPTED)
+@router.put(
+    "/{id}",
+    summary="Обновить транзакцию по ID.",
+    status_code=status.HTTP_202_ACCEPTED,
+)
 async def update_transaction_route(
     id: int,
     body: schemas.TransactionUpdateSchema,
@@ -94,7 +110,11 @@ async def update_transaction_route(
 
 
 # MARK: Delete
-@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{id}",
+    summary="Удалить транзакцию по ID.",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
 async def delete_transaction_route(
     id: int,
     _: bool = Depends(
