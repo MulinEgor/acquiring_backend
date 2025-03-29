@@ -42,7 +42,7 @@ class TransactionRepository(
             stmt: Подготовленное выражение для запроса в БД.
         """
 
-        stmt = select(TransactionModel)
+        stmt = select(cls.model)
 
         # Фильтрация по текствым и числовым полям.
         field_to_value = {
@@ -105,7 +105,7 @@ class TransactionRepository(
                 Необходимо указать либо merchant_id, либо trader_id и requisite_id.
         """
 
-        stmt = select(TransactionModel).where(
+        stmt = select(cls.model).where(
             cls.model.status == TransactionStatusEnum.PENDING,
         )
 

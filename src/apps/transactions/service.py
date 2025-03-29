@@ -42,7 +42,7 @@ class TransactionService(
             trader_id (int | None): ID трейдера.
 
         Returns:
-            schemas.TransactionGetSchema: Транзакция.
+            TransactionGetSchema: Транзакция.
 
         Raises:
             NotFoundException: Транзакция не найдена.

@@ -49,6 +49,10 @@ class PermissionEnum(StrEnum):
     UPDATE_USER = "обновить пользователя"
     DELETE_USER = "удалить пользователя"
 
+    REQUEST_PAY_IN = "запросить пополнение средств"
+    CONFIRM_PAY_IN = "подтвердить пополнение средств"
+    REQUEST_PAY_OUT = "запросить вывод средств"
+
     # MARK: Permission
     GET_PERMISSION = "получить разрешение"
     CREATE_PERMISSION = "создать разрешение"
@@ -88,9 +92,6 @@ class PermissionEnum(StrEnum):
     DELETE_REQUISITE = "удалить реквизиты"
 
     # MARK: Trader
-    REQUEST_PAY_IN_TRADER = "запросить пополнение средств как трейдер"
-    CONFIRM_PAY_IN_TRADER = "подтвердить пополнение средств как трейдер"
-    REQUEST_PAY_OUT_TRADER = "запросить вывод средств как трейдер"
     CONFIRM_MERCHANT_PAY_IN_TRADER = (
         "подтвердить пополнение средств мерчантом как трейдер"
     )
@@ -99,6 +100,12 @@ class PermissionEnum(StrEnum):
 
     # MARK: Merchant
     REQUEST_PAY_IN_MERCHANT = "запросить пополнение средств как мерчант"
+
+    # MARK: Disputes
+    GET_DISPUTE = "получить диспут"
+    CREATE_DISPUTE = "создать диспут"
+    UPDATE_DISPUTE = "обновить диспут"
+    DELETE_DISPUTE = "удалить диспут"
 
 
 # MARK: Redis

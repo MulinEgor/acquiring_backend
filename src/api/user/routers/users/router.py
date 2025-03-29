@@ -23,9 +23,7 @@ async def request_pay_in_route(
     body: pay_schemas.RequestPayInSchema,
     user: UserModel = Depends(dependencies.get_current_user),
     _=Depends(
-        dependencies.check_user_permissions(
-            [constants.PermissionEnum.REQUEST_PAY_IN_TRADER]
-        )
+        dependencies.check_user_permissions([constants.PermissionEnum.REQUEST_PAY_IN])
     ),
     session: AsyncSession = Depends(dependencies.get_session),
 ) -> pay_schemas.ResponsePayInSchema:
@@ -50,9 +48,7 @@ async def confirm_pay_in_route(
     body: pay_schemas.ConfirmPayInSchema,
     user: UserModel = Depends(dependencies.get_current_user),
     _=Depends(
-        dependencies.check_user_permissions(
-            [constants.PermissionEnum.CONFIRM_PAY_IN_TRADER]
-        )
+        dependencies.check_user_permissions([constants.PermissionEnum.CONFIRM_PAY_IN])
     ),
     session: AsyncSession = Depends(dependencies.get_session),
 ) -> None:
@@ -77,9 +73,7 @@ async def request_pay_out_route(
     body: pay_schemas.RequestPayOutSchema,
     user: UserModel = Depends(dependencies.get_current_user),
     _=Depends(
-        dependencies.check_user_permissions(
-            [constants.PermissionEnum.REQUEST_PAY_OUT_TRADER]
-        )
+        dependencies.check_user_permissions([constants.PermissionEnum.REQUEST_PAY_OUT])
     ),
     session: AsyncSession = Depends(dependencies.get_session),
 ) -> pay_schemas.ResponsePayOutSchema:

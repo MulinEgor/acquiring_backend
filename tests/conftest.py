@@ -19,6 +19,9 @@ from sqlalchemy.ext.asyncio import (
 from src.apps.auth import schemas as auth_schemas
 from src.apps.auth.services.jwt_service import JWTService
 from src.apps.blockchain.model import BlockchainTransactionModel
+from src.apps.disputes import schemas as dispute_schemas
+from src.apps.disputes.model import DisputeModel
+from src.apps.disputes.repository import DisputeRepository
 from src.apps.permissions import schemas as permission_schemas
 from src.apps.permissions.model import PermissionModel
 from src.apps.permissions.repository import PermissionRepository
@@ -267,9 +270,9 @@ async def user_trader_db(
     await session.commit()
 
     trader_permissions = [
-        constants.PermissionEnum.REQUEST_PAY_IN_TRADER,
-        constants.PermissionEnum.CONFIRM_PAY_IN_TRADER,
-        constants.PermissionEnum.REQUEST_PAY_OUT_TRADER,
+        constants.PermissionEnum.REQUEST_PAY_IN,
+        constants.PermissionEnum.CONFIRM_PAY_IN,
+        constants.PermissionEnum.REQUEST_PAY_OUT,
         constants.PermissionEnum.GET_MY_BLOCKCHAIN_TRANSACTION,
         constants.PermissionEnum.CREATE_MY_REQUISITE,
         constants.PermissionEnum.GET_MY_REQUISITE,
@@ -595,4 +598,47 @@ def requisite_admin_update_data(
     return requisite_schemas.RequisiteUpdateAdminSchema(
         user_id=user_admin_db.id,
         full_name=faker.word(),
+    )
+
+
+# MARK: Disputes
+@pytest_asyncio.fixture
+async def dispute_db(
+    session: AsyncSession,
+    transaction_db: TransactionModel,
+) -> DisputeModel:
+    """Добавить диспут в БД."""
+
+    return await DisputeRepository.create(
+        session=session,
+        obj_in=dispute_schemas.DisputeCreateSchema(
+            transaction_id=transaction_db.id,
+            description=faker.word(),
+            image_urls=[faker.image_url()],
+        ),
+    )
+
+
+@pytest.fixture
+def dispute_create_data(
+    transaction_db: TransactionModel,
+) -> dispute_schemas.DisputeCreateSchema:
+    """Подготовленные данные для создания диспута в БД."""
+
+    return dispute_schemas.DisputeCreateSchema(
+        transaction_id=transaction_db.id,
+        description=faker.word(),
+        image_urls=[faker.image_url()],
+    )
+
+
+@pytest.fixture
+def dispute_update_data(
+    user_trader_db: UserModel,
+) -> dispute_schemas.DisputeUpdateSchema:
+    """Подготовленные данные для обновления диспута в БД."""
+
+    return dispute_schemas.DisputeUpdateSchema(
+        winner_id=user_trader_db.id,
+        description=faker.word(),
     )

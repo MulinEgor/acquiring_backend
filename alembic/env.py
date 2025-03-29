@@ -6,6 +6,7 @@ from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 from src.apps.blockchain.model import BlockchainTransactionModel
+from src.apps.disputes.model import DisputeModel
 from src.apps.permissions.model import PermissionModel
 from src.apps.transactions.model import TransactionModel
 from src.apps.users.model import UserModel

@@ -16,6 +16,7 @@ class TransactionStatusEnum(str, Enum):
 
     PENDING = "в процессе обработки"
     CONFIRMED = "подтверждена"
+    DISPUTED = "в процессе рассмотрения"
     FAILED = "не удачна"
 
 
@@ -80,4 +81,8 @@ class TransactionModel(Base):
     requisite: Mapped["RequisiteModel"] = relationship(
         back_populates="transactions",
         foreign_keys=[requisite_id],
+    )
+    dispute: Mapped["DisputeModel"] = relationship(
+        back_populates="transaction",
+        uselist=False,
     )
