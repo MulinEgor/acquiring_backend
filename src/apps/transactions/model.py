@@ -15,9 +15,9 @@ class TransactionStatusEnum(str, Enum):
     """Статус транзакции."""
 
     PENDING = "в процессе обработки"
-    CONFIRMED = "подтверждена"
-    DISPUTED = "в процессе рассмотрения"
     FAILED = "не удачна"
+    CLOSED = "закрыта"
+    DISPUTED = "в процессе рассмотрения"
 
 
 class TransactionTypeEnum(str, Enum):

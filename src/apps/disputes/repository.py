@@ -11,7 +11,7 @@ from src.lib.base.repository import BaseRepository
 
 class DisputeRepository(
     BaseRepository[
-        DisputeModel, schemas.DisputeCreateSchema, schemas.DisputeUpdateSchema
+        DisputeModel, schemas.DisputeCreateSchema, schemas.DisputeSupportUpdateSchema
     ]
 ):
     """Репозиторий для работы с диспутами."""

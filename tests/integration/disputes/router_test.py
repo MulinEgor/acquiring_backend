@@ -4,7 +4,7 @@ import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.admin.routers.disputes_router import router as disputes_router
+from src.api.common.routers.disputes_router import router as disputes_router
 from src.apps.auth import schemas as auth_schemas
 from src.apps.disputes import schemas as dispute_schemas
 from src.apps.disputes.model import DisputeModel
@@ -108,7 +108,7 @@ class TestDisputesRouter(BaseTestRouter):
         self,
         router_client: httpx.AsyncClient,
         dispute_db: DisputeModel,
-        dispute_update_data: dispute_schemas.DisputeUpdateSchema,
+        dispute_update_data: dispute_schemas.DisputeSupportUpdateSchema,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
     ):

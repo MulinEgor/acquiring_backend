@@ -108,4 +108,4 @@ class TestTradersRouter(BaseTestRouter):
             - transaction_merchant_pay_in_db.amount * constants.MERCHANT_COMMISSION
         )
 
-        assert transaction_merchant_pay_in_db.status == TransactionStatusEnum.CONFIRMED
+        assert transaction_merchant_pay_in_db.status == TransactionStatusEnum.CLOSED

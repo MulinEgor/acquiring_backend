@@ -45,9 +45,8 @@ class DisputeGetSchema(DisputeCreateSchema):
 class DisputeUpdateSchema(BaseModel):
     """Схема для обновления диспута."""
 
-    winner_id: int | None = Field(
-        default=None,
-        description="Идентификатор победителя в БД",
+    accept: bool = Field(
+        description="Подтверждение вины со своей стороны",
     )
     description: str | None = Field(
         max_length=255,
@@ -57,6 +56,15 @@ class DisputeUpdateSchema(BaseModel):
     image_urls: list[str] | None = Field(
         default=None,
         description="Ссылки на изображения",
+    )
+
+
+class DisputeSupportUpdateSchema(BaseModel):
+    """Схема для обновления диспута поддержкой."""
+
+    winner_id: int | None = Field(
+        default=None,
+        description="Идентификатор победителя в БД",
     )
 
 

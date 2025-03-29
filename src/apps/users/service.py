@@ -331,7 +331,7 @@ class UserService(
             data=blockchain_schemas.TransactionUpdateSchema(
                 hash=transaction_hash,
                 from_address=transaction["from_address"],
-                status=TransactionStatusEnum.CONFIRMED,
+                status=TransactionStatusEnum.CLOSED,
                 created_at=transaction["created_at"],
             ),
         )

@@ -98,10 +98,16 @@ class PermissionEnum(StrEnum):
     START_WORKING_TRADER = "начать работу как трейдер"
     STOP_WORKING_TRADER = "остановить работу как трейдер"
 
-    # MARK: Merchant
-    REQUEST_PAY_IN_MERCHANT = "запросить пополнение средств как мерчант"
+    # MARK: Merchant client
+    REQUEST_PAY_IN_CLIENT = "запросить пополнение средств со стороны клиента"
+
+    # MARK: Support
+    RESOLVE_DISPUTE = "решить диспут"
 
     # MARK: Disputes
+    GET_MY_DISPUTE = "получить свои диспуты"
+    UPDATE_MY_DISPUTE = "обновить свои диспуты"
+
     GET_DISPUTE = "получить диспут"
     CREATE_DISPUTE = "создать диспут"
     UPDATE_DISPUTE = "обновить диспут"
@@ -131,9 +137,12 @@ TRON_BROADCAST_TRANSACTION_URL: str = (
     "https://nile.trongrid.io/wallet/broadcasttransaction"
 )
 
-# MARK: Blockchain transactions
+# MARK: Transactions
 PENDING_BLOCKCHAIN_TRANSACTION_TIMEOUT: int = 60 * 60 * 24  # 1 день
 PENDING_TRANSACTION_TIMEOUT: int = 60 * 15  # 15 минут
+
+# MARK: Disputes
+PENDING_DISPUTE_TIMEOUT: int = 60 * 60 * 24  # 1 день
 
 # MARK: Commissions
 MERCHANT_COMMISSION: float = (
@@ -141,6 +150,9 @@ MERCHANT_COMMISSION: float = (
 )
 TRADER_COMMISSION: float = (
     0.1  # коммисия которая идет на счет трейдера, после проведения транзакции
+)
+TRADER_DISPUTE_PENALTY: float = (
+    0.2  # штраф который идет на счет мерчанта, если трейдер признает вину
 )
 
 # MARK: Celery

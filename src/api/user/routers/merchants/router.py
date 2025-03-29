@@ -24,7 +24,7 @@ async def request_pay_in_route(
     user: UserModel = Depends(dependencies.get_current_user),
     _=Depends(
         dependencies.check_user_permissions(
-            [constants.PermissionEnum.REQUEST_PAY_IN_MERCHANT]
+            [constants.PermissionEnum.REQUEST_PAY_IN_CLIENT]
         )
     ),
     session: AsyncSession = Depends(dependencies.get_session),

@@ -329,7 +329,7 @@ async def user_merchant_db(
 
     merchant_permissions = [
         constants.PermissionEnum.GET_MY_TRANSACTION,
-        constants.PermissionEnum.REQUEST_PAY_IN_MERCHANT,
+        constants.PermissionEnum.REQUEST_PAY_IN_CLIENT,
     ]
     permissions_db = await PermissionRepository.get_all(session)
     await UsersPermissionsRepository.create_bulk(
@@ -635,10 +635,10 @@ def dispute_create_data(
 @pytest.fixture
 def dispute_update_data(
     user_trader_db: UserModel,
-) -> dispute_schemas.DisputeUpdateSchema:
+) -> dispute_schemas.DisputeSupportUpdateSchema:
     """Подготовленные данные для обновления диспута в БД."""
 
-    return dispute_schemas.DisputeUpdateSchema(
+    return dispute_schemas.DisputeSupportUpdateSchema(
         winner_id=user_trader_db.id,
         description=faker.word(),
     )
