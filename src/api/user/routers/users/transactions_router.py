@@ -9,8 +9,8 @@ from src.apps.users.model import UserModel
 from src.core import constants, dependencies
 
 router = APIRouter(
-    prefix="/traders/transactions",
-    tags=["Транзакции трейдера"],
+    prefix="/transactions",
+    tags=["Транзакции"],
 )
 
 
@@ -35,7 +35,7 @@ async def get_transaction_route(
 
     Требуется разрешение: `получить свою транзакцию`.
     """
-    return await TransactionService.get_by_id(session=session, id=id, trader_id=user.id)
+    return await TransactionService.get_by_id(session=session, id=id, user_id=user.id)
 
 
 @router.get(
@@ -61,7 +61,7 @@ async def get_transactions_route(
     return await TransactionService.get_all(
         session=session,
         query_params=schemas.TransactionAdminPaginationSchema(
-            trader_id=user.id,
+            user_id=user.id,
             **query_params.model_dump(),
         ),
     )

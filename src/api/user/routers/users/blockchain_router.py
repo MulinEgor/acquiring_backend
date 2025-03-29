@@ -11,8 +11,8 @@ from src.apps.users.model import UserModel
 from src.core import constants, dependencies
 
 router = APIRouter(
-    prefix="/traders/blockchain-transactions",
-    tags=["Транзакции блокчейна трейдера"],
+    prefix="/blockchain-transactions",
+    tags=["Транзакции блокчейна"],
 )
 
 

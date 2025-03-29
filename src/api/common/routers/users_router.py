@@ -2,8 +2,8 @@
 
 from fastapi import APIRouter, Depends, status
 
-from src.apps.users import schemas
 from src.apps.users.model import UserModel
+from src.apps.users.schemas import user_schemas
 from src.core import constants, dependencies
 
 router = APIRouter(
@@ -29,4 +29,4 @@ async def get_current_user_route(
 
     Требуется разрешение: `получить своего пользователя`.
     """
-    return schemas.UserGetSchema.model_validate(user)
+    return user_schemas.UserGetSchema.model_validate(user)

@@ -4,16 +4,16 @@ from typing import Tuple
 
 from sqlalchemy import Select, select
 
-from src.apps.users import schemas
 from src.apps.users.model import UserModel
+from src.apps.users.schemas import user_schemas
 from src.lib.base.repository import BaseRepository
 
 
 class UserRepository(
     BaseRepository[
         UserModel,
-        schemas.UserCreateSchema,
-        schemas.UserUpdateSchema,
+        user_schemas.UserCreateSchema,
+        user_schemas.UserUpdateSchema,
     ],
 ):
     """
@@ -26,7 +26,7 @@ class UserRepository(
     @classmethod
     async def get_stmt_by_query(
         cls,
-        query_params: schemas.UsersPaginationSchema,
+        query_params: user_schemas.UsersPaginationSchema,
     ) -> Select[Tuple[UserModel]]:
         """
         Создать подготовленное выражение для запроса в БД,

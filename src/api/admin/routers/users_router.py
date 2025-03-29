@@ -3,8 +3,8 @@
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.apps.users import schemas
 from src.apps.users.model import UserModel
+from src.apps.users.schemas import user_schemas
 from src.apps.users.service import UserService
 from src.core import constants, dependencies
 
@@ -21,7 +21,7 @@ router = APIRouter(
     status_code=status.HTTP_201_CREATED,
 )
 async def create_user_by_admin_route(
-    data: schemas.UserCreateSchema,
+    data: user_schemas.UserCreateSchema,
     _=Depends(
         dependencies.check_user_permissions([constants.PermissionEnum.CREATE_USER])
     ),
@@ -52,7 +52,7 @@ async def get_current_user_route(
 
     Требуется разрешение: `получить своего пользователя`.
     """
-    return schemas.UserGetSchema.model_validate(user)
+    return user_schemas.UserGetSchema.model_validate(user)
 
 
 @router.get(
@@ -79,7 +79,7 @@ async def get_user_by_id_route(
     status_code=status.HTTP_200_OK,
 )
 async def get_users_by_admin_route(
-    query_params: schemas.UsersPaginationSchema = Query(),
+    query_params: user_schemas.UsersPaginationSchema = Query(),
     _=Depends(dependencies.check_user_permissions([constants.PermissionEnum.GET_USER])),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
@@ -99,7 +99,7 @@ async def get_users_by_admin_route(
 )
 async def update_user_by_admin_route(
     id: int,
-    data: schemas.UserUpdateSchema,
+    data: user_schemas.UserUpdateSchema,
     _=Depends(
         dependencies.check_user_permissions([constants.PermissionEnum.UPDATE_USER])
     ),

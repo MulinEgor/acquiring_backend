@@ -6,10 +6,10 @@ from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import src.apps.auth.schemas as auth_schemas
-import src.apps.users.schemas as user_schemas
 from src.apps.auth.services.jwt_service import JWTService
 from src.apps.users.model import UserModel
 from src.apps.users.repository import UserRepository
+from src.apps.users.schemas import user_schemas
 from src.core import constants, exceptions
 from src.lib.services.email_service import EmailService
 from src.lib.services.hash_service import HashService
