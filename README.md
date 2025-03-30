@@ -37,8 +37,10 @@ make migrate
 ```
 
 4. Документация API и доступные эндпоинты:
-## Админка: http://localhost:80/docs
-## Основное API: http://localhost:81/docs
+```bash
+Админка: http://localhost:80/docs
+Основное API: http://localhost:81/docs
+```
 
 5. Для остановки контейнеров выполнить
 ```bash
