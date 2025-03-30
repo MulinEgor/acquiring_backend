@@ -64,7 +64,6 @@ class TraderService:
             session=session,
             id=transaction_db.merchant_id,
         )
-
         if not merchant_db:
             raise exceptions.NotFoundException("Мерчант не найден")
 
@@ -72,7 +71,6 @@ class TraderService:
             transaction_db.amount
             - transaction_db.amount * constants.MERCHANT_COMMISSION
         )
-
         transaction_db.status = TransactionStatusEnum.SUCCESS
 
         await session.commit()
