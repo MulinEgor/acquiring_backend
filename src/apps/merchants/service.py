@@ -13,7 +13,7 @@ from src.apps.transactions.model import (
 from src.apps.transactions.repository import TransactionRepository
 from src.apps.transactions.service import TransactionService
 from src.apps.users.model import UserModel
-from src.core import exceptions
+from src.core import constants, exceptions
 
 
 class MerchantService:
@@ -142,7 +142,10 @@ class MerchantService:
             schema.amount,
         )
 
-        if user.balance - user.amount_frozen < schema.amount:
+        if (
+            user.balance - user.amount_frozen
+            < schema.amount + schema.amount * constants.MERCHANT_COMMISSION
+        ):
             raise exceptions.ConflictException("На балансе недостаточно средств.")
 
         # Проверка на наличие транзакции в процессе обработки

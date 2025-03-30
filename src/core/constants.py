@@ -153,6 +153,7 @@ PENDING_TRANSACTION_TIMEOUT: int = 60 * 15  # 15 минут
 PENDING_DISPUTE_TIMEOUT: int = 60 * 60 * 24  # 1 день
 
 # MARK: Commissions
+COMMISSION: float = 0.1  # коммисия площадки при пополнении средств
 MERCHANT_COMMISSION: float = (
     0.1  # коммисия которая вычитается с баланса мерчанта, после проведения транзакции
 )

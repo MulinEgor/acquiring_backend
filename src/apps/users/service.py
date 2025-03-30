@@ -16,7 +16,7 @@ from src.apps.users.repository import UserRepository
 from src.apps.users.schemas import pay_schemas, user_schemas
 from src.apps.users_permissions.service import UsersPermissionsService
 from src.apps.wallets.service import WalletService
-from src.core import exceptions
+from src.core import constants, exceptions
 from src.lib.base.service import BaseService
 from src.lib.services.hash_service import HashService
 from src.lib.services.random_service import RandomService
@@ -375,6 +375,13 @@ class UserService(
             data.amount,
         )
 
+        # Проверка баланса
+        if (
+            user.balance - user.amount_frozen
+            < data.amount + data.amount * constants.COMMISSION
+        ):
+            raise exceptions.BadRequestException("Недостаточно средств для вывода.")
+
         # Проверка на наличие транзакции в процессе обработки в БД
         try:
             await BlockchainTransactionService.get_pending_by_user_id(
@@ -389,10 +396,6 @@ class UserService(
 
         except exceptions.NotFoundException:
             pass
-
-        # Проверка баланса
-        if user.balance - user.amount_frozen < data.amount:
-            raise exceptions.BadRequestException("Недостаточно средств для вывода.")
 
         wallet_address = await WalletService.get_wallet_address_with_min_or_max_balance(
             session=session, min_or_max="max", amount=data.amount
