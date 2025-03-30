@@ -1,6 +1,6 @@
 """Модуль для Pydanitc схем для мерчантов."""
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field
 
 from src.apps.transactions.model import TransactionPaymentMethodEnum
 
@@ -58,35 +58,6 @@ class MerchantPayOutRequestSchema(BaseModel):
     payment_method: TransactionPaymentMethodEnum = Field(
         description="Способ оплаты.",
     )
-    full_name: str = Field(description="ФИО")
-
-    phone_number: str | None = Field(default=None, description="Номер телефона для СБП")
-    bank_name: str | None = Field(default=None, description="Название банка для СБП")
-
-    card_number: str | None = Field(default=None, description="Номер карты")
-
-    @model_validator(mode="after")
-    def validate_model(self) -> "MerchantPayOutRequestSchema":
-        """
-        Кастомный валидатор, который проверят, что либо привязан СБП либо карта.
-
-        Raises:
-            ValueError: Если привязаны оба или ни одного способа оплаты.
-        """
-
-        if (
-            self.payment_method == TransactionPaymentMethodEnum.CARD
-            and self.card_number
-            and not self.phone_number
-            and not self.bank_name
-        ) or (
-            self.payment_method == TransactionPaymentMethodEnum.SBP
-            and self.phone_number
-            and self.bank_name
-            and not self.card_number
-        ):
-            return self
-        else:
-            raise ValueError(
-                "Необходимо привязать либо СБП, либо карту, но не оба сразу"
-            )
+    requisite_id: int = Field(
+        description="ID реквизита.",
+    )

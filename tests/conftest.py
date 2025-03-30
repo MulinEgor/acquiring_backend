@@ -550,6 +550,28 @@ async def transaction_merchant_pay_in_db(
 
 
 @pytest_asyncio.fixture
+async def transaction_merchant_pay_out_db(
+    session: AsyncSession,
+    user_merchant_db: UserModel,
+    user_trader_db_with_sbp: UserModel,
+) -> TransactionModel:
+    """Добавить транзакцию в БД, которую обрабатывает трейдер."""
+
+    transaction_db = TransactionModel(
+        merchant_id=user_merchant_db.id,
+        trader_id=user_trader_db_with_sbp.id,
+        amount=100,
+        type=TransactionTypeEnum.PAY_OUT,
+        payment_method=TransactionPaymentMethodEnum.CARD,
+        status=TransactionStatusEnum.SUCCESS,
+    )
+    session.add(transaction_db)
+    await session.commit()
+
+    return transaction_db
+
+
+@pytest_asyncio.fixture
 async def transaction_merchant_pending_pay_in_db(
     session: AsyncSession,
     user_merchant_db: UserModel,
@@ -571,12 +593,13 @@ async def transaction_merchant_pending_pay_in_db(
 
 
 @pytest.fixture
-def merchant_pay_out_create_data() -> merchant_schemas.MerchantPayOutRequestSchema:
+def merchant_pay_out_create_data(
+    requisite_card_merchant_db: RequisiteModel,
+) -> merchant_schemas.MerchantPayOutRequestSchema:
     return merchant_schemas.MerchantPayOutRequestSchema(
         amount=100,
         payment_method=TransactionPaymentMethodEnum.CARD,
-        full_name=faker.word(),
-        card_number=faker.word(),
+        requisite_id=requisite_card_merchant_db.id,
     )
 
 
@@ -665,6 +688,23 @@ def requisite_admin_update_data(
     return requisite_schemas.RequisiteUpdateAdminSchema(
         user_id=user_admin_db.id,
         full_name=faker.word(),
+    )
+
+
+@pytest_asyncio.fixture
+async def requisite_card_merchant_db(
+    session: AsyncSession,
+    user_merchant_db: UserModel,
+) -> RequisiteModel:
+    """Добавить реквизит в БД."""
+
+    return await RequisiteRepository.create(
+        session=session,
+        obj_in={
+            "user_id": user_merchant_db.id,
+            "full_name": faker.word(),
+            "card_number": faker.word(),
+        },
     )
 
 

@@ -4,6 +4,7 @@ from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.merchants import schemas
+from src.apps.requisites.repository import RequisiteRepository
 from src.apps.traders.repository import TraderRepository
 from src.apps.transactions import schemas as transaction_schemas
 from src.apps.transactions.model import (
@@ -131,8 +132,13 @@ class MerchantService:
             schema: Схема запроса на вывод средств.
 
         Raises:
-            NotFoundException: Нет трейдеров с таким методом оплаты.
-            ConflictException: Уже есть транзакция в процессе обработки.
+            NotFoundException:
+                Нет трейдеров с таким методом оплаты
+                или ваши реквизиты не найдены.
+            ConflictException:
+                Уже есть транзакция в процессе обработки
+                или на балансе недостаточно средств
+                или реквизиты не принадлежат вам.
         """
 
         logger.info(
@@ -152,13 +158,24 @@ class MerchantService:
         if await TransactionRepository.get_pending_by_user_and_requisite_id(
             session=session,
             merchant_id=merchant_db.id,
+            requisite_id=schema.requisite_id,
         ):
             raise exceptions.ConflictException(
                 "Уже есть транзакция в процессе обработки."
             )
 
+        # Получение реквезитов мерчанта
+        requisite_merchant_db = await RequisiteRepository.get_one_or_none(
+            session=session,
+            id=schema.requisite_id,
+        )
+        if not requisite_merchant_db:
+            raise exceptions.NotFoundException("Ваши реквизиты не найдены")
+        elif requisite_merchant_db.user_id != merchant_db.id:
+            raise exceptions.ConflictException("Реквизиты не принадлежат вам")
+
         # Получение трейдера
-        trader_db, requisite_db = (
+        trader_db, requisite_trader_db = (
             await TraderRepository.get_by_payment_method_and_amount(
                 session=session,
                 payment_method=schema.payment_method,
@@ -166,7 +183,7 @@ class MerchantService:
             )
             or (None, None)
         )
-        if not trader_db or not requisite_db:
+        if not trader_db or not requisite_trader_db:
             raise exceptions.NotFoundException(
                 "Трейдер с таким методом оплаты не найден"
             )
@@ -180,7 +197,7 @@ class MerchantService:
             data=transaction_schemas.TransactionUpdateSchema(
                 merchant_id=merchant_db.id,
                 trader_id=trader_db.id,
-                requisite_id=requisite_db.id,
+                requisite_id=requisite_merchant_db.id,
                 amount=schema.amount,
                 payment_method=schema.payment_method,
                 type=TransactionTypeEnum.PAY_OUT,
