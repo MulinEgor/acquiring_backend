@@ -6,6 +6,7 @@ from fastapi.responses import ORJSONResponse
 
 from src.api.common.routers.auth_router import router as auth_router
 from src.api.common.routers.health_check_router import router as health_check_router
+from src.api.common.routers.s3_router import router as s3_router
 from src.api.common.routers.users_router import router as users_router
 from src.core import constants, handlers, middlewares
 from src.core.logger import setup_logging
@@ -36,6 +37,7 @@ def include_routers(api: FastAPI) -> None:
         health_check_router,
         users_router,
         auth_router,
+        s3_router,
     ]:
         api.include_router(router)
 

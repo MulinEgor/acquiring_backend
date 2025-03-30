@@ -4,6 +4,8 @@ from enum import StrEnum
 
 from sqlalchemy import TextClause, text
 
+from src.core.settings import settings
+
 # MARK: Security
 AUTH_HEADER_NAME: str = "Authorization"
 ALGORITHM: str = "HS256"
@@ -113,6 +115,10 @@ class PermissionEnum(StrEnum):
     UPDATE_DISPUTE = "обновить диспут"
     DELETE_DISPUTE = "удалить диспут"
 
+    # MARK: S3
+    CREATE_FILE = "создать файл"
+    GET_FILE = "получить файл"
+
 
 # MARK: Redis
 REDIS_EXPIRE_SECONDS: int = 60 * 15  # 15 минут
@@ -159,3 +165,17 @@ TRADER_DISPUTE_PENALTY: float = (
 CELERY_BEAT_CHECK_BLOCKCHAIN_TRANSACTIONS_PERIOD: int = 60 * 10  # 10 минут
 CELERY_BEAT_CHECK_TRANSACTIONS_PERIOD: int = 60 * 10  # 10 минут
 CELERY_BEAT_CHECK_DISPUTES_PERIOD: int = 60 * 10  # 10 минут
+
+# MARK: S3
+S3_PUBLIC_BUCKET_POLICY: dict = {
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "PublicRead",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": ["s3:GetObject"],
+            "Resource": [f"arn:aws:s3:::{settings.S3_BUCKET_NAME}/*"],
+        }
+    ],
+}

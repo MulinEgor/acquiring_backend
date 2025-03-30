@@ -19,26 +19,6 @@ class TestAdminUserRouter(BaseTestRouter):
     router = users_router
 
     # MARK: Get
-    async def test_get_current_user(
-        self,
-        router_client: httpx.AsyncClient,
-        user_db: UserModel,
-        user_jwt_tokens: auth_schemas.JWTGetSchema,
-    ):
-        """Получение информации о текущем пользователе."""
-
-        response = await router_client.get(
-            url="/users/me",
-            headers={constants.AUTH_HEADER_NAME: user_jwt_tokens.access_token},
-        )
-
-        assert response.status_code == status.HTTP_200_OK
-
-        data = user_schemas.UserGetSchema(**response.json())
-
-        assert data.id == user_db.id
-        assert data.email == user_db.email
-
     async def test_get_user_by_id(
         self,
         router_client: httpx.AsyncClient,

@@ -1,4 +1,8 @@
-"""Модуль для тестирования роутера rc.api.user.routers.users ."""
+"""
+Модуль для тестирования роутера src.api.user.routers.users.
+
+Также проверяется роутер src.api.common.routers.users_router.
+"""
 
 from datetime import datetime, timedelta
 
@@ -6,6 +10,7 @@ import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api.common.routers.users_router import router as common_users_router
 from src.api.user.routers.users.router import router as users_router
 from src.apps.auth import schemas as auth_schemas
 from src.apps.blockchain.model import BlockchainTransactionModel
@@ -15,11 +20,38 @@ from src.apps.blockchain.services.transaction_service import (
     BlockchainTransactionService,
 )
 from src.apps.users.model import UserModel
-from src.apps.users.schemas import pay_schemas
+from src.apps.users.schemas import pay_schemas, user_schemas
 from src.apps.wallets.model import WalletModel
 from src.core import constants
 from tests.conftest import faker
 from tests.integration.conftest import BaseTestRouter
+
+
+class TestCommonUserRouter(BaseTestRouter):
+    """Класс для тестирования роутера."""
+
+    router = common_users_router
+
+    # MARK: Get
+    async def test_get_current_user(
+        self,
+        router_client: httpx.AsyncClient,
+        user_db: UserModel,
+        user_jwt_tokens: auth_schemas.JWTGetSchema,
+    ):
+        """Получение информации о текущем пользователе."""
+
+        response = await router_client.get(
+            url="/users/me",
+            headers={constants.AUTH_HEADER_NAME: user_jwt_tokens.access_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+
+        data = user_schemas.UserGetSchema(**response.json())
+
+        assert data.id == user_db.id
+        assert data.email == user_db.email
 
 
 class TestUserRouter(BaseTestRouter):

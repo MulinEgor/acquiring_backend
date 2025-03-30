@@ -5,9 +5,9 @@ from datetime import datetime
 
 from loguru import logger
 
-from apps.transactions.repository import TransactionRepository
 from src.apps.disputes.model import DisputeStatusEnum
 from src.apps.disputes.repository import DisputeRepository
+from src.apps.transactions.repository import TransactionRepository
 from src.apps.users.repository import UserRepository
 from src.core import constants
 from src.core.dependencies import get_session
