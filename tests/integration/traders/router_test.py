@@ -116,3 +116,80 @@ class TestTradersRouter(BaseTestRouter):
             transaction_merchant_pending_pay_in_db.status
             == TransactionStatusEnum.SUCCESS
         )
+
+    # MARK: Confirm merchant pay out
+    async def test_confirm_merchant_pay_out(
+        self,
+        router_client: httpx.AsyncClient,
+        trader_jwt_tokens: auth_schemas.JWTGetSchema,
+        session: AsyncSession,
+        transaction_merchant_pay_out_db: TransactionModel,
+        user_trader_db_with_card: UserModel,
+        user_merchant_db: UserModel,
+    ):
+        """Подтверждение перевода средств мерчанту от трейдера."""
+
+        user_merchant_balance_before = user_merchant_db.balance
+        user_trader_balance_before = user_trader_db_with_card.balance
+
+        user_merchant_db.amount_frozen = transaction_merchant_pay_out_db.amount
+        await session.commit()
+
+        response = await router_client.patch(
+            f"/traders/confirm-merchant-pay-out/{transaction_merchant_pay_out_db.id}",
+            headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
+        )
+
+        assert response.status_code == status.HTTP_202_ACCEPTED
+
+        assert (
+            await TransactionRepository.get_one_or_none(
+                session=session,
+                id=transaction_merchant_pay_out_db.id,
+            )
+        ) is not None
+
+        await session.refresh(user_merchant_db)
+        await session.refresh(user_trader_db_with_card)
+
+        assert user_merchant_db.balance < user_merchant_balance_before
+        assert user_trader_db_with_card.balance > user_trader_balance_before
+
+        assert transaction_merchant_pay_out_db.status == TransactionStatusEnum.SUCCESS
+
+    async def test_confirm_merchant_pay_out_trx_not_found(
+        self,
+        router_client: httpx.AsyncClient,
+        trader_jwt_tokens: auth_schemas.JWTGetSchema,
+        session: AsyncSession,
+        transaction_merchant_pay_in_db: TransactionModel,
+        user_trader_db_with_card: UserModel,
+        user_merchant_db: UserModel,
+    ):
+        """Подтверждение перевода средств мерчанту от трейдера."""
+
+        user_merchant_balance_before = user_merchant_db.balance
+        user_trader_balance_before = user_trader_db_with_card.balance
+
+        user_merchant_db.amount_frozen = transaction_merchant_pay_in_db.amount
+        await session.commit()
+
+        response = await router_client.patch(
+            f"/traders/confirm-merchant-pay-out/{transaction_merchant_pay_in_db.id}",
+            headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+        assert (
+            await TransactionRepository.get_one_or_none(
+                session=session,
+                id=transaction_merchant_pay_in_db.id,
+            )
+        ) is not None
+
+        await session.refresh(user_merchant_db)
+        await session.refresh(user_trader_db_with_card)
+
+        assert user_merchant_db.balance == user_merchant_balance_before
+        assert user_trader_db_with_card.balance == user_trader_balance_before

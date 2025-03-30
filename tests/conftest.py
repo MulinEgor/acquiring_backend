@@ -554,6 +554,7 @@ async def transaction_merchant_pay_out_db(
     session: AsyncSession,
     user_merchant_db: UserModel,
     user_trader_db_with_sbp: UserModel,
+    requisite_card_merchant_db: RequisiteModel,
 ) -> TransactionModel:
     """Добавить транзакцию в БД, которую обрабатывает трейдер."""
 
@@ -563,7 +564,8 @@ async def transaction_merchant_pay_out_db(
         amount=100,
         type=TransactionTypeEnum.PAY_OUT,
         payment_method=TransactionPaymentMethodEnum.CARD,
-        status=TransactionStatusEnum.SUCCESS,
+        requisite_id=requisite_card_merchant_db.id,
+        status=TransactionStatusEnum.PENDING,
     )
     session.add(transaction_db)
     await session.commit()
