@@ -115,7 +115,7 @@ class MerchantService:
     async def request_pay_out(
         cls,
         session: AsyncSession,
-        user: UserModel,
+        merchant_db: UserModel,
         schema: schemas.MerchantPayOutRequestSchema,
     ) -> None:
         """
@@ -127,7 +127,7 @@ class MerchantService:
 
         Args:
             session: Сессия базы данных.
-            user: Мерчант.
+            merchant_db: Мерчант.
             schema: Схема запроса на вывод средств.
 
         Raises:
@@ -138,12 +138,12 @@ class MerchantService:
         logger.info(
             "Запрос на вывод средств для мерчанта с ID: {} \
             суммой: {}",
-            user.id,
+            merchant_db.id,
             schema.amount,
         )
 
         if (
-            user.balance - user.amount_frozen
+            merchant_db.balance - merchant_db.amount_frozen
             < schema.amount + schema.amount * constants.MERCHANT_COMMISSION
         ):
             raise exceptions.ConflictException("На балансе недостаточно средств.")
@@ -151,7 +151,7 @@ class MerchantService:
         # Проверка на наличие транзакции в процессе обработки
         if await TransactionRepository.get_pending_by_user_and_requisite_id(
             session=session,
-            merchant_id=user.id,
+            merchant_id=merchant_db.id,
         ):
             raise exceptions.ConflictException(
                 "Уже есть транзакция в процессе обработки."
@@ -166,19 +166,19 @@ class MerchantService:
             )
             or (None, None)
         )
-        if not trader_db:
+        if not trader_db or not requisite_db:
             raise exceptions.NotFoundException(
                 "Трейдер с таким методом оплаты не найден"
             )
 
         # Заморозка средств трейдера
-        trader_db.amount_frozen += schema.amount
+        merchant_db.amount_frozen += schema.amount
 
         # Создание транзакции на перевод средств
         await TransactionService.create(
             session=session,
             data=transaction_schemas.TransactionUpdateSchema(
-                merchant_id=user.id,
+                merchant_id=merchant_db.id,
                 trader_id=trader_db.id,
                 requisite_id=requisite_db.id,
                 amount=schema.amount,

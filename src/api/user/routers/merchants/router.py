@@ -64,5 +64,5 @@ async def request_pay_out_route(
     Требуется разрешение: `запросить вывод средств как клиент мерчанта`.
     """
     return await MerchantService.request_pay_out(
-        session=session, user=user, schema=body
+        session=session, merchant_db=user, schema=body
     )

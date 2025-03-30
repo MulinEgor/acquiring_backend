@@ -11,7 +11,7 @@ class RequisiteCreateSchema(BaseModel):
 
     full_name: str = Field(description="ФИО")
 
-    phone_number: str | None = Field(defualt=None, description="Номер телефона для СБП")
+    phone_number: str | None = Field(default=None, description="Номер телефона для СБП")
     bank_name: str | None = Field(default=None, description="Название банка для СБП")
 
     card_number: str | None = Field(default=None, description="Номер карты")
