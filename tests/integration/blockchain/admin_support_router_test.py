@@ -113,7 +113,7 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
         router_client: httpx.AsyncClient,
         blockchain_transaction_pay_out_db: BlockchainTransactionModel,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
-        user_trader_db: UserModel,
+        user_trader_db_with_sbp: UserModel,
         wallet_db: WalletModel,
         session: AsyncSession,
         mocker,
@@ -121,7 +121,7 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
         """Тест на подтверждение транзакции."""
 
         hash = "0x123"
-        trader_balance_before = user_trader_db.balance
+        trader_balance_before = user_trader_db_with_sbp.balance
 
         mocker.patch(
             "src.apps.blockchain.services.tron_service.TronService.create_and_sign_transaction",
@@ -143,22 +143,25 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
         assert transaction_db is not None
         assert transaction_db.status == TransactionStatusEnum.SUCCESS
 
-        await session.refresh(user_trader_db)
-        assert user_trader_db.balance == trader_balance_before - transaction_db.amount
+        await session.refresh(user_trader_db_with_sbp)
+        assert (
+            user_trader_db_with_sbp.balance
+            == trader_balance_before - transaction_db.amount
+        )
 
     async def test_confirm_blockchain_transaction_with_wrong_status(
         self,
         router_client: httpx.AsyncClient,
         blockchain_transaction_db: BlockchainTransactionModel,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
-        user_trader_db: UserModel,
+        user_trader_db_with_sbp: UserModel,
         session: AsyncSession,
         mocker,
     ):
         """Тест на подтверждение транзакции с неверным статусом."""
 
         hash = "0x123"
-        trader_balance_before = user_trader_db.balance
+        trader_balance_before = user_trader_db_with_sbp.balance
 
         mocker.patch(
             "src.apps.blockchain.services.tron_service.TronService.create_and_sign_transaction",
@@ -180,5 +183,5 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
         assert transaction_db is not None
         assert transaction_db.status == TransactionStatusEnum.PENDING
 
-        await session.refresh(user_trader_db)
-        assert user_trader_db.balance == trader_balance_before
+        await session.refresh(user_trader_db_with_sbp)
+        assert user_trader_db_with_sbp.balance == trader_balance_before

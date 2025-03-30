@@ -105,7 +105,7 @@ class TestAdminTransactionsRouter(BaseTestRouter):
         router_client: httpx.AsyncClient,
         transaction_db: TransactionModel,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
-        user_trader_db: UserModel,
+        user_trader_db_with_sbp: UserModel,
     ):
         """Получение всех транзакций администратором без пагинации и фильтрации."""
 

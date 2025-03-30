@@ -27,7 +27,7 @@ class TestTradersRouter(BaseTestRouter):
         router_client: httpx.AsyncClient,
         session: AsyncSession,
         trader_jwt_tokens: auth_schemas.JWTGetSchema,
-        user_trader_db: UserModel,
+        user_trader_db_with_sbp: UserModel,
     ):
         """Начать работу как трейдер, буучи уже активным."""
 
@@ -38,19 +38,19 @@ class TestTradersRouter(BaseTestRouter):
 
         assert response.status_code == status.HTTP_409_CONFLICT
 
-        await session.refresh(user_trader_db)
-        assert user_trader_db.is_active is True
+        await session.refresh(user_trader_db_with_sbp)
+        assert user_trader_db_with_sbp.is_active is True
 
     async def test_start_working_not_active(
         self,
         router_client: httpx.AsyncClient,
         session: AsyncSession,
         trader_jwt_tokens: auth_schemas.JWTGetSchema,
-        user_trader_db: UserModel,
+        user_trader_db_with_sbp: UserModel,
     ):
         """Начать работу как трейдер, буучи не активным."""
 
-        user_trader_db.is_active = False
+        user_trader_db_with_sbp.is_active = False
         await session.commit()
 
         response = await router_client.patch(
@@ -60,8 +60,8 @@ class TestTradersRouter(BaseTestRouter):
 
         assert response.status_code == status.HTTP_202_ACCEPTED
 
-        await session.refresh(user_trader_db)
-        assert user_trader_db.is_active is True
+        await session.refresh(user_trader_db_with_sbp)
+        assert user_trader_db_with_sbp.is_active is True
 
     # MARK: Confirm merchant pay in
     async def test_confirm_merchant_pay_in(
@@ -70,14 +70,16 @@ class TestTradersRouter(BaseTestRouter):
         trader_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
         transaction_merchant_pending_pay_in_db: TransactionModel,
-        user_trader_db: UserModel,
+        user_trader_db_with_sbp: UserModel,
         user_merchant_db: UserModel,
     ):
         """Подтверждение пополнения средств мерчантом от трейдера."""
 
-        user_trader_balance_before = user_trader_db.balance
+        user_trader_balance_before = user_trader_db_with_sbp.balance
 
-        user_trader_db.amount_frozen = transaction_merchant_pending_pay_in_db.amount
+        user_trader_db_with_sbp.amount_frozen = (
+            transaction_merchant_pending_pay_in_db.amount
+        )
         await session.commit()
 
         response = await router_client.patch(
@@ -94,10 +96,10 @@ class TestTradersRouter(BaseTestRouter):
             )
         ) is not None
 
-        await session.refresh(user_trader_db)
+        await session.refresh(user_trader_db_with_sbp)
         await session.refresh(user_merchant_db)
         assert (
-            user_trader_db.balance
+            user_trader_db_with_sbp.balance
             == user_trader_balance_before
             - transaction_merchant_pending_pay_in_db.amount
             + transaction_merchant_pending_pay_in_db.amount

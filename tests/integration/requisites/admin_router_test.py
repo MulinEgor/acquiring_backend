@@ -109,7 +109,7 @@ class TestAdminRequisitesRouter(BaseTestRouter):
         router_client: httpx.AsyncClient,
         requisite_trader_db: RequisiteModel,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
-        user_trader_db: UserModel,
+        user_trader_db_with_sbp: UserModel,
     ):
         """Получение всех реквизитов администратором без пагинации и фильтрации."""
 
@@ -129,12 +129,12 @@ class TestAdminRequisitesRouter(BaseTestRouter):
         router_client: httpx.AsyncClient,
         requisite_trader_db: RequisiteModel,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
-        user_trader_db: UserModel,
+        user_trader_db_with_sbp: UserModel,
     ):
         """Получение всех реквизитов с пагинацией и фильтрацией."""
 
         query_params = requisite_schemas.RequisitePaginationAdminSchema(
-            user_id=user_trader_db.id,
+            user_id=user_trader_db_with_sbp.id,
         )
 
         response = await router_client.get(

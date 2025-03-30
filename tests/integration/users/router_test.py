@@ -65,7 +65,7 @@ class TestUserRouter(BaseTestRouter):
         router_client: httpx.AsyncClient,
         trader_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
-        user_trader_db: UserModel,
+        user_trader_db_with_sbp: UserModel,
         wallet_db: WalletModel,
         mocker,
     ):
@@ -89,7 +89,7 @@ class TestUserRouter(BaseTestRouter):
 
         assert await BlockchainTransactionService.get_pending_by_user_id(
             session=session,
-            user_id=user_trader_db.id,
+            user_id=user_trader_db_with_sbp.id,
             type=TransactionTypeEnum.PAY_IN,
         )
 
@@ -98,7 +98,7 @@ class TestUserRouter(BaseTestRouter):
         router_client: httpx.AsyncClient,
         trader_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
-        user_trader_db: UserModel,
+        user_trader_db_with_sbp: UserModel,
         wallet_db: WalletModel,
         mocker,
     ):
@@ -112,7 +112,7 @@ class TestUserRouter(BaseTestRouter):
             router_client=router_client,
             trader_jwt_tokens=trader_jwt_tokens,
             session=session,
-            user_trader_db=user_trader_db,
+            user_trader_db_with_sbp=user_trader_db_with_sbp,
             wallet_db=wallet_db,
             mocker=mocker,
         )
@@ -130,7 +130,7 @@ class TestUserRouter(BaseTestRouter):
         router_client: httpx.AsyncClient,
         trader_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
-        user_trader_db: UserModel,
+        user_trader_db_with_sbp: UserModel,
         blockchain_transaction_db: BlockchainTransactionModel,
         mocker,
     ):
@@ -147,7 +147,7 @@ class TestUserRouter(BaseTestRouter):
             },
         )
 
-        trader_balance_before = user_trader_db.balance
+        trader_balance_before = user_trader_db_with_sbp.balance
         response = await router_client.patch(
             "/users/confirm-pay-in",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
@@ -159,13 +159,13 @@ class TestUserRouter(BaseTestRouter):
         assert (
             await BlockchainTransactionRepository.get_one_or_none(
                 session=session,
-                user_id=user_trader_db.id,
+                user_id=user_trader_db_with_sbp.id,
             )
         ).status == TransactionStatusEnum.SUCCESS
 
-        await session.refresh(user_trader_db)
+        await session.refresh(user_trader_db_with_sbp)
         assert (
-            user_trader_db.balance
+            user_trader_db_with_sbp.balance
             == trader_balance_before + blockchain_transaction_db.amount
         )
 
@@ -174,7 +174,7 @@ class TestUserRouter(BaseTestRouter):
         router_client: httpx.AsyncClient,
         trader_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
-        user_trader_db: UserModel,
+        user_trader_db_with_sbp: UserModel,
         blockchain_transaction_db: BlockchainTransactionModel,
         mocker,
     ):
@@ -194,7 +194,7 @@ class TestUserRouter(BaseTestRouter):
             },
         )
 
-        trader_balance_before = user_trader_db.balance
+        trader_balance_before = user_trader_db_with_sbp.balance
         response = await router_client.patch(
             "/users/confirm-pay-in",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
@@ -206,13 +206,13 @@ class TestUserRouter(BaseTestRouter):
         assert (
             await BlockchainTransactionRepository.get_one_or_none(
                 session=session,
-                user_id=user_trader_db.id,
+                user_id=user_trader_db_with_sbp.id,
             )
         ).status == TransactionStatusEnum.FAILED
 
-        await session.refresh(user_trader_db)
+        await session.refresh(user_trader_db_with_sbp)
         assert (
-            user_trader_db.balance
+            user_trader_db_with_sbp.balance
             != trader_balance_before + blockchain_transaction_db.amount
         )
 
@@ -221,7 +221,7 @@ class TestUserRouter(BaseTestRouter):
         router_client: httpx.AsyncClient,
         trader_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
-        user_trader_db: UserModel,
+        user_trader_db_with_sbp: UserModel,
         blockchain_transaction_db: BlockchainTransactionModel,
         mocker,
     ):
@@ -245,7 +245,7 @@ class TestUserRouter(BaseTestRouter):
             },
         )
 
-        trader_balance_before = user_trader_db.balance
+        trader_balance_before = user_trader_db_with_sbp.balance
         response = await router_client.patch(
             "/users/confirm-pay-in",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
@@ -257,13 +257,13 @@ class TestUserRouter(BaseTestRouter):
         assert (
             await BlockchainTransactionRepository.get_one_or_none(
                 session=session,
-                user_id=user_trader_db.id,
+                user_id=user_trader_db_with_sbp.id,
             )
         ).status == TransactionStatusEnum.FAILED
 
-        await session.refresh(user_trader_db)
+        await session.refresh(user_trader_db_with_sbp)
         assert (
-            user_trader_db.balance
+            user_trader_db_with_sbp.balance
             != trader_balance_before + blockchain_transaction_db.amount
         )
 
@@ -273,13 +273,13 @@ class TestUserRouter(BaseTestRouter):
         router_client: httpx.AsyncClient,
         trader_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
-        user_trader_db: UserModel,
+        user_trader_db_with_sbp: UserModel,
         wallet_db: WalletModel,
         mocker,
     ):
         """Запрос вывода средств как трейдер."""
 
-        user_trader_db.balance = 200
+        user_trader_db_with_sbp.balance = 200
         await session.commit()
         amount = 100
         to_address = "0" * 42
@@ -321,12 +321,12 @@ class TestUserRouter(BaseTestRouter):
         router_client: httpx.AsyncClient,
         trader_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
-        user_trader_db: UserModel,
+        user_trader_db_with_sbp: UserModel,
         wallet_db: WalletModel,
     ):
         """Запрос вывода средств как трейдер, когда недостаточно средств."""
 
-        user_trader_db.balance = 100
+        user_trader_db_with_sbp.balance = 100
         await session.commit()
         amount = 200
         to_address = "0" * 42

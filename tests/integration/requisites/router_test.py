@@ -25,7 +25,7 @@ class TestRequisitesRouter(BaseTestRouter):
         router_client: httpx.AsyncClient,
         requisite_trader_create_data: requisite_schemas.RequisiteCreateSchema,
         trader_jwt_tokens: auth_schemas.JWTGetSchema,
-        user_trader_db: UserModel,
+        user_trader_db_with_sbp: UserModel,
         session: AsyncSession,
     ):
         """Создание реквизита трейдером."""
@@ -46,7 +46,7 @@ class TestRequisitesRouter(BaseTestRouter):
         )
 
         assert requisite_db is not None
-        assert requisite_db.user_id == user_trader_db.id
+        assert requisite_db.user_id == user_trader_db_with_sbp.id
         assert requisite_db.full_name == requisite_trader_create_data.full_name
         assert requisite_db.phone_number == requisite_trader_create_data.phone_number
         assert requisite_db.bank_name == requisite_trader_create_data.bank_name
@@ -57,7 +57,7 @@ class TestRequisitesRouter(BaseTestRouter):
         router_client: httpx.AsyncClient,
         requisite_trader_db: RequisiteModel,
         trader_jwt_tokens: auth_schemas.JWTGetSchema,
-        user_trader_db: UserModel,
+        user_trader_db_with_sbp: UserModel,
         session: AsyncSession,
     ):
         """Получение реквизита трейдера."""
@@ -77,7 +77,7 @@ class TestRequisitesRouter(BaseTestRouter):
         )
 
         assert requisite is not None
-        assert requisite.user_id == user_trader_db.id
+        assert requisite.user_id == user_trader_db_with_sbp.id
         assert requisite.full_name == requisite_trader_db.full_name
         assert requisite.phone_number == requisite_trader_db.phone_number
         assert requisite.bank_name == requisite_trader_db.bank_name
@@ -107,7 +107,7 @@ class TestRequisitesRouter(BaseTestRouter):
         router_client: httpx.AsyncClient,
         requisite_trader_db: RequisiteModel,
         trader_jwt_tokens: auth_schemas.JWTGetSchema,
-        user_trader_db: UserModel,
+        user_trader_db_with_sbp: UserModel,
     ):
         """Получение всех реквизитов трейдера без параметров."""
 
@@ -125,7 +125,7 @@ class TestRequisitesRouter(BaseTestRouter):
         router_client: httpx.AsyncClient,
         requisite_trader_db: RequisiteModel,
         trader_jwt_tokens: auth_schemas.JWTGetSchema,
-        user_trader_db: UserModel,
+        user_trader_db_with_sbp: UserModel,
     ):
         """Получение всех реквизитов трейдера с параметрами."""
 
@@ -145,7 +145,7 @@ class TestRequisitesRouter(BaseTestRouter):
 
         assert len(schema.data) == 1
         assert schema.data[0].id == requisite_trader_db.id
-        assert schema.data[0].user_id == user_trader_db.id
+        assert schema.data[0].user_id == user_trader_db_with_sbp.id
 
     # MARK: Update
     async def test_update_requisite(
@@ -153,7 +153,7 @@ class TestRequisitesRouter(BaseTestRouter):
         router_client: httpx.AsyncClient,
         requisite_trader_db: RequisiteModel,
         trader_jwt_tokens: auth_schemas.JWTGetSchema,
-        user_trader_db: UserModel,
+        user_trader_db_with_sbp: UserModel,
         requisite_trader_update_data: requisite_schemas.RequisiteUpdateSchema,
         session: AsyncSession,
     ):
@@ -170,7 +170,7 @@ class TestRequisitesRouter(BaseTestRouter):
         schema = requisite_schemas.RequisiteGetSchema(**response.json())
 
         assert schema.id == requisite_trader_db.id
-        assert schema.user_id == user_trader_db.id
+        assert schema.user_id == user_trader_db_with_sbp.id
         assert schema.full_name == requisite_trader_update_data.full_name
 
         requisite_db = await RequisiteRepository.get_one_or_none(
@@ -179,7 +179,7 @@ class TestRequisitesRouter(BaseTestRouter):
         )
 
         assert requisite_db is not None
-        assert requisite_db.user_id == user_trader_db.id
+        assert requisite_db.user_id == user_trader_db_with_sbp.id
         assert requisite_db.full_name == requisite_trader_update_data.full_name
 
     # MARK: Delete
