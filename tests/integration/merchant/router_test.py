@@ -4,9 +4,9 @@ import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.user.routers.merchant.router import router as merchants_router
+from src.api.user.routers.merchants.router import router as merchants_router
 from src.apps.auth import schemas as auth_schemas
-from src.apps.merchant import schemas as merchants_schemas
+from src.apps.merchants import schemas as merchants_schemas
 from src.apps.transactions.model import (
     TransactionPaymentMethodEnum,
 )
@@ -33,7 +33,7 @@ class TestMerchantsRouter(BaseTestRouter):
         """Запрос пополнения средств как мерчант."""
 
         response = await router_client.post(
-            "/merchant/request-pay-in",
+            "/merchant-clients/request-pay-in",
             headers={constants.AUTH_HEADER_NAME: merchant_jwt_tokens.access_token},
             json=merchants_schemas.MerchantPayInRequestSchema(
                 amount=100,
@@ -42,7 +42,7 @@ class TestMerchantsRouter(BaseTestRouter):
         )
 
         assert response.status_code == status.HTTP_200_OK
-        assert merchants_schemas.MerchantPayInResponseSbpSchema.model_validate(
+        assert merchants_schemas.MerchantPayInResponseSBPSchema.model_validate(
             response.json()
         )
 
@@ -76,7 +76,7 @@ class TestMerchantsRouter(BaseTestRouter):
         )
 
         response = await router_client.post(
-            "/merchant/request-pay-in",
+            "/merchant-clients/request-pay-in",
             headers={constants.AUTH_HEADER_NAME: merchant_jwt_tokens.access_token},
             json=merchants_schemas.MerchantPayInRequestSchema(
                 amount=100,
@@ -100,7 +100,7 @@ class TestMerchantsRouter(BaseTestRouter):
         """
 
         response = await router_client.post(
-            "/merchant/request-pay-in",
+            "/merchant-clients/request-pay-in",
             headers={constants.AUTH_HEADER_NAME: merchant_jwt_tokens.access_token},
             json=merchants_schemas.MerchantPayInRequestSchema(
                 amount=100,

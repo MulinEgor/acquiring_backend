@@ -31,19 +31,19 @@ class WalletRepository(BaseRepository[WalletModel, schemas.WalletCreateSchema, a
             stmt: Подготовленное выражение для запроса в БД.
         """
 
-        stmt = select(WalletModel)
+        stmt = select(cls.model)
 
         # Фильтрация по текстовым полям.
         if query_params.address:
-            stmt = stmt.where(WalletModel.address == query_params.address)
+            stmt = stmt.where(cls.model.address == query_params.address)
 
         if query_params.private_key:
-            stmt = stmt.where(WalletModel.private_key == query_params.private_key)
+            stmt = stmt.where(cls.model.private_key == query_params.private_key)
 
         # Сортировка по дате создания.
         if not query_params.asc:
-            stmt = stmt.order_by(WalletModel.created_at.desc())
+            stmt = stmt.order_by(cls.model.created_at.desc())
         else:
-            stmt = stmt.order_by(WalletModel.created_at)
+            stmt = stmt.order_by(cls.model.created_at)
 
         return stmt

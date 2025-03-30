@@ -38,6 +38,12 @@ class Settings(BaseSettings):
     # Tron
     TRON_API_KEY: str
 
+    # S3
+    S3_ENDPOINT: str
+    S3_ACCESS_KEY: str
+    S3_SECRET_KEY: str
+    S3_BUCKET_NAME: str
+
     @property
     def DATABASE_URL(self):
         return (

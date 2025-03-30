@@ -3,7 +3,7 @@
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.apps.merchant import schemas
+from src.apps.merchants import schemas
 from src.apps.traders.repository import TraderRepository
 from src.apps.transactions import schemas as transaction_schemas
 from src.apps.transactions.model import (
@@ -27,10 +27,10 @@ class MerchantService:
         user: UserModel,
         schema: schemas.MerchantPayInRequestSchema,
     ) -> (
-        schemas.MerchantPayInResponseCardSchema | schemas.MerchantPayInResponseSbpSchema
+        schemas.MerchantPayInResponseCardSchema | schemas.MerchantPayInResponseSBPSchema
     ):
         """
-        Запрос на пополнение баланса мерчанта.
+        Запрос на пополнение баланса клиентом мерчантом.
         Поиск трейдеров с похожими и вылидными реквизитами.
         Заморозка средств трейдера.
         Создание транзакции на перевод средств.
@@ -104,7 +104,7 @@ class MerchantService:
                 card_number=requisite_db.card_number,
             )
         else:
-            return schemas.MerchantPayInResponseSbpSchema(
+            return schemas.MerchantPayInResponseSBPSchema(
                 recipent_full_name=requisite_db.full_name,
                 bank_name=requisite_db.bank_name,
                 phone_number=requisite_db.phone_number,

@@ -1,25 +1,36 @@
 """
-Модуль для тестирования роутера src.api.admin.routers.users_router.
-Этот роутер также включает в себя роутер src.api.common.routers.users_router.
+Модуль для тестирования роутера src.api.user.routers.users.
+
+Также проверяется роутер src.api.common.routers.users_router.
 """
+
+from datetime import datetime, timedelta
 
 import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.admin.routers.users_router import router as users_router
+from src.api.common.routers.users_router import router as common_users_router
+from src.api.user.routers.users.router import router as users_router
 from src.apps.auth import schemas as auth_schemas
-from src.apps.users import schemas as user_schemas
+from src.apps.blockchain.model import BlockchainTransactionModel
+from src.apps.blockchain.repository import BlockchainTransactionRepository
+from src.apps.blockchain.schemas import TransactionStatusEnum, TransactionTypeEnum
+from src.apps.blockchain.services.transaction_service import (
+    BlockchainTransactionService,
+)
 from src.apps.users.model import UserModel
-from src.apps.users.repository import UserRepository
+from src.apps.users.schemas import pay_schemas, user_schemas
+from src.apps.wallets.model import WalletModel
 from src.core import constants
+from tests.conftest import faker
 from tests.integration.conftest import BaseTestRouter
 
 
-class TestUserRouter(BaseTestRouter):
+class TestCommonUserRouter(BaseTestRouter):
     """Класс для тестирования роутера."""
 
-    router = users_router
+    router = common_users_router
 
     # MARK: Get
     async def test_get_current_user(
@@ -42,148 +53,299 @@ class TestUserRouter(BaseTestRouter):
         assert data.id == user_db.id
         assert data.email == user_db.email
 
-    async def test_get_user_by_id(
+
+class TestUserRouter(BaseTestRouter):
+    """Класс для тестирования роутера."""
+
+    router = users_router
+
+    # MARK: Patch, Pay in
+    async def test_request_pay_in(
         self,
         router_client: httpx.AsyncClient,
-        user_admin_db: UserModel,
-        admin_jwt_tokens: auth_schemas.JWTGetSchema,
+        trader_jwt_tokens: auth_schemas.JWTGetSchema,
+        session: AsyncSession,
+        user_trader_db: UserModel,
+        wallet_db: WalletModel,
+        mocker,
     ):
-        """Получение информации о пользователе по id."""
+        """Запрос пополнения средств как трейдер."""
 
-        response = await router_client.get(
-            url=f"/users/{user_admin_db.id}",
-            headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
+        mocker.patch(
+            "src.apps.blockchain.services.tron_service.TronService.get_wallets_balances",
+            return_value={
+                wallet_db.address: 100,
+            },
+        )
+
+        response = await router_client.patch(
+            "/users/request-pay-in",
+            headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
+            json=pay_schemas.RequestPayInSchema(amount=100).model_dump(),
         )
 
         assert response.status_code == status.HTTP_200_OK
+        assert pay_schemas.ResponsePayInSchema.model_validate(response.json())
 
-        data = user_schemas.UserGetSchema(**response.json())
-
-        assert data.id == user_admin_db.id
-        assert data.email == user_admin_db.email
-
-    async def test_get_users_by_admin_no_query(
-        self,
-        session: AsyncSession,
-        router_client: httpx.AsyncClient,
-        user_db: UserModel,
-        admin_jwt_tokens: auth_schemas.JWTGetSchema,
-    ):
-        """Получение списка пользователей без учета фильтрации."""
-
-        response = await router_client.get(
-            url="/users",
-            headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
-        )
-        assert response.status_code == status.HTTP_200_OK
-
-        users_data = user_schemas.UsersListGetSchema(**response.json())
-
-        users_count = await UserRepository.count(session=session)
-        assert users_data.count == users_count
-
-        first_user_db = await UserRepository.get_one_or_none(
-            session=session, id=users_data.data[0].id
-        )
-        assert first_user_db is not None
-
-        assert users_data.data[0].email == first_user_db.email
-        assert users_data.data[0].id == first_user_db.id
-
-    async def test_get_users_by_admin_query(
-        self,
-        router_client: httpx.AsyncClient,
-        user_db: UserModel,
-        admin_jwt_tokens: auth_schemas.JWTGetSchema,
-    ):
-        """Получение списка пользователей с учетом фильтрации."""
-
-        params = user_schemas.UsersPaginationSchema(email=user_db.email)
-
-        response = await router_client.get(
-            url="/users",
-            params=params.model_dump(exclude_unset=True),
-            headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
-        )
-        assert response.status_code == status.HTTP_200_OK
-
-        users_data = user_schemas.UsersListGetSchema(**response.json())
-
-        assert users_data.data[0].email == user_db.email
-        assert users_data.data[0].id == user_db.id
-
-    # MARK: Post
-    async def test_create_user_by_admin_route(
-        self,
-        session: AsyncSession,
-        router_client: httpx.AsyncClient,
-        user_create_data: user_schemas.UserCreateSchema,
-        admin_jwt_tokens: auth_schemas.JWTGetSchema,
-    ):
-        """Создание пользователя."""
-
-        response = await router_client.post(
-            url="/users",
-            json=user_create_data.model_dump(),
-            headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
-        )
-        assert response.status_code == status.HTTP_201_CREATED
-
-        created_user = user_schemas.UserCreatedGetSchema(**response.json())
-        assert created_user.email == user_create_data.email
-
-        created_user_db = await UserRepository.get_one_or_none(
-            session=session, id=created_user.id
-        )
-        assert created_user_db is not None
-
-    # MARK: Put
-    async def test_update_user_by_admin(
-        self,
-        router_client: httpx.AsyncClient,
-        user_db: UserModel,
-        user_update_data: user_schemas.UserUpdateSchema,
-        admin_jwt_tokens: auth_schemas.JWTGetSchema,
-        session: AsyncSession,
-    ):
-        """Обновление данных пользователя."""
-
-        response = await router_client.put(
-            url=f"/users/{user_db.id}",
-            json=user_update_data.model_dump(exclude_unset=True),
-            headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
-        )
-        assert response.status_code == status.HTTP_200_OK
-
-        updated_user = user_schemas.UserGetSchema(**response.json())
-
-        assert updated_user.id == user_db.id
-        assert updated_user.email == user_update_data.email
-
-        user_db = await UserRepository.get_one_or_none(session=session, id=user_db.id)
-        assert user_db is not None
-        assert user_db.email == user_update_data.email
-
-    # MARK: Delete
-    async def test_delete_user_by_admin(
-        self,
-        router_client: httpx.AsyncClient,
-        session: AsyncSession,
-        user_db: UserModel,
-        admin_jwt_tokens: auth_schemas.JWTGetSchema,
-    ):
-        """Удаление пользователя."""
-
-        response = await router_client.delete(
-            url=f"/users/{user_db.id}",
-            headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
-        )
-
-        assert response.status_code == status.HTTP_204_NO_CONTENT
-
-        deleted_user = await UserRepository.get_one_or_none(
+        assert await BlockchainTransactionService.get_pending_by_user_id(
             session=session,
-            id=user_db.id,
+            user_id=user_trader_db.id,
+            type=TransactionTypeEnum.PAY_IN,
         )
 
-        assert deleted_user is None
+    async def test_request_pay_in_conflict(
+        self,
+        router_client: httpx.AsyncClient,
+        trader_jwt_tokens: auth_schemas.JWTGetSchema,
+        session: AsyncSession,
+        user_trader_db: UserModel,
+        wallet_db: WalletModel,
+        mocker,
+    ):
+        """
+        Запрос пополнения средств как трейдер,
+        когда уже есть транзакция в процессе обработки.
+        """
+
+        # Создание транзакции в процессе обработки
+        await self.test_request_pay_in(
+            router_client=router_client,
+            trader_jwt_tokens=trader_jwt_tokens,
+            session=session,
+            user_trader_db=user_trader_db,
+            wallet_db=wallet_db,
+            mocker=mocker,
+        )
+
+        response = await router_client.patch(
+            "/users/request-pay-in",
+            headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
+            json=pay_schemas.RequestPayInSchema(amount=100).model_dump(),
+        )
+
+        assert response.status_code == status.HTTP_409_CONFLICT
+
+    async def test_confirm_pay_in(
+        self,
+        router_client: httpx.AsyncClient,
+        trader_jwt_tokens: auth_schemas.JWTGetSchema,
+        session: AsyncSession,
+        user_trader_db: UserModel,
+        blockchain_transaction_db: BlockchainTransactionModel,
+        mocker,
+    ):
+        """Подтверждение пополнения средств как трейдер."""
+
+        mocker.patch(
+            "src.apps.blockchain.services.tron_service.TronService.get_transaction_by_hash",
+            return_value={
+                "transaction_hash": "123",
+                "amount": blockchain_transaction_db.amount,
+                "from_address": "0" * 42,
+                "to_address": blockchain_transaction_db.to_address,
+                "created_at": faker.date_time(),
+            },
+        )
+
+        trader_balance_before = user_trader_db.balance
+        response = await router_client.patch(
+            "/users/confirm-pay-in",
+            headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
+            json=pay_schemas.ConfirmPayInSchema(transaction_hash="123").model_dump(),
+        )
+
+        assert response.status_code == status.HTTP_202_ACCEPTED
+
+        assert (
+            await BlockchainTransactionRepository.get_one_or_none(
+                session=session,
+                user_id=user_trader_db.id,
+            )
+        ).status == TransactionStatusEnum.SUCCESS
+
+        await session.refresh(user_trader_db)
+        assert (
+            user_trader_db.balance
+            == trader_balance_before + blockchain_transaction_db.amount
+        )
+
+    async def test_confirm_pay_in_wrong_credentials(
+        self,
+        router_client: httpx.AsyncClient,
+        trader_jwt_tokens: auth_schemas.JWTGetSchema,
+        session: AsyncSession,
+        user_trader_db: UserModel,
+        blockchain_transaction_db: BlockchainTransactionModel,
+        mocker,
+    ):
+        """
+        Подтверждение пополнения средств как трейдер,
+        когда транзакция не соответствует ожидаемой.
+        """
+
+        mocker.patch(
+            "src.apps.blockchain.services.tron_service.TronService.get_transaction_by_hash",
+            return_value={
+                "transaction_hash": "123",
+                "amount": blockchain_transaction_db.amount - 30,
+                "from_address": "0" * 42,
+                "to_address": blockchain_transaction_db.to_address,
+                "created_at": faker.date_time(),
+            },
+        )
+
+        trader_balance_before = user_trader_db.balance
+        response = await router_client.patch(
+            "/users/confirm-pay-in",
+            headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
+            json=pay_schemas.ConfirmPayInSchema(transaction_hash="123").model_dump(),
+        )
+
+        assert response.status_code == status.HTTP_409_CONFLICT
+
+        assert (
+            await BlockchainTransactionRepository.get_one_or_none(
+                session=session,
+                user_id=user_trader_db.id,
+            )
+        ).status == TransactionStatusEnum.FAILED
+
+        await session.refresh(user_trader_db)
+        assert (
+            user_trader_db.balance
+            != trader_balance_before + blockchain_transaction_db.amount
+        )
+
+    async def test_confirm_pay_in_expired(
+        self,
+        router_client: httpx.AsyncClient,
+        trader_jwt_tokens: auth_schemas.JWTGetSchema,
+        session: AsyncSession,
+        user_trader_db: UserModel,
+        blockchain_transaction_db: BlockchainTransactionModel,
+        mocker,
+    ):
+        """
+        Подтверждение пополнения средств как трейдер,
+        когда транзакция просрочена.
+        """
+
+        blockchain_transaction_db.expires_at = datetime.now() - timedelta(
+            seconds=constants.PENDING_BLOCKCHAIN_TRANSACTION_TIMEOUT + 1
+        )
+
+        mocker.patch(
+            "src.apps.blockchain.services.tron_service.TronService.get_transaction_by_hash",
+            return_value={
+                "transaction_hash": "123",
+                "amount": blockchain_transaction_db.amount,
+                "from_address": "0" * 42,
+                "to_address": blockchain_transaction_db.to_address,
+                "created_at": faker.date_time(),
+            },
+        )
+
+        trader_balance_before = user_trader_db.balance
+        response = await router_client.patch(
+            "/users/confirm-pay-in",
+            headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
+            json=pay_schemas.ConfirmPayInSchema(transaction_hash="123").model_dump(),
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+        assert (
+            await BlockchainTransactionRepository.get_one_or_none(
+                session=session,
+                user_id=user_trader_db.id,
+            )
+        ).status == TransactionStatusEnum.FAILED
+
+        await session.refresh(user_trader_db)
+        assert (
+            user_trader_db.balance
+            != trader_balance_before + blockchain_transaction_db.amount
+        )
+
+    # MARK: Pay out
+    async def test_request_pay_out(
+        self,
+        router_client: httpx.AsyncClient,
+        trader_jwt_tokens: auth_schemas.JWTGetSchema,
+        session: AsyncSession,
+        user_trader_db: UserModel,
+        wallet_db: WalletModel,
+        mocker,
+    ):
+        """Запрос вывода средств как трейдер."""
+
+        user_trader_db.balance = 200
+        await session.commit()
+        amount = 100
+        to_address = "0" * 42
+
+        mocker.patch(
+            "src.apps.blockchain.services.tron_service.TronService.get_wallets_balances",
+            return_value={
+                wallet_db.address: amount,
+            },
+        )
+
+        response = await router_client.patch(
+            "/users/request-pay-out",
+            headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
+            json=pay_schemas.RequestPayOutSchema(
+                amount=amount,
+                to_address=to_address,
+            ).model_dump(),
+        )
+
+        assert response.status_code == status.HTTP_202_ACCEPTED
+
+        schema = pay_schemas.ResponsePayOutSchema.model_validate(response.json())
+
+        transaction_db = await BlockchainTransactionRepository.get_one_or_none(
+            session=session,
+            id=schema.transaction_id,
+        )
+
+        assert transaction_db is not None
+        assert transaction_db.status == TransactionStatusEnum.PENDING
+        assert transaction_db.type == TransactionTypeEnum.PAY_OUT
+        assert transaction_db.amount == amount
+        assert transaction_db.to_address == to_address
+        assert transaction_db.from_address == wallet_db.address
+
+    async def test_request_pay_out_not_enough_balance(
+        self,
+        router_client: httpx.AsyncClient,
+        trader_jwt_tokens: auth_schemas.JWTGetSchema,
+        session: AsyncSession,
+        user_trader_db: UserModel,
+        wallet_db: WalletModel,
+    ):
+        """Запрос вывода средств как трейдер, когда недостаточно средств."""
+
+        user_trader_db.balance = 100
+        await session.commit()
+        amount = 200
+        to_address = "0" * 42
+
+        response = await router_client.patch(
+            "/users/request-pay-out",
+            headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
+            json=pay_schemas.RequestPayOutSchema(
+                amount=amount,
+                to_address=to_address,
+            ).model_dump(),
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        transactions_db = await BlockchainTransactionRepository.get_all(
+            session=session,
+            offset=0,
+            limit=10,
+        )
+
+        assert len(transactions_db) == 0

@@ -64,6 +64,10 @@ class TransactionPaginationSchema(PaginationBaseSchema):
 class TransactionAdminPaginationSchema(TransactionPaginationSchema):
     """Схема для пагинации транзакций для админа."""
 
+    user_id: int | None = Field(
+        default=None,
+        description="Идентификатор пользователя, мерчанта или трейдера",
+    )
     merchant_id: int | None = Field(default=None, description="Идентификатор мерчанта")
     trader_id: int | None = Field(default=None, description="Идентификатор трейдера")
 

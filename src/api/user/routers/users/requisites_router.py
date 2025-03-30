@@ -10,10 +10,10 @@ from src.core import dependencies
 from src.core.constants import PermissionEnum
 from src.core.dependencies import get_session
 
-router = APIRouter(prefix="/traders/requisites", tags=["Реквизиты трейдера"])
+router = APIRouter(prefix="/requisites", tags=["Реквизиты"])
 
 
-# MARK: POST
+# MARK: Post
 @router.post(
     "",
     summary="Создать свои реквизиты.",
@@ -38,7 +38,7 @@ async def create_requisite_route(
     )
 
 
-# MARK: GET
+# MARK: Get
 @router.get(
     "/{id}",
     summary="Получить свои реквизиты по ID.",
@@ -89,7 +89,7 @@ async def get_my_requisites_route(
     )
 
 
-# MARK: PUT
+# MARK: Put
 @router.put(
     "/{id}",
     summary="Обновить свои реквизиты по ID.",
@@ -117,7 +117,7 @@ async def update_my_requisite_route(
     )
 
 
-# MARK: DELETE
+# MARK: Delete
 @router.delete(
     "/{id}",
     summary="Удалить свои реквизиты по ID.",

@@ -3,35 +3,35 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.apps.merchant import schemas
-from src.apps.merchant.service import MerchantService
+from src.apps.merchants import schemas
+from src.apps.merchants.service import MerchantService
 from src.apps.users.model import UserModel
 from src.core import constants, dependencies
 
 router = APIRouter(
-    prefix="/merchant",
-    tags=["Мерчант"],
+    prefix="/merchant-clients",
+    tags=["Клиенты мерчантов"],
 )
 
 
 # MARK: Pay in
 @router.post(
     "/request-pay-in",
-    summary="Запросить пополнение средств как мерчант",
+    summary="Запросить пополнение средств как клиент мерчанта",
 )
 async def request_pay_in_route(
     body: schemas.MerchantPayInRequestSchema,
     user: UserModel = Depends(dependencies.get_current_user),
     _=Depends(
         dependencies.check_user_permissions(
-            [constants.PermissionEnum.REQUEST_PAY_IN_MERCHANT]
+            [constants.PermissionEnum.REQUEST_PAY_IN_CLIENT]
         )
     ),
     session: AsyncSession = Depends(dependencies.get_session),
-) -> schemas.MerchantPayInResponseCardSchema | schemas.MerchantPayInResponseSbpSchema:
+) -> schemas.MerchantPayInResponseCardSchema | schemas.MerchantPayInResponseSBPSchema:
     """
-    Запросить пополнение средств как мерчант.
+    Запросить пополнение средств как клиент мерчанта.
 
-    Требуется разрешение: `запросить пополнение средств как мерчант`.
+    Требуется разрешение: `запросить пополнение средств как клиент мерчанта`.
     """
     return await MerchantService.request_pay_in(session=session, user=user, schema=body)

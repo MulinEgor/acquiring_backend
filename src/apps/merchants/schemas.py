@@ -30,7 +30,7 @@ class MerchantPayInResponseCardSchema(BaseModel):
     )
 
 
-class MerchantPayInResponseSbpSchema(BaseModel):
+class MerchantPayInResponseSBPSchema(BaseModel):
     """
     Схема для ответа на запрос на перевод средств в мерчант,
     способ оплаты - сбп.

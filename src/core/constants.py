@@ -4,6 +4,8 @@ from enum import StrEnum
 
 from sqlalchemy import TextClause, text
 
+from src.core.settings import settings
+
 # MARK: Security
 AUTH_HEADER_NAME: str = "Authorization"
 ALGORITHM: str = "HS256"
@@ -49,6 +51,10 @@ class PermissionEnum(StrEnum):
     UPDATE_USER = "обновить пользователя"
     DELETE_USER = "удалить пользователя"
 
+    REQUEST_PAY_IN = "запросить пополнение средств"
+    CONFIRM_PAY_IN = "подтвердить пополнение средств"
+    REQUEST_PAY_OUT = "запросить вывод средств"
+
     # MARK: Permission
     GET_PERMISSION = "получить разрешение"
     CREATE_PERMISSION = "создать разрешение"
@@ -88,17 +94,30 @@ class PermissionEnum(StrEnum):
     DELETE_REQUISITE = "удалить реквизиты"
 
     # MARK: Trader
-    REQUEST_PAY_IN_TRADER = "запросить пополнение средств как трейдер"
-    CONFIRM_PAY_IN_TRADER = "подтвердить пополнение средств как трейдер"
-    REQUEST_PAY_OUT_TRADER = "запросить вывод средств как трейдер"
     CONFIRM_MERCHANT_PAY_IN_TRADER = (
         "подтвердить пополнение средств мерчантом как трейдер"
     )
     START_WORKING_TRADER = "начать работу как трейдер"
     STOP_WORKING_TRADER = "остановить работу как трейдер"
 
-    # MARK: Merchant
-    REQUEST_PAY_IN_MERCHANT = "запросить пополнение средств как мерчант"
+    # MARK: Merchant client
+    REQUEST_PAY_IN_CLIENT = "запросить пополнение средств со стороны клиента"
+
+    # MARK: Support
+    RESOLVE_DISPUTE = "решить диспут"
+
+    # MARK: Disputes
+    GET_MY_DISPUTE = "получить свои диспуты"
+    UPDATE_MY_DISPUTE = "обновить свои диспуты"
+
+    GET_DISPUTE = "получить диспут"
+    CREATE_DISPUTE = "создать диспут"
+    UPDATE_DISPUTE = "обновить диспут"
+    DELETE_DISPUTE = "удалить диспут"
+
+    # MARK: S3
+    CREATE_FILE = "создать файл"
+    GET_FILE = "получить файл"
 
 
 # MARK: Redis
@@ -124,9 +143,12 @@ TRON_BROADCAST_TRANSACTION_URL: str = (
     "https://nile.trongrid.io/wallet/broadcasttransaction"
 )
 
-# MARK: Blockchain transactions
+# MARK: Transactions
 PENDING_BLOCKCHAIN_TRANSACTION_TIMEOUT: int = 60 * 60 * 24  # 1 день
 PENDING_TRANSACTION_TIMEOUT: int = 60 * 15  # 15 минут
+
+# MARK: Disputes
+PENDING_DISPUTE_TIMEOUT: int = 60 * 60 * 24  # 1 день
 
 # MARK: Commissions
 MERCHANT_COMMISSION: float = (
@@ -135,7 +157,25 @@ MERCHANT_COMMISSION: float = (
 TRADER_COMMISSION: float = (
     0.1  # коммисия которая идет на счет трейдера, после проведения транзакции
 )
+TRADER_DISPUTE_PENALTY: float = (
+    0.2  # штраф который идет на счет мерчанта, если трейдер признает вину
+)
 
 # MARK: Celery
 CELERY_BEAT_CHECK_BLOCKCHAIN_TRANSACTIONS_PERIOD: int = 60 * 10  # 10 минут
 CELERY_BEAT_CHECK_TRANSACTIONS_PERIOD: int = 60 * 10  # 10 минут
+CELERY_BEAT_CHECK_DISPUTES_PERIOD: int = 60 * 10  # 10 минут
+
+# MARK: S3
+S3_PUBLIC_BUCKET_POLICY: dict = {
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "PublicRead",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": ["s3:GetObject"],
+            "Resource": [f"arn:aws:s3:::{settings.S3_BUCKET_NAME}/*"],
+        }
+    ],
+}

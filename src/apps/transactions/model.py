@@ -1,7 +1,7 @@
 """Модуль для SQLAlchemy моделей транзакций на платформе."""
 
 from datetime import datetime, timedelta, timezone
-from enum import Enum
+from enum import Enum, StrEnum
 
 from sqlalchemy import TIMESTAMP, ForeignKey
 from sqlalchemy import Enum as SQLAlchemyEnum
@@ -11,12 +11,13 @@ from src.core import constants
 from src.core.database import Base
 
 
-class TransactionStatusEnum(str, Enum):
+class TransactionStatusEnum(StrEnum):
     """Статус транзакции."""
 
     PENDING = "в процессе обработки"
-    CONFIRMED = "подтверждена"
     FAILED = "не удачна"
+    SUCCESS = "успешна"
+    DISPUTED = "в процессе рассмотрения"
 
 
 class TransactionTypeEnum(str, Enum):
@@ -80,4 +81,8 @@ class TransactionModel(Base):
     requisite: Mapped["RequisiteModel"] = relationship(
         back_populates="transactions",
         foreign_keys=[requisite_id],
+    )
+    dispute: Mapped["DisputeModel"] = relationship(
+        back_populates="transaction",
+        uselist=False,
     )

@@ -1,10 +1,10 @@
-"""Тесты для роутера src.api.trader.routers.requisites_router."""
+"""Тесты для роутера src.api.user.routers.users.requisites_router."""
 
 import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.user.routers.trader.requisites_router import router as requisites_router
+from src.api.user.routers.users.requisites_router import router as requisites_router
 from src.apps.auth import schemas as auth_schemas
 from src.apps.requisites import schemas as requisite_schemas
 from src.apps.requisites.model import RequisiteModel
@@ -14,7 +14,7 @@ from src.core import constants
 from tests.integration.conftest import BaseTestRouter
 
 
-class TestTraderRequisitesRouter(BaseTestRouter):
+class TestRequisitesRouter(BaseTestRouter):
     """Класс для тестирования роутера."""
 
     router = requisites_router
@@ -31,7 +31,7 @@ class TestTraderRequisitesRouter(BaseTestRouter):
         """Создание реквизита трейдером."""
 
         response = await router_client.post(
-            "/traders/requisites",
+            "/requisites",
             json=requisite_trader_create_data.model_dump(),
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
         )
@@ -63,7 +63,7 @@ class TestTraderRequisitesRouter(BaseTestRouter):
         """Получение реквизита трейдера."""
 
         response = await router_client.get(
-            f"/traders/requisites/{requisite_trader_db.id}",
+            f"/requisites/{requisite_trader_db.id}",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
         )
 
@@ -112,7 +112,7 @@ class TestTraderRequisitesRouter(BaseTestRouter):
         """Получение всех реквизитов трейдера без параметров."""
 
         response = await router_client.get(
-            "/traders/requisites",
+            "/requisites",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
         )
 
@@ -134,7 +134,7 @@ class TestTraderRequisitesRouter(BaseTestRouter):
         )
 
         response = await router_client.get(
-            "/traders/requisites",
+            "/requisites",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
             params=query_params.model_dump(exclude_none=True),
         )
@@ -160,7 +160,7 @@ class TestTraderRequisitesRouter(BaseTestRouter):
         """Обновление реквизита трейдера."""
 
         response = await router_client.put(
-            f"/traders/requisites/{requisite_trader_db.id}",
+            f"/requisites/{requisite_trader_db.id}",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
             json=requisite_trader_update_data.model_dump(),
         )
@@ -193,7 +193,7 @@ class TestTraderRequisitesRouter(BaseTestRouter):
         """Удаление реквизита трейдера."""
 
         response = await router_client.delete(
-            f"/traders/requisites/{requisite_trader_db.id}",
+            f"/requisites/{requisite_trader_db.id}",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
         )
 
