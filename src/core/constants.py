@@ -97,6 +97,7 @@ class PermissionEnum(StrEnum):
     CONFIRM_MERCHANT_PAY_IN_TRADER = (
         "подтвердить пополнение средств мерчантом как трейдер"
     )
+    CONFIRM_MERCHANT_PAY_OUT_TRADER = "подтвердить перевод на счет мерчанта как трейдер"
     START_WORKING_TRADER = "начать работу как трейдер"
     STOP_WORKING_TRADER = "остановить работу как трейдер"
 

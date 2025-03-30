@@ -45,6 +45,35 @@ async def confirm_merchant_pay_in_route(
 
 
 @router.patch(
+    "/confirm-merchant-pay-out/{transaction_id}",
+    summary="Подтвердить перевод на счет мерчанта",
+    status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions(
+                [constants.PermissionEnum.CONFIRM_MERCHANT_PAY_OUT_TRADER]
+            )
+        ),
+    ],
+)
+async def confirm_merchant_pay_out_route(
+    transaction_id: int,
+    user: UserModel = Depends(dependencies.get_current_user),
+    session: AsyncSession = Depends(dependencies.get_session),
+) -> None:
+    """
+    Подтвердить перевод на счет мерчанта.
+
+    Требуется разрешение: `подтвердить перевод на счет мерчанта как трейдер`.
+    """
+    return await TraderService.confirm_merchant_pay_out(
+        session=session,
+        transaction_id=transaction_id,
+        trader_db=user,
+    )
+
+
+@router.patch(
     "/start",
     summary="Начать работу",
     status_code=status.HTTP_202_ACCEPTED,

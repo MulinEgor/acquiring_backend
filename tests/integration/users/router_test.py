@@ -46,7 +46,7 @@ class TestCommonUserRouter(BaseTestRouter):
             headers={constants.AUTH_HEADER_NAME: user_jwt_tokens.access_token},
         )
 
-        assert response.status_code == status.HTTP_202_ACCEPTED
+        assert response.status_code == status.HTTP_200_OK
 
         data = user_schemas.UserGetSchema(**response.json())
 
