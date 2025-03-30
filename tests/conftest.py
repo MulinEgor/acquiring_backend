@@ -32,6 +32,7 @@ from src.apps.transactions import schemas as transaction_schemas
 from src.apps.transactions.model import (
     TransactionModel,
     TransactionPaymentMethodEnum,
+    TransactionStatusEnum,
     TransactionTypeEnum,
 )
 from src.apps.users.model import UserModel
@@ -282,6 +283,8 @@ async def user_trader_db(
         constants.PermissionEnum.CONFIRM_MERCHANT_PAY_IN_TRADER,
         constants.PermissionEnum.START_WORKING_TRADER,
         constants.PermissionEnum.STOP_WORKING_TRADER,
+        constants.PermissionEnum.UPDATE_MY_DISPUTE,
+        constants.PermissionEnum.GET_MY_DISPUTE,
     ]
     permissions_db = await PermissionRepository.get_all(session)
     await UsersPermissionsRepository.create_bulk(
@@ -330,6 +333,8 @@ async def user_merchant_db(
     merchant_permissions = [
         constants.PermissionEnum.GET_MY_TRANSACTION,
         constants.PermissionEnum.REQUEST_PAY_IN_CLIENT,
+        constants.PermissionEnum.CREATE_DISPUTE,
+        constants.PermissionEnum.GET_MY_DISPUTE,
     ]
     permissions_db = await PermissionRepository.get_all(session)
     await UsersPermissionsRepository.create_bulk(
@@ -506,6 +511,28 @@ async def transaction_merchant_pay_in_db(
         amount=100,
         type=TransactionTypeEnum.PAY_IN,
         payment_method=TransactionPaymentMethodEnum.CARD,
+        status=TransactionStatusEnum.SUCCESS,
+    )
+    session.add(transaction_db)
+    await session.commit()
+
+    return transaction_db
+
+
+@pytest_asyncio.fixture
+async def transaction_merchant_pending_pay_in_db(
+    session: AsyncSession,
+    user_merchant_db: UserModel,
+    user_trader_db: UserModel,
+) -> TransactionModel:
+    """Добавить транзакцию в БД, которую обрабатывает трейдер."""
+
+    transaction_db = TransactionModel(
+        merchant_id=user_merchant_db.id,
+        trader_id=user_trader_db.id,
+        amount=100,
+        type=TransactionTypeEnum.PAY_IN,
+        payment_method=TransactionPaymentMethodEnum.CARD,
     )
     session.add(transaction_db)
     await session.commit()
@@ -605,14 +632,14 @@ def requisite_admin_update_data(
 @pytest_asyncio.fixture
 async def dispute_db(
     session: AsyncSession,
-    transaction_db: TransactionModel,
+    transaction_merchant_pay_in_db: TransactionModel,
 ) -> DisputeModel:
     """Добавить диспут в БД."""
 
     return await DisputeRepository.create(
         session=session,
         obj_in=dispute_schemas.DisputeCreateSchema(
-            transaction_id=transaction_db.id,
+            transaction_id=transaction_merchant_pay_in_db.id,
             description=faker.word(),
             image_urls=[faker.image_url()],
         ),
@@ -621,12 +648,12 @@ async def dispute_db(
 
 @pytest.fixture
 def dispute_create_data(
-    transaction_db: TransactionModel,
+    transaction_merchant_pay_in_db: TransactionModel,
 ) -> dispute_schemas.DisputeCreateSchema:
     """Подготовленные данные для создания диспута в БД."""
 
     return dispute_schemas.DisputeCreateSchema(
-        transaction_id=transaction_db.id,
+        transaction_id=transaction_merchant_pay_in_db.id,
         description=faker.word(),
         image_urls=[faker.image_url()],
     )
@@ -635,8 +662,20 @@ def dispute_create_data(
 @pytest.fixture
 def dispute_update_data(
     user_trader_db: UserModel,
-) -> dispute_schemas.DisputeSupportUpdateSchema:
+) -> dispute_schemas.DisputeUpdateSchema:
     """Подготовленные данные для обновления диспута в БД."""
+
+    return dispute_schemas.DisputeUpdateSchema(
+        accept=False,
+        description=faker.word(),
+    )
+
+
+@pytest.fixture
+def dispute_support_update_data(
+    user_trader_db: UserModel,
+) -> dispute_schemas.DisputeSupportUpdateSchema:
+    """Подготовленные данные для обновления диспута в БД суппортом."""
 
     return dispute_schemas.DisputeSupportUpdateSchema(
         winner_id=user_trader_db.id,

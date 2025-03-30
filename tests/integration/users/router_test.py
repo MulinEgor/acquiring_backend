@@ -129,7 +129,7 @@ class TestUserRouter(BaseTestRouter):
                 session=session,
                 user_id=user_trader_db.id,
             )
-        ).status == TransactionStatusEnum.CLOSED
+        ).status == TransactionStatusEnum.SUCCESS
 
         await session.refresh(user_trader_db)
         assert (

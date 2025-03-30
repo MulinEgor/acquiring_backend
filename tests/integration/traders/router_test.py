@@ -69,7 +69,7 @@ class TestTradersRouter(BaseTestRouter):
         router_client: httpx.AsyncClient,
         trader_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
-        transaction_merchant_pay_in_db: TransactionModel,
+        transaction_merchant_pending_pay_in_db: TransactionModel,
         user_trader_db: UserModel,
         user_merchant_db: UserModel,
     ):
@@ -77,11 +77,11 @@ class TestTradersRouter(BaseTestRouter):
 
         user_trader_balance_before = user_trader_db.balance
 
-        user_trader_db.amount_frozen = transaction_merchant_pay_in_db.amount
+        user_trader_db.amount_frozen = transaction_merchant_pending_pay_in_db.amount
         await session.commit()
 
         response = await router_client.patch(
-            f"/traders/confirm-merchant-pay-in/{transaction_merchant_pay_in_db.id}",
+            f"/traders/confirm-merchant-pay-in/{transaction_merchant_pending_pay_in_db.id}",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
         )
 
@@ -90,7 +90,7 @@ class TestTradersRouter(BaseTestRouter):
         assert (
             await TransactionRepository.get_one_or_none(
                 session=session,
-                id=transaction_merchant_pay_in_db.id,
+                id=transaction_merchant_pending_pay_in_db.id,
             )
         ) is not None
 
@@ -99,13 +99,18 @@ class TestTradersRouter(BaseTestRouter):
         assert (
             user_trader_db.balance
             == user_trader_balance_before
-            - transaction_merchant_pay_in_db.amount
-            + transaction_merchant_pay_in_db.amount * constants.TRADER_COMMISSION
+            - transaction_merchant_pending_pay_in_db.amount
+            + transaction_merchant_pending_pay_in_db.amount
+            * constants.TRADER_COMMISSION
         )
         assert (
             user_merchant_db.balance
-            == transaction_merchant_pay_in_db.amount
-            - transaction_merchant_pay_in_db.amount * constants.MERCHANT_COMMISSION
+            == transaction_merchant_pending_pay_in_db.amount
+            - transaction_merchant_pending_pay_in_db.amount
+            * constants.MERCHANT_COMMISSION
         )
 
-        assert transaction_merchant_pay_in_db.status == TransactionStatusEnum.CLOSED
+        assert (
+            transaction_merchant_pending_pay_in_db.status
+            == TransactionStatusEnum.SUCCESS
+        )

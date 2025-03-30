@@ -118,7 +118,7 @@ def upgrade() -> None:
         sa.Column(
             "status",
             sa.Enum(
-                "PENDING", "FAILED", "CLOSED", "DISPUTED", name="transactionstatusenum"
+                "PENDING", "FAILED", "SUCCESS", "DISPUTED", name="transactionstatusenum"
             ),
             nullable=False,
         ),
@@ -183,7 +183,7 @@ def upgrade() -> None:
         sa.Column(
             "status",
             sa.Enum(
-                "PENDING", "FAILED", "CLOSED", "DISPUTED", name="transactionstatusenum"
+                "PENDING", "FAILED", "SUCCESS", "DISPUTED", name="transactionstatusenum"
             ),
             nullable=False,
         ),

@@ -91,3 +91,12 @@ class DisputePaginationSchema(PaginationBaseSchema):
         default=None,
         description="Идентификатор победителя в БД",
     )
+
+
+class DisputeSupportPaginationSchema(DisputePaginationSchema):
+    """Схема для пагинации диспутов поддержкой."""
+
+    user_id: int | None = Field(
+        default=None,
+        description="Идентификатор пользователя в БД",
+    )

@@ -55,7 +55,7 @@ async def get_dispute_by_id_route(
     summary="Получить список диспутов.",
     status_code=status.HTTP_200_OK,
 )
-async def get_disputes_by_admin_route(
+async def get_disputes_route(
     query_params: schemas.DisputePaginationSchema = Query(),
     user: UserModel = Depends(dependencies.get_current_user),
     _=Depends(
@@ -69,7 +69,11 @@ async def get_disputes_by_admin_route(
     Требуется разрешение: `получить свой диспут`.
     """
     return await DisputeService.get_all(
-        session=session, query_params=query_params, user_id=user.id
+        session=session,
+        query_params=schemas.DisputeSupportPaginationSchema(
+            user_id=user.id,
+            **query_params.model_dump(exclude_unset=True),
+        ),
     )
 
 

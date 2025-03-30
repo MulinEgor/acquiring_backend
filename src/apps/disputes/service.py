@@ -10,7 +10,6 @@ from src.apps.transactions.repository import TransactionRepository
 from src.apps.transactions.service import TransactionService
 from src.apps.users.model import UserModel
 from src.apps.users.repository import UserRepository
-from src.apps.users.service import UserService
 from src.core import constants, exceptions
 from src.lib.base.service import BaseService
 
@@ -20,7 +19,7 @@ class DisputeService(
         DisputeModel,
         schemas.DisputeCreateSchema,
         schemas.DisputeGetSchema,
-        schemas.DisputePaginationSchema,
+        schemas.DisputeSupportPaginationSchema,
         schemas.DisputeListSchema,
         schemas.DisputeSupportUpdateSchema,
     ],
@@ -28,6 +27,52 @@ class DisputeService(
     """Сервис для работы с диспутами."""
 
     repository = DisputeRepository
+
+    # MARK: Get
+    @classmethod
+    async def get_by_id(
+        cls,
+        session: AsyncSession,
+        id: int,
+        user_id: int | None = None,
+    ) -> schemas.DisputeGetSchema:
+        """
+        Получить диспут по ID.
+
+        Args:
+            session (AsyncSession): Сессия БД.
+            id (int): Идентификатор диспута.
+            user_id (int | None): Идентификатор пользователя.
+
+        Returns:
+            DisputeGetSchema: Схема для получения диспута.
+
+        Raises:
+            NotFoundException: Диспут не найден.
+        """
+
+        dispute_db = await cls.repository.get_one_or_none(
+            session=session,
+            id=id,
+        )
+        if not dispute_db:
+            raise exceptions.NotFoundException("Диспут не найден")
+
+        if user_id:
+            transaction_db = await TransactionRepository.get_one_or_none(
+                session=session,
+                id=dispute_db.transaction_id,
+            )
+            if not transaction_db:
+                raise exceptions.NotFoundException("Транзакция не найдена")
+
+            if (
+                transaction_db.merchant_id != user_id
+                and transaction_db.trader_id != user_id
+            ):
+                raise exceptions.NotFoundException("Диспут не принадлежит пользователю")
+
+        return dispute_db
 
     # MARK: Create
     @classmethod
@@ -61,7 +106,7 @@ class DisputeService(
         transaction = await TransactionService.get_by_id(
             session=session, id=data.transaction_id
         )
-        if transaction.status != TransactionStatusEnum.COMPLETED:
+        if transaction.status != TransactionStatusEnum.SUCCESS:
             raise exceptions.ConflictException(
                 "Транзакция должна быть завершена, чтобы создать диспут"
             )
@@ -72,8 +117,10 @@ class DisputeService(
         transaction.status = TransactionStatusEnum.DISPUTED
 
         # Заморозка средств на счете трейдера
-        trader = await UserService.get_by_id(session=session, id=transaction.trader_id)
-        trader.amount_frozen += transaction.amount
+        trader_db = await UserRepository.get_one_or_none(
+            session=session, id=transaction.trader_id
+        )
+        trader_db.amount_frozen += transaction.amount
 
         # Создание диспута в БД
         data = {
@@ -150,7 +197,7 @@ class DisputeService(
 
             # Закрытие диспута и транзакции
             dispute_db.status = DisputeStatusEnum.CLOSED
-            transaction_db.status = TransactionStatusEnum.CLOSED
+            transaction_db.status = TransactionStatusEnum.SUCCESS
 
         await session.commit()
 
@@ -221,7 +268,7 @@ class DisputeService(
 
         # Закрытие диспута и транзакции
         dispute_db.status = DisputeStatusEnum.CLOSED
-        transaction_db.status = TransactionStatusEnum.CLOSED
+        transaction_db.status = TransactionStatusEnum.SUCCESS
         dispute_db.winner_id = data.winner_id
 
         await session.commit()

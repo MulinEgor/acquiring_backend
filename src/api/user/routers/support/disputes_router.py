@@ -1,4 +1,4 @@
-"""Модуль для админского роутера диспутов."""
+"""Модуль для роутера диспутов для суппорта."""
 
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession

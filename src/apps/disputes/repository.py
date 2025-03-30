@@ -2,10 +2,11 @@
 
 from typing import Tuple
 
-from sqlalchemy import Select, select
+from sqlalchemy import Select, or_, select
 
 from src.apps.disputes import schemas
 from src.apps.disputes.model import DisputeModel
+from src.apps.transactions.model import TransactionModel
 from src.lib.base.repository import BaseRepository
 
 
@@ -21,7 +22,7 @@ class DisputeRepository(
     @classmethod
     async def get_stmt_by_query(
         cls,
-        query_params: schemas.DisputePaginationSchema,
+        query_params: schemas.DisputeSupportPaginationSchema,
     ) -> Select[Tuple[DisputeModel]]:
         """
         Создать подготовленное выражение для запроса в БД,
@@ -29,7 +30,7 @@ class DisputeRepository(
         для получения списка диспутов.
 
         Args:
-            query_params (DisputePaginationSchema): параметры для запроса.
+            query_params (DisputeSupportPaginationSchema): параметры для запроса.
 
         Returns:
             stmt: Подготовленное выражение для запроса в БД.
@@ -49,6 +50,14 @@ class DisputeRepository(
         if query_params.description:
             stmt = stmt.where(
                 cls.model.description.ilike(f"%{query_params.description}%")
+            )
+
+        if query_params.user_id:
+            stmt = stmt.join(TransactionModel).where(
+                or_(
+                    TransactionModel.merchant_id == query_params.user_id,
+                    TransactionModel.trader_id == query_params.user_id,
+                )
             )
 
         # Сортировка по дате создания.

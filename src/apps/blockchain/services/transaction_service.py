@@ -177,7 +177,7 @@ class BlockchainTransactionService(
             private_key=wallet_db.private_key,
         )
 
-        transaction_db.status = TransactionStatusEnum.CLOSED
+        transaction_db.status = TransactionStatusEnum.SUCCESS
         transaction_db.hash = hash
 
         user = await UserRepository.get_one_or_none(

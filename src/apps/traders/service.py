@@ -73,6 +73,6 @@ class TraderService:
             - transaction_db.amount * constants.MERCHANT_COMMISSION
         )
 
-        transaction_db.status = TransactionStatusEnum.CLOSED
+        transaction_db.status = TransactionStatusEnum.SUCCESS
 
         await session.commit()

@@ -141,7 +141,7 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
         )
 
         assert transaction_db is not None
-        assert transaction_db.status == TransactionStatusEnum.CLOSED
+        assert transaction_db.status == TransactionStatusEnum.SUCCESS
 
         await session.refresh(user_trader_db)
         assert user_trader_db.balance == trader_balance_before - transaction_db.amount
