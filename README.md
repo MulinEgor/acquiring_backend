@@ -8,7 +8,7 @@
 [![Static Badge](https://img.shields.io/badge/docker-257bd6?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 
 
-## Тесты (необязательно, но лучше запустить, чтобы убедиться в работоспособности)
+## Тесты (необязательно, но лучше запустить, чтобы убедиться в работаспособности)
 1. Перед запуском тестов необходимо создать `.env.test` на основе`.env.test.example`:
 ```bash
 cp -r .env.test.example .env.test
@@ -37,8 +37,8 @@ make migrate
 ```
 
 4. Документация API и доступные эндпоинты:
-Админка: http://localhost:80/docs
-Основное API: http://localhost:81/docs
+## Админка: http://localhost:80/docs
+## Основное API: http://localhost:81/docs
 
 5. Для остановки контейнеров выполнить
 ```bash
