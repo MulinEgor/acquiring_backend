@@ -41,7 +41,7 @@ class TestMerchantsRouter(BaseTestRouter):
             ).model_dump(),
         )
 
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_202_ACCEPTED
         assert merchants_schemas.MerchantPayInResponseSBPSchema.model_validate(
             response.json()
         )

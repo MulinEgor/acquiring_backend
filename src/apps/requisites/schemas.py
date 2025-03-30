@@ -27,9 +27,9 @@ class RequisiteCreateSchema(BaseModel):
         Raises:
             ValueError: Если привязаны оба способа оплаты.
         """
-        if self.phone_number and self.bank_name and not self.card_number:
-            return self
-        elif not self.phone_number and self.card_number:
+        if (self.phone_number and self.bank_name and not self.card_number) or (
+            not self.phone_number and self.card_number
+        ):
             return self
         else:
             raise ValueError(

@@ -12,12 +12,14 @@ router = APIRouter(prefix="/s3", tags=["S3"])
     "",
     summary="Загрузить файлы в S3.",
     status_code=status.HTTP_201_CREATED,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions([constants.PermissionEnum.CREATE_FILE])
+        ),
+    ],
 )
 async def upload_files_route(
     files: list[UploadFile] = File(...),
-    _=Depends(
-        dependencies.check_user_permissions([constants.PermissionEnum.CREATE_FILE])
-    ),
 ) -> dict[str, list[str]]:
     """
     Загрузка файлов в S3.
@@ -31,10 +33,13 @@ async def upload_files_route(
     "",
     summary="Получить список всех файлов в S3.",
     status_code=status.HTTP_200_OK,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions([constants.PermissionEnum.GET_FILE])
+        ),
+    ],
 )
-async def get_all_files_route(
-    _=Depends(dependencies.check_user_permissions([constants.PermissionEnum.GET_FILE])),
-) -> dict[str, list[str]]:
+async def get_all_files_route() -> dict[str, list[str]]:
     """
     Получение списка всех файлов в S3.
 

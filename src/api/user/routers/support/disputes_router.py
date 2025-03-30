@@ -15,13 +15,15 @@ router = APIRouter(prefix="/support/disputes", tags=["Диспуты для су
     "/{id}",
     summary="Обновить диспут по ID.",
     status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions([constants.PermissionEnum.GET_DISPUTE])
+        ),
+    ],
 )
 async def update_dispute_by_id_route(
     id: int,
     data: schemas.DisputeSupportUpdateSchema,
-    _=Depends(
-        dependencies.check_user_permissions([constants.PermissionEnum.GET_DISPUTE])
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """

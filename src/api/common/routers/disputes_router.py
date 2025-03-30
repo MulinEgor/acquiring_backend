@@ -16,13 +16,17 @@ router = APIRouter(prefix="/disputes", tags=["Диспуты"])
     "",
     summary="Создать диспут",
     status_code=status.HTTP_201_CREATED,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions(
+                [constants.PermissionEnum.CREATE_DISPUTE]
+            )
+        ),
+    ],
 )
 async def create_dispute_route(
     data: schemas.DisputeCreateSchema,
     user: UserModel = Depends(dependencies.get_current_user),
-    _=Depends(
-        dependencies.check_user_permissions([constants.PermissionEnum.CREATE_DISPUTE])
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     return await DisputeService.create(session=session, data=data, merchant_db=user)
@@ -33,13 +37,17 @@ async def create_dispute_route(
     "/{id}",
     summary="Получить данные диспута по ID.",
     status_code=status.HTTP_200_OK,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions(
+                [constants.PermissionEnum.GET_MY_DISPUTE]
+            )
+        ),
+    ],
 )
 async def get_dispute_by_id_route(
     id: int,
     user: UserModel = Depends(dependencies.get_current_user),
-    _=Depends(
-        dependencies.check_user_permissions([constants.PermissionEnum.GET_MY_DISPUTE])
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """
@@ -54,13 +62,17 @@ async def get_dispute_by_id_route(
     "",
     summary="Получить список диспутов.",
     status_code=status.HTTP_200_OK,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions(
+                [constants.PermissionEnum.GET_MY_DISPUTE]
+            )
+        ),
+    ],
 )
 async def get_disputes_route(
     query_params: schemas.DisputePaginationSchema = Query(),
     user: UserModel = Depends(dependencies.get_current_user),
-    _=Depends(
-        dependencies.check_user_permissions([constants.PermissionEnum.GET_MY_DISPUTE])
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """
@@ -82,16 +94,18 @@ async def get_disputes_route(
     "/{id}",
     summary="Обновить диспут по ID.",
     status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions(
+                [constants.PermissionEnum.UPDATE_MY_DISPUTE]
+            )
+        ),
+    ],
 )
 async def update_dispute_by_id_route(
     id: int,
     data: schemas.DisputeUpdateSchema,
     user: UserModel = Depends(dependencies.get_current_user),
-    _=Depends(
-        dependencies.check_user_permissions(
-            [constants.PermissionEnum.UPDATE_MY_DISPUTE]
-        )
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """

@@ -18,13 +18,15 @@ router = APIRouter(prefix="/requisites", tags=["Реквизиты"])
     "",
     summary="Создать свои реквизиты.",
     status_code=status.HTTP_201_CREATED,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions([PermissionEnum.CREATE_MY_REQUISITE])
+        ),
+    ],
 )
 async def create_requisite_route(
     data: schemas.RequisiteCreateSchema,
     user: UserModel = Depends(dependencies.get_current_user),
-    _: bool = Depends(
-        dependencies.check_user_permissions([PermissionEnum.CREATE_MY_REQUISITE])
-    ),
     session: AsyncSession = Depends(get_session),
 ):
     """
@@ -43,13 +45,13 @@ async def create_requisite_route(
     "/{id}",
     summary="Получить свои реквизиты по ID.",
     status_code=status.HTTP_200_OK,
+    dependencies=[
+        Depends(dependencies.check_user_permissions([PermissionEnum.GET_MY_REQUISITE])),
+    ],
 )
 async def get_my_requisite_route(
     id: int,
     user: UserModel = Depends(dependencies.get_current_user),
-    _: bool = Depends(
-        dependencies.check_user_permissions([PermissionEnum.GET_MY_REQUISITE])
-    ),
     session: AsyncSession = Depends(get_session),
 ):
     """
@@ -68,13 +70,13 @@ async def get_my_requisite_route(
     "",
     summary="Получить все свои реквизиты.",
     status_code=status.HTTP_200_OK,
+    dependencies=[
+        Depends(dependencies.check_user_permissions([PermissionEnum.GET_MY_REQUISITE])),
+    ],
 )
 async def get_my_requisites_route(
     query_params: schemas.RequisitePaginationSchema = Query(),
     user: UserModel = Depends(dependencies.get_current_user),
-    _: bool = Depends(
-        dependencies.check_user_permissions([PermissionEnum.GET_MY_REQUISITE])
-    ),
     session: AsyncSession = Depends(get_session),
 ):
     """
@@ -94,14 +96,16 @@ async def get_my_requisites_route(
     "/{id}",
     summary="Обновить свои реквизиты по ID.",
     status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions([PermissionEnum.UPDATE_MY_REQUISITE])
+        ),
+    ],
 )
 async def update_my_requisite_route(
     id: int,
     data: schemas.RequisiteUpdateSchema,
     user: UserModel = Depends(dependencies.get_current_user),
-    _: bool = Depends(
-        dependencies.check_user_permissions([PermissionEnum.UPDATE_MY_REQUISITE])
-    ),
     session: AsyncSession = Depends(get_session),
 ):
     """
@@ -122,13 +126,15 @@ async def update_my_requisite_route(
     "/{id}",
     summary="Удалить свои реквизиты по ID.",
     status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions([PermissionEnum.DELETE_MY_REQUISITE])
+        ),
+    ],
 )
 async def delete_my_requisite_route(
     id: int,
     user: UserModel = Depends(dependencies.get_current_user),
-    _: bool = Depends(
-        dependencies.check_user_permissions([PermissionEnum.DELETE_MY_REQUISITE])
-    ),
     session: AsyncSession = Depends(get_session),
 ):
     """

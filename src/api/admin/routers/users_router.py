@@ -18,12 +18,14 @@ router = APIRouter(
     "",
     summary="Создать нового пользователя.",
     status_code=status.HTTP_201_CREATED,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions([constants.PermissionEnum.CREATE_USER])
+        ),
+    ],
 )
 async def create_user_by_admin_route(
     data: user_schemas.UserCreateSchema,
-    _=Depends(
-        dependencies.check_user_permissions([constants.PermissionEnum.CREATE_USER])
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """
@@ -39,10 +41,14 @@ async def create_user_by_admin_route(
     "/{id}",
     summary="Получить данные пользователя по ID.",
     status_code=status.HTTP_200_OK,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions([constants.PermissionEnum.GET_USER])
+        ),
+    ],
 )
 async def get_user_by_id_route(
     id: int,
-    _=Depends(dependencies.check_user_permissions([constants.PermissionEnum.GET_USER])),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """
@@ -57,10 +63,14 @@ async def get_user_by_id_route(
     "",
     summary="Получить список пользователей.",
     status_code=status.HTTP_200_OK,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions([constants.PermissionEnum.GET_USER])
+        ),
+    ],
 )
 async def get_users_by_admin_route(
     query_params: user_schemas.UsersPaginationSchema = Query(),
-    _=Depends(dependencies.check_user_permissions([constants.PermissionEnum.GET_USER])),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """
@@ -76,13 +86,15 @@ async def get_users_by_admin_route(
     "/{id}",
     summary="Обновить данные пользователя.",
     status_code=status.HTTP_200_OK,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions([constants.PermissionEnum.UPDATE_USER])
+        ),
+    ],
 )
 async def update_user_by_admin_route(
     id: int,
     data: user_schemas.UserUpdateSchema,
-    _=Depends(
-        dependencies.check_user_permissions([constants.PermissionEnum.UPDATE_USER])
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """
@@ -98,12 +110,14 @@ async def update_user_by_admin_route(
     "/{id}",
     summary="Удалить пользователя.",
     status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions([constants.PermissionEnum.DELETE_USER])
+        ),
+    ],
 )
 async def delete_user_by_admin_route(
     id: int,
-    _=Depends(
-        dependencies.check_user_permissions([constants.PermissionEnum.DELETE_USER])
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """

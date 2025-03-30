@@ -17,12 +17,14 @@ router = APIRouter(
     "/me",
     summary="Получить данные текущего пользователя.",
     status_code=status.HTTP_200_OK,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions([constants.PermissionEnum.GET_MY_USER])
+        ),
+    ],
 )
 async def get_current_user_route(
     user: UserModel = Depends(dependencies.get_current_user),
-    _=Depends(
-        dependencies.check_user_permissions([constants.PermissionEnum.GET_MY_USER])
-    ),
 ):
     """
     Получить данные текущего пользователя.

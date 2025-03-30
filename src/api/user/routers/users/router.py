@@ -18,13 +18,18 @@ router = APIRouter(
 @router.patch(
     "/request-pay-in",
     summary="Запросить пополнение средств",
+    status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions(
+                [constants.PermissionEnum.REQUEST_PAY_IN]
+            )
+        ),
+    ],
 )
 async def request_pay_in_route(
     body: pay_schemas.RequestPayInSchema,
     user: UserModel = Depends(dependencies.get_current_user),
-    _=Depends(
-        dependencies.check_user_permissions([constants.PermissionEnum.REQUEST_PAY_IN])
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ) -> pay_schemas.ResponsePayInSchema:
     """
@@ -43,13 +48,17 @@ async def request_pay_in_route(
     "/confirm-pay-in",
     summary="Подтвердить пополнение средств",
     status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions(
+                [constants.PermissionEnum.CONFIRM_PAY_IN]
+            )
+        ),
+    ],
 )
 async def confirm_pay_in_route(
     body: pay_schemas.ConfirmPayInSchema,
     user: UserModel = Depends(dependencies.get_current_user),
-    _=Depends(
-        dependencies.check_user_permissions([constants.PermissionEnum.CONFIRM_PAY_IN])
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ) -> None:
     """
@@ -68,13 +77,17 @@ async def confirm_pay_in_route(
     "/request-pay-out",
     summary="Запросить вывод средств",
     status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions(
+                [constants.PermissionEnum.REQUEST_PAY_OUT]
+            )
+        ),
+    ],
 )
 async def request_pay_out_route(
     body: pay_schemas.RequestPayOutSchema,
     user: UserModel = Depends(dependencies.get_current_user),
-    _=Depends(
-        dependencies.check_user_permissions([constants.PermissionEnum.REQUEST_PAY_OUT])
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ) -> pay_schemas.ResponsePayOutSchema:
     """

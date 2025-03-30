@@ -19,15 +19,17 @@ router = APIRouter(
     "/confirm-merchant-pay-in/{transaction_id}",
     summary="Подтвердить пополнение средств мерчантом",
     status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions(
+                [constants.PermissionEnum.CONFIRM_MERCHANT_PAY_IN_TRADER]
+            )
+        ),
+    ],
 )
 async def confirm_merchant_pay_in_route(
     transaction_id: int,
     user: UserModel = Depends(dependencies.get_current_user),
-    _=Depends(
-        dependencies.check_user_permissions(
-            [constants.PermissionEnum.CONFIRM_MERCHANT_PAY_IN_TRADER]
-        )
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ) -> None:
     """
@@ -46,14 +48,16 @@ async def confirm_merchant_pay_in_route(
     "/start",
     summary="Начать работу",
     status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions(
+                [constants.PermissionEnum.START_WORKING_TRADER]
+            )
+        ),
+    ],
 )
 async def start_work_route(
     user: UserModel = Depends(dependencies.get_current_user),
-    _=Depends(
-        dependencies.check_user_permissions(
-            [constants.PermissionEnum.START_WORKING_TRADER]
-        )
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ) -> None:
     """
@@ -72,14 +76,16 @@ async def start_work_route(
     "/stop",
     summary="Остановить работу",
     status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions(
+                [constants.PermissionEnum.STOP_WORKING_TRADER]
+            )
+        ),
+    ],
 )
 async def stop_work_route(
     user: UserModel = Depends(dependencies.get_current_user),
-    _=Depends(
-        dependencies.check_user_permissions(
-            [constants.PermissionEnum.STOP_WORKING_TRADER]
-        )
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ) -> None:
     """

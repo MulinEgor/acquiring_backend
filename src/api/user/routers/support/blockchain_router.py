@@ -20,14 +20,16 @@ router = APIRouter(
     "/{id}",
     summary="Получить транзакцию по ID",
     status_code=status.HTTP_200_OK,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions(
+                [constants.PermissionEnum.GET_BLOCKCHAIN_TRANSACTION]
+            )
+        ),
+    ],
 )
 async def get_transaction_by_id_route(
     id: int,
-    _=Depends(
-        dependencies.check_user_permissions(
-            [constants.PermissionEnum.GET_BLOCKCHAIN_TRANSACTION]
-        )
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ) -> schemas.TransactionGetSchema:
     """
@@ -45,14 +47,16 @@ async def get_transaction_by_id_route(
     "",
     summary="Получить транзакции",
     status_code=status.HTTP_200_OK,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions(
+                [constants.PermissionEnum.GET_BLOCKCHAIN_TRANSACTION]
+            )
+        ),
+    ],
 )
 async def get_transactions_route(
     query_params: schemas.TransactionPaginationSchema = Query(),
-    _=Depends(
-        dependencies.check_user_permissions(
-            [constants.PermissionEnum.GET_BLOCKCHAIN_TRANSACTION]
-        )
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ) -> schemas.TransactionListSchema:
     """
@@ -71,14 +75,16 @@ async def get_transactions_route(
     "/{id}",
     summary="Подтвердить исходящую транзакцию по ID",
     status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions(
+                [constants.PermissionEnum.CONFIRM_PAY_OUT_BLOCKCHAIN_TRANSACTION]
+            )
+        ),
+    ],
 )
 async def confirm_transaction_route(
     id: int,
-    _=Depends(
-        dependencies.check_user_permissions(
-            [constants.PermissionEnum.CONFIRM_PAY_OUT_BLOCKCHAIN_TRANSACTION]
-        )
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """

@@ -46,7 +46,7 @@ class TestCommonUserRouter(BaseTestRouter):
             headers={constants.AUTH_HEADER_NAME: user_jwt_tokens.access_token},
         )
 
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_202_ACCEPTED
 
         data = user_schemas.UserGetSchema(**response.json())
 
@@ -84,7 +84,7 @@ class TestUserRouter(BaseTestRouter):
             json=pay_schemas.RequestPayInSchema(amount=100).model_dump(),
         )
 
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_202_ACCEPTED
         assert pay_schemas.ResponsePayInSchema.model_validate(response.json())
 
         assert await BlockchainTransactionService.get_pending_by_user_id(

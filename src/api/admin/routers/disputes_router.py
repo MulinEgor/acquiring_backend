@@ -15,12 +15,14 @@ router = APIRouter(prefix="/disputes", tags=["Диспуты"])
     "/{id}",
     summary="Получить данные диспута по ID.",
     status_code=status.HTTP_200_OK,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions([constants.PermissionEnum.GET_DISPUTE])
+        ),
+    ],
 )
 async def get_dispute_by_id_route(
     id: int,
-    _=Depends(
-        dependencies.check_user_permissions([constants.PermissionEnum.GET_DISPUTE])
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """
@@ -35,12 +37,14 @@ async def get_dispute_by_id_route(
     "",
     summary="Получить список диспутов.",
     status_code=status.HTTP_200_OK,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions([constants.PermissionEnum.GET_DISPUTE])
+        ),
+    ],
 )
 async def get_disputes_by_admin_route(
     query_params: schemas.DisputePaginationSchema = Query(),
-    _=Depends(
-        dependencies.check_user_permissions([constants.PermissionEnum.GET_DISPUTE])
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """
