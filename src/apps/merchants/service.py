@@ -109,3 +109,79 @@ class MerchantService:
                 bank_name=requisite_db.bank_name,
                 phone_number=requisite_db.phone_number,
             )
+
+    # MARK: Pay out
+    @classmethod
+    async def request_pay_out(
+        cls,
+        session: AsyncSession,
+        user: UserModel,
+        schema: schemas.MerchantPayOutRequestSchema,
+    ) -> None:
+        """
+        Запрос на вывод средств для мерчанта.
+
+        Если есть досточное количество денег на балансе,
+        то находится трейдер с похожими реквизитами и с достаточным балансом,
+        замораживаются средства трейдера, создается транзакция на перевод средств.
+
+        Args:
+            session: Сессия базы данных.
+            user: Мерчант.
+            schema: Схема запроса на вывод средств.
+
+        Raises:
+            NotFoundException: Нет трейдеров с таким методом оплаты.
+            ConflictException: Уже есть транзакция в процессе обработки.
+        """
+
+        logger.info(
+            "Запрос на вывод средств для мерчанта с ID: {} \
+            суммой: {}",
+            user.id,
+            schema.amount,
+        )
+
+        if user.balance - user.amount_frozen < schema.amount:
+            raise exceptions.ConflictException("На балансе недостаточно средств.")
+
+        # Проверка на наличие транзакции в процессе обработки
+        if await TransactionRepository.get_pending_by_user_and_requisite_id(
+            session=session,
+            merchant_id=user.id,
+        ):
+            raise exceptions.ConflictException(
+                "Уже есть транзакция в процессе обработки."
+            )
+
+        # Получение трейдера
+        trader_db, requisite_db = (
+            await TraderRepository.get_by_payment_method_and_amount(
+                session=session,
+                payment_method=schema.payment_method,
+                amount=schema.amount,
+            )
+            or (None, None)
+        )
+        if not trader_db:
+            raise exceptions.NotFoundException(
+                "Трейдер с таким методом оплаты не найден"
+            )
+
+        # Заморозка средств трейдера
+        trader_db.amount_frozen += schema.amount
+
+        # Создание транзакции на перевод средств
+        await TransactionService.create(
+            session=session,
+            data=transaction_schemas.TransactionUpdateSchema(
+                merchant_id=user.id,
+                trader_id=trader_db.id,
+                requisite_id=requisite_db.id,
+                amount=schema.amount,
+                payment_method=schema.payment_method,
+                type=TransactionTypeEnum.PAY_OUT,
+            ),
+        )
+
+        await session.commit()

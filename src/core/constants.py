@@ -102,6 +102,7 @@ class PermissionEnum(StrEnum):
 
     # MARK: Merchant client
     REQUEST_PAY_IN_CLIENT = "запросить пополнение средств со стороны клиента"
+    REQUEST_PAY_OUT_CLIENT = "запросить вывод средств со стороны клиента"
 
     # MARK: Support
     RESOLVE_DISPUTE = "решить диспут"
