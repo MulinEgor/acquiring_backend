@@ -121,6 +121,15 @@ class PermissionEnum(StrEnum):
     CREATE_FILE = "создать файл"
     GET_FILE = "получить файл"
 
+    # MARK: Notifications
+    GET_MY_NOTIFICATION = "получить свои уведомления"
+    READ_MY_NOTIFICATION = "прочитать свои уведомления"
+
+    CREATE_NOTIFICATION = "создать уведомление"
+    GET_NOTIFICATION = "получить уведомление"
+    UPDATE_NOTIFICATION = "обновить уведомление"
+    DELETE_NOTIFICATION = "удалить уведомление"
+
 
 # MARK: Redis
 REDIS_EXPIRE_SECONDS: int = 60 * 15  # 15 минут
@@ -182,3 +191,31 @@ S3_PUBLIC_BUCKET_POLICY: dict = {
         }
     ],
 }
+
+# MARK: Notifications
+NOTIFICATION_MESSAGE_PAY_OUT: str = (
+    "Вывод средств на сумму {amount} и счет {address} подтвержден"
+)
+NOTIFICATION_MESSAGE_DISPUTE: str = (
+    "Создан диспут {dispute_id} на транзакцию {transaction_id}"
+)
+NOTIFICATION_MESSAGE_DISPUTE_ACCEPT: str = (
+    "Трейдер принял вину по поводу диспута {dispute_id}"
+)
+NOTIFICATION_MESSAGE_DISPUTE_LOST: str = (
+    "Суппорт принял решение, что вы проиграли диспут {dispute_id}"
+)
+NOTIFICATION_MESSAGE_DISPUTE_WINNER: str = (
+    "Суппорт принял решение, что вы выиграли диспут {dispute_id}"
+)
+NOTIFICATION_MESSAGE_CONFIRM_MERCHANT_PAY_IN: str = (
+    "Пополнение средств мерчантом на сумму {amount} подтверждено"
+)
+NOTIFICATION_MESSAGE_CONFIRM_MERCHANT_PAY_OUT: str = (
+    "Вывод средств мерчантом на сумму {amount} подтвержден"
+)
+NOTIFICATION_MESSAGE_BLOCKCHAIN_TRANSACTION_EXPIRED: str = (
+    "Транзакция {transaction_id} на блокчейне просрочена"
+)
+NOTIFICATION_MESSAGE_TRANSACTION_EXPIRED: str = "Транзакция {transaction_id} просрочена"
+NOTIFICATION_MESSAGE_DISPUTE_EXPIRED: str = "Диспут {dispute_id} просрочен"

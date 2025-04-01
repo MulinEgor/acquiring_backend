@@ -194,6 +194,12 @@ class UserService(
             ConflictException: Пользователь уже находится в этом режиме.
         """
 
+        logger.info(
+            "Установка активности трейдера: {}, is_active: {}",
+            user.id,
+            is_active,
+        )
+
         if user.is_active == is_active:
             raise exceptions.ConflictException(
                 f"Трейдер уже в {'не' if is_active else ''} активном режиме."

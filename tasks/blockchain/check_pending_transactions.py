@@ -6,7 +6,10 @@ from datetime import datetime
 from loguru import logger
 
 from src.apps.blockchain.repository import BlockchainTransactionRepository
+from src.apps.notifications import schemas as notification_schemas
+from src.apps.notifications.service import NotificationService
 from src.apps.transactions.model import TransactionStatusEnum
+from src.core import constants
 from src.core.dependencies import get_session
 from tasks.celery_worker import worker
 
@@ -44,6 +47,16 @@ async def _check_pending_transactions() -> None:
             for transaction in transactions_db:
                 if transaction.expires_at < datetime.now():
                     transaction.status = TransactionStatusEnum.FAILED
+                    # Отправление уведомления
+                    await NotificationService.create(
+                        session=session,
+                        data=notification_schemas.NotificationCreateSchema(
+                            user_id=transaction.user_id,
+                            message=constants.NOTIFICATION_MESSAGE_BLOCKCHAIN_TRANSACTION_EXPIRED.format(
+                                transaction_id=transaction.id,
+                            ),
+                        ),
+                    )
 
             await session.commit()
             logger.info(

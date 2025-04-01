@@ -7,6 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.apps.blockchain.model import BlockchainTransactionModel
 from src.apps.disputes.model import DisputeModel
+from src.apps.notifications.model import NotificationModel
 from src.apps.requisites.model import RequisiteModel
 from src.apps.transactions.model import TransactionModel
 from src.core import constants
@@ -80,4 +81,8 @@ class UserModel(Base):
     disputes: Mapped[list[DisputeModel]] = relationship(
         back_populates="winner",
         foreign_keys=[DisputeModel.winner_id],
+    )
+    notifications: Mapped[list[NotificationModel]] = relationship(
+        back_populates="user",
+        cascade="all, delete",
     )

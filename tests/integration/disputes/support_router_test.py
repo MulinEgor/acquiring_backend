@@ -1,4 +1,4 @@
-"""Модуль для тестирования роутера src.api.user.routers.support.disputes_router."""
+"""Модуль для тестирования роутера disputes_router."""
 
 import httpx
 from fastapi import status

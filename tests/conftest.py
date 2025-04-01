@@ -23,6 +23,9 @@ from src.apps.disputes import schemas as dispute_schemas
 from src.apps.disputes.model import DisputeModel
 from src.apps.disputes.repository import DisputeRepository
 from src.apps.merchants import schemas as merchant_schemas
+from src.apps.notifications import schemas as notification_schemas
+from src.apps.notifications.model import NotificationModel
+from src.apps.notifications.repository import NotificationRepository
 from src.apps.permissions import schemas as permission_schemas
 from src.apps.permissions.model import PermissionModel
 from src.apps.permissions.repository import PermissionRepository
@@ -196,7 +199,11 @@ async def user_db(session: AsyncSession) -> UserModel:
     session.add(user_db)
     await session.commit()
 
-    user_permissions = [constants.PermissionEnum.GET_MY_USER]
+    user_permissions = [
+        constants.PermissionEnum.GET_MY_USER,
+        constants.PermissionEnum.GET_MY_NOTIFICATION,
+        constants.PermissionEnum.READ_MY_NOTIFICATION,
+    ]
     for permission in user_permissions:
         permission_db = await PermissionRepository.get_one_or_none(
             session=session,
@@ -762,4 +769,32 @@ def dispute_support_update_data(
     return dispute_schemas.DisputeSupportUpdateSchema(
         winner_id=user_trader_db_with_sbp.id,
         description=faker.word(),
+    )
+
+
+# MARK: Notifications
+@pytest_asyncio.fixture
+async def notification_db(
+    session: AsyncSession, user_db: UserModel
+) -> NotificationModel:
+    """Добавить уведомление в БД."""
+
+    return await NotificationRepository.create(
+        session=session,
+        obj_in=notification_schemas.NotificationCreateSchema(
+            user_id=user_db.id,
+            message=faker.word(),
+        ),
+    )
+
+
+@pytest.fixture
+def notification_create_data(
+    user_db: UserModel,
+) -> notification_schemas.NotificationCreateSchema:
+    """Подготовленные данные для создания уведомления в БД."""
+
+    return notification_schemas.NotificationCreateSchema(
+        user_id=user_db.id,
+        message=faker.word(),
     )

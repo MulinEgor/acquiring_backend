@@ -1,8 +1,4 @@
-"""
-Модуль для тестирования роутера src.api.user.routers.users.
-
-Также проверяется роутер src.api.common.routers.users_router.
-"""
+"""Модуль для тестирования роутера users_router."""
 
 from datetime import datetime, timedelta
 
@@ -11,7 +7,7 @@ from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.common.routers.users_router import router as common_users_router
-from src.api.user.routers.users.router import router as users_router
+from src.api.user.routers.router import router as users_router
 from src.apps.auth import schemas as auth_schemas
 from src.apps.blockchain.model import BlockchainTransactionModel
 from src.apps.blockchain.repository import BlockchainTransactionRepository

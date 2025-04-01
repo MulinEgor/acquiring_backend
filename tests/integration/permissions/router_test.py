@@ -1,4 +1,4 @@
-"""Модуль для тестирования роутера src.api.admin.routers.permissions_router."""
+"""Модуль для тестирования роутера permissions_router."""
 
 import httpx
 from fastapi import status
