@@ -1,3 +1,5 @@
+"""Модуль для Pydantic схем уведомлений."""
+
 from datetime import datetime
 
 from pydantic import BaseModel
@@ -12,6 +14,12 @@ class NotificationCreateSchema(BaseModel):
     message: str
 
 
+class NotificationReadSchema(BaseModel):
+    """Схема для прочтения уведомлений."""
+
+    notification_ids: list[int]
+
+
 class NotificationGetSchema(NotificationCreateSchema):
     """Схема для получения уведомления."""
 
@@ -22,6 +30,13 @@ class NotificationGetSchema(NotificationCreateSchema):
 
     class Config:
         from_attributes = True
+
+
+class NotificationUpdateSchema(BaseModel):
+    """Схема для обновления уведомления."""
+
+    message: str | None = None
+    is_read: bool | None = None
 
 
 class NotificationListSchema(DataListGetBaseSchema):

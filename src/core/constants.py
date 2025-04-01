@@ -121,6 +121,15 @@ class PermissionEnum(StrEnum):
     CREATE_FILE = "создать файл"
     GET_FILE = "получить файл"
 
+    # MARK: Notifications
+    GET_MY_NOTIFICATION = "получить свои уведомления"
+    READ_MY_NOTIFICATION = "прочитать свои уведомления"
+
+    CREATE_NOTIFICATION = "создать уведомление"
+    GET_NOTIFICATION = "получить уведомление"
+    UPDATE_NOTIFICATION = "обновить уведомление"
+    DELETE_NOTIFICATION = "удалить уведомление"
+
 
 # MARK: Redis
 REDIS_EXPIRE_SECONDS: int = 60 * 15  # 15 минут

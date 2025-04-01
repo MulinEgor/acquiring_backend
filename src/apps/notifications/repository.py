@@ -1,6 +1,7 @@
 from typing import Tuple
 
-from sqlalchemy import Select, select
+from sqlalchemy import Select, select, update
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.notifications import schemas
 from src.apps.notifications.model import NotificationModel
@@ -8,7 +9,11 @@ from src.lib.base.repository import BaseRepository
 
 
 class NotificationRepository(
-    BaseRepository[NotificationModel, schemas.NotificationCreateSchema, any],
+    BaseRepository[
+        NotificationModel,
+        schemas.NotificationCreateSchema,
+        schemas.NotificationUpdateSchema,
+    ],
 ):
     """Репозиторий для работы с уведомлениями."""
 
@@ -49,3 +54,29 @@ class NotificationRepository(
             stmt = stmt.order_by(NotificationModel.created_at)
 
         return stmt
+
+    @classmethod
+    async def read_all(
+        cls,
+        session: AsyncSession,
+        notification_ids: list[int],
+        user_id: int,
+    ) -> None:
+        """
+        Прочитать все уведомления.
+
+        Args:
+            session (AsyncSession): Сессия для работы с базой данных.
+            notification_ids (list[int]): Список идентификаторов уведомлений.
+            user_id (int): Идентификатор пользователя.
+        """
+
+        stmt = (
+            update(cls.model)
+            .where(cls.model.id.in_(notification_ids))
+            .where(cls.model.user_id == user_id)
+            .values({"is_read": True})
+        )
+
+        await session.execute(stmt)
+        await session.commit()

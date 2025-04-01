@@ -15,6 +15,9 @@ from src.api.user.routers.traders.router import router as trader_router
 from src.api.user.routers.users.blockchain_router import (
     router as blockchain_router,
 )
+from src.api.user.routers.users.notifications_router import (
+    router as notifications_router,
+)
 from src.api.user.routers.users.requisites_router import (
     router as requisites_router,
 )
@@ -37,6 +40,7 @@ def include_routers(api: FastAPI) -> None:
         support_blockchain_router,
         disputes_router,
         support_dispute_router,
+        notifications_router,
     ]:
         api.include_router(router)
 
