@@ -1,10 +1,10 @@
-"""Тесты для роутера src.api.user.routers.users.transactions_router."""
+"""Тесты для роутера transactions_router."""
 
 import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.user.routers.users.transactions_router import (
+from src.api.user.routers.transactions_router import (
     router as transactions_router,
 )
 from src.apps.auth import schemas as auth_schemas

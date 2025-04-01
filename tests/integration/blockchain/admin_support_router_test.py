@@ -1,4 +1,4 @@
-"""Модуль для тестирования src.api.user.routers.support.blockchain_router."""
+"""Модуль для тестирования blockchain_router."""
 
 import httpx
 from fastapi import status
