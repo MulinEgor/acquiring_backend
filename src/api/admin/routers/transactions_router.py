@@ -17,12 +17,14 @@ router = APIRouter(prefix="/transactions", tags=["Транзакции"])
     "",
     summary="Создать транзакцию.",
     status_code=status.HTTP_201_CREATED,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions([PermissionEnum.CREATE_TRANSACTION])
+        ),
+    ],
 )
 async def create_transaction_route(
     body: schemas.TransactionCreateSchema,
-    _: bool = Depends(
-        dependencies.check_user_permissions([PermissionEnum.CREATE_TRANSACTION])
-    ),
     session: AsyncSession = Depends(get_session),
 ):
     """
@@ -41,12 +43,12 @@ async def create_transaction_route(
     "/{id}",
     summary="Получить транзакцию по ID.",
     status_code=status.HTTP_200_OK,
+    dependencies=[
+        Depends(dependencies.check_user_permissions([PermissionEnum.GET_TRANSACTION])),
+    ],
 )
 async def get_transaction_route(
     id: int,
-    _: bool = Depends(
-        dependencies.check_user_permissions([PermissionEnum.GET_TRANSACTION])
-    ),
     session: AsyncSession = Depends(get_session),
 ):
     """
@@ -64,12 +66,12 @@ async def get_transaction_route(
     "",
     summary="Получить все транзакции.",
     status_code=status.HTTP_200_OK,
+    dependencies=[
+        Depends(dependencies.check_user_permissions([PermissionEnum.GET_TRANSACTION])),
+    ],
 )
 async def get_transactions_route(
     query_params: schemas.TransactionAdminPaginationSchema = Query(),
-    _: bool = Depends(
-        dependencies.check_user_permissions([PermissionEnum.GET_TRANSACTION])
-    ),
     session: AsyncSession = Depends(get_session),
 ):
     """
@@ -88,13 +90,15 @@ async def get_transactions_route(
     "/{id}",
     summary="Обновить транзакцию по ID.",
     status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions([PermissionEnum.UPDATE_TRANSACTION])
+        ),
+    ],
 )
 async def update_transaction_route(
     id: int,
     body: schemas.TransactionUpdateSchema,
-    _: bool = Depends(
-        dependencies.check_user_permissions([PermissionEnum.UPDATE_TRANSACTION])
-    ),
     session: AsyncSession = Depends(get_session),
 ):
     """
@@ -114,12 +118,14 @@ async def update_transaction_route(
     "/{id}",
     summary="Удалить транзакцию по ID.",
     status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions([PermissionEnum.DELETE_TRANSACTION])
+        ),
+    ],
 )
 async def delete_transaction_route(
     id: int,
-    _: bool = Depends(
-        dependencies.check_user_permissions([PermissionEnum.DELETE_TRANSACTION])
-    ),
     session: AsyncSession = Depends(get_session),
 ):
     """

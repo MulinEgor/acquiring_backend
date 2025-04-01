@@ -11,7 +11,7 @@ class RequisiteCreateSchema(BaseModel):
 
     full_name: str = Field(description="ФИО")
 
-    phone_number: str | None = Field(defualt=None, description="Номер телефона для СБП")
+    phone_number: str | None = Field(default=None, description="Номер телефона для СБП")
     bank_name: str | None = Field(default=None, description="Название банка для СБП")
 
     card_number: str | None = Field(default=None, description="Номер карты")
@@ -27,9 +27,9 @@ class RequisiteCreateSchema(BaseModel):
         Raises:
             ValueError: Если привязаны оба способа оплаты.
         """
-        if self.phone_number and self.bank_name and not self.card_number:
-            return self
-        elif not self.phone_number and self.card_number:
+        if (self.phone_number and self.bank_name and not self.card_number) or (
+            not self.phone_number and self.card_number
+        ):
             return self
         else:
             raise ValueError(

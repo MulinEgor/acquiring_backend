@@ -16,6 +16,7 @@ worker = Celery(
 worker.conf.imports = [
     "tasks.transactions.check_pending_transactions",
     "tasks.blockchain.check_pending_transactions",
+    "tasks.disputes.check_pending_disputes",
 ]
 
 
@@ -31,5 +32,9 @@ worker.conf.beat_schedule = {
             "tasks.blockchain.check_pending_transactions.check_pending_transactions"
         ),
         "schedule": constants.CELERY_BEAT_CHECK_BLOCKCHAIN_TRANSACTIONS_PERIOD,
+    },
+    "check_pending_disputes": {
+        "task": ("tasks.disputes.check_pending_disputes.check_pending_disputes"),
+        "schedule": constants.CELERY_BEAT_CHECK_DISPUTES_PERIOD,
     },
 }

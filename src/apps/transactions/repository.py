@@ -2,7 +2,7 @@
 
 from typing import Tuple
 
-from sqlalchemy import Select, select
+from sqlalchemy import Select, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.transactions import schemas
@@ -42,18 +42,29 @@ class TransactionRepository(
             stmt: Подготовленное выражение для запроса в БД.
         """
 
-        stmt = select(TransactionModel)
+        stmt = select(cls.model)
 
         # Фильтрация по текствым и числовым полям.
         field_to_value = {
-            cls.model.merchant_id: query_params.merchant_id,
             cls.model.payment_method: query_params.payment_method,
             cls.model.type: query_params.type,
-            cls.model.trader_id: query_params.trader_id,
         }
         for field, value in field_to_value.items():
             if value:
                 stmt = stmt.where(field == value)
+
+        if query_params.user_id is not None:
+            stmt = stmt.where(
+                or_(
+                    cls.model.merchant_id == query_params.user_id,
+                    cls.model.trader_id == query_params.user_id,
+                )
+            )
+        else:
+            if query_params.merchant_id:
+                stmt = stmt.where(cls.model.merchant_id == query_params.merchant_id)
+            if query_params.trader_id:
+                stmt = stmt.where(cls.model.trader_id == query_params.trader_id)
 
         # Фильрация по минимальной и максимальной сумме.
         if query_params.min_amount is not None:
@@ -94,7 +105,7 @@ class TransactionRepository(
                 Необходимо указать либо merchant_id, либо trader_id и requisite_id.
         """
 
-        stmt = select(TransactionModel).where(
+        stmt = select(cls.model).where(
             cls.model.status == TransactionStatusEnum.PENDING,
         )
 

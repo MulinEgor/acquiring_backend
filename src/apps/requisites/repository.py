@@ -39,7 +39,7 @@ class RequisiteRepository(
             stmt: Подготовленное выражение для запроса в БД.
         """
 
-        stmt = select(RequisiteModel)
+        stmt = select(cls.model)
 
         # Фильтрация по текствым полям.
         field_to_value = {

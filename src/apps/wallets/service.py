@@ -1,5 +1,7 @@
 """Модуль для работы с сервисами кошельков."""
 
+from typing import Literal
+
 from loguru import logger
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,6 +28,7 @@ class WalletService(
 
     repository = WalletRepository
 
+    # MARK: Create
     @classmethod
     async def create(
         cls, session: AsyncSession, data: schemas.WalletCreateSchema
@@ -48,6 +51,7 @@ class WalletService(
 
         return await super().create(session, data)
 
+    # MARK: Get
     @classmethod
     async def get_by_address(
         cls, session: AsyncSession, address: str
@@ -73,6 +77,54 @@ class WalletService(
 
         return schemas.WalletGetSchema.model_validate(wallet)
 
+    @classmethod
+    async def get_wallet_address_with_min_or_max_balance(
+        cls,
+        session: AsyncSession,
+        min_or_max: Literal["min", "max"],
+        amount: int,
+    ) -> str:
+        """
+        Получить адрес кошелька на блокчейне с наименьшим или наибольшим балансом.
+
+        Args:
+            session: Сессия базы данных.
+            min_or_max: Наименьший или наибольший баланс.
+
+        Returns:
+            Адрес кошелька на блокчейне.
+
+        Raises:
+            NotFoundException: Нет кошельков, куда можно перевести средства.
+        """
+
+        wallets_addresses = [
+            wallet.address
+            for wallet in (
+                await cls.get_all(session, schemas.WalletPaginationSchema())
+            ).data
+        ]
+        if not wallets_addresses:
+            raise exceptions.NotFoundException(
+                "Не найдены кошельки для перевода средств."
+            )
+
+        wallets_balances = await TronService.get_wallets_balances(wallets_addresses)
+        wallets_balances = dict(
+            filter(lambda x: x[1] >= amount, wallets_balances.items())
+        )
+
+        if not wallets_balances:
+            raise exceptions.NotFoundException(
+                "Не найдены кошельки с достаточным балансом."
+            )
+
+        if min_or_max == "min":
+            return min(wallets_balances.items(), key=lambda x: x[1])[0]
+        else:
+            return max(wallets_balances.items(), key=lambda x: x[1])[0]
+
+    # MARK: Delete
     @classmethod
     async def delete_by_address(cls, session: AsyncSession, address: str) -> None:
         """

@@ -4,9 +4,9 @@ from fastapi import APIRouter, BackgroundTasks, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import src.apps.auth.schemas as auth_schemas
-import src.apps.users.schemas as user_schemas
 from src.apps.auth.services.auth_service import AuthService
 from src.apps.auth.services.jwt_service import JWTService
+from src.apps.users.schemas import user_schemas
 from src.core import dependencies
 
 router = APIRouter(prefix="/auth", tags=["Авторизация"])

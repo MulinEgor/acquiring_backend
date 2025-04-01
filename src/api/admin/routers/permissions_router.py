@@ -5,7 +5,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.permissions import schemas
 from src.apps.permissions.service import PermissionService
-from src.apps.users.model import UserModel
 from src.core import constants, dependencies
 
 router = APIRouter(prefix="/permissions", tags=["Разрешения"])
@@ -16,14 +15,16 @@ router = APIRouter(prefix="/permissions", tags=["Разрешения"])
     "",
     summary="Создать новое разрешение.",
     status_code=status.HTTP_201_CREATED,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions(
+                [constants.PermissionEnum.CREATE_PERMISSION]
+            )
+        ),
+    ],
 )
 async def create_route(
     data: schemas.PermissionCreateSchema,
-    _: UserModel = Depends(
-        dependencies.check_user_permissions(
-            [constants.PermissionEnum.CREATE_PERMISSION]
-        )
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """
@@ -39,12 +40,16 @@ async def create_route(
     "/{id}",
     summary="Получить разрешение по ID.",
     status_code=status.HTTP_200_OK,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions(
+                [constants.PermissionEnum.GET_PERMISSION]
+            )
+        ),
+    ],
 )
 async def get_route(
     id: int,
-    _: UserModel = Depends(
-        dependencies.check_user_permissions([constants.PermissionEnum.GET_PERMISSION])
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """
@@ -59,12 +64,16 @@ async def get_route(
     "",
     summary="Получить все разрешения с фильтрацией и пагинацией.",
     status_code=status.HTTP_200_OK,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions(
+                [constants.PermissionEnum.GET_PERMISSION]
+            )
+        ),
+    ],
 )
 async def get_all_route(
     query_params: schemas.PermissionPaginationSchema = Query(),
-    _: UserModel = Depends(
-        dependencies.check_user_permissions([constants.PermissionEnum.GET_PERMISSION])
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """
@@ -80,15 +89,17 @@ async def get_all_route(
     "/{id}",
     summary="Обновить разрешение по ID.",
     status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions(
+                [constants.PermissionEnum.UPDATE_PERMISSION]
+            )
+        ),
+    ],
 )
 async def update_route(
     id: int,
     data: schemas.PermissionCreateSchema,
-    _: UserModel = Depends(
-        dependencies.check_user_permissions(
-            [constants.PermissionEnum.UPDATE_PERMISSION]
-        )
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """
@@ -104,14 +115,16 @@ async def update_route(
     "/{id}",
     summary="Удалить разрешение по ID.",
     status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions(
+                [constants.PermissionEnum.DELETE_PERMISSION]
+            )
+        ),
+    ],
 )
 async def delete_route(
     id: int,
-    _: UserModel = Depends(
-        dependencies.check_user_permissions(
-            [constants.PermissionEnum.DELETE_PERMISSION]
-        )
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """

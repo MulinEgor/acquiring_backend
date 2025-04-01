@@ -15,12 +15,16 @@ router = APIRouter(prefix="/wallets", tags=["Кошельки"])
     "",
     summary="Создать кошелек",
     status_code=status.HTTP_201_CREATED,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions(
+                [constants.PermissionEnum.CREATE_WALLET]
+            )
+        ),
+    ],
 )
 async def create_wallet_route(
     data: schemas.WalletCreateSchema,
-    _=Depends(
-        dependencies.check_user_permissions([constants.PermissionEnum.CREATE_WALLET])
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     return await WalletService.create(session, data)
@@ -31,12 +35,14 @@ async def create_wallet_route(
     "/{address}",
     summary="Получить данные кошелька по адресу.",
     status_code=status.HTTP_200_OK,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions([constants.PermissionEnum.GET_WALLET])
+        ),
+    ],
 )
 async def get_wallet_by_address_route(
     address: str,
-    _=Depends(
-        dependencies.check_user_permissions([constants.PermissionEnum.GET_WALLET])
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """
@@ -51,12 +57,14 @@ async def get_wallet_by_address_route(
     "",
     summary="Получить список кошельков.",
     status_code=status.HTTP_200_OK,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions([constants.PermissionEnum.GET_WALLET])
+        ),
+    ],
 )
 async def get_wallets_by_admin_route(
     query_params: schemas.WalletPaginationSchema = Query(),
-    _=Depends(
-        dependencies.check_user_permissions([constants.PermissionEnum.GET_WALLET])
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """
@@ -72,12 +80,16 @@ async def get_wallets_by_admin_route(
     "/{address}",
     summary="Удалить кошелек по адресу.",
     status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions(
+                [constants.PermissionEnum.DELETE_WALLET]
+            )
+        ),
+    ],
 )
 async def delete_wallet_by_address_route(
     address: str,
-    _=Depends(
-        dependencies.check_user_permissions([constants.PermissionEnum.DELETE_WALLET])
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """

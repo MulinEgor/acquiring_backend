@@ -107,6 +107,7 @@ class TestWalletsRouter(BaseTestRouter):
         assert schema.data[0].address == wallet_db.address
         assert schema.data[0].id == wallet_db.id
 
+    # MARK: Delete
     async def test_delete_wallet_by_address(
         self,
         router_client: httpx.AsyncClient,

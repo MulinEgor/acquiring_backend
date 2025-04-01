@@ -37,16 +37,16 @@ class PermissionRepository(
             stmt: Подготовленное выражение для запроса в БД.
         """
 
-        stmt = select(PermissionModel)
+        stmt = select(cls.model)
 
         # Фильтрация по имени разрешения с использованием ilike.
         if query_params.name:
-            stmt = stmt.where(PermissionModel.name.ilike(f"%{query_params.name}%"))
+            stmt = stmt.where(cls.model.name.ilike(f"%{query_params.name}%"))
 
         # Сортировка по дате создания.
         if not query_params.asc:
-            stmt = stmt.order_by(PermissionModel.created_at.desc())
+            stmt = stmt.order_by(cls.model.created_at.desc())
         else:
-            stmt = stmt.order_by(PermissionModel.created_at)
+            stmt = stmt.order_by(cls.model.created_at)
 
         return stmt

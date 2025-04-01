@@ -6,6 +6,7 @@ from sqlalchemy import TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.apps.blockchain.model import BlockchainTransactionModel
+from src.apps.disputes.model import DisputeModel
 from src.apps.requisites.model import RequisiteModel
 from src.apps.transactions.model import TransactionModel
 from src.core import constants
@@ -75,4 +76,8 @@ class UserModel(Base):
     merchant_transactions: Mapped[list[TransactionModel]] = relationship(
         back_populates="merchant",
         foreign_keys=[TransactionModel.merchant_id],
+    )
+    disputes: Mapped[list[DisputeModel]] = relationship(
+        back_populates="winner",
+        foreign_keys=[DisputeModel.winner_id],
     )

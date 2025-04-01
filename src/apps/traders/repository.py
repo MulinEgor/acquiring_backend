@@ -9,8 +9,8 @@ from src.apps.transactions.model import (
     TransactionPaymentMethodEnum,
     TransactionStatusEnum,
 )
-from src.apps.users import schemas as user_schemas
 from src.apps.users.model import UserModel
+from src.apps.users.schemas import user_schemas
 from src.lib.base.repository import BaseRepository
 
 

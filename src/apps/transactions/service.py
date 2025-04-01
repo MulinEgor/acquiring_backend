@@ -30,8 +30,7 @@ class TransactionService(
         cls,
         session: AsyncSession,
         id: int,
-        merchant_id: int | None = None,
-        trader_id: int | None = None,
+        user_id: int | None = None,
     ) -> schemas.TransactionGetSchema:
         """
         Получить транзакцию по ID.
@@ -43,25 +42,23 @@ class TransactionService(
             trader_id (int | None): ID трейдера.
 
         Returns:
-            schemas.TransactionGetSchema: Транзакция.
+            TransactionGetSchema: Транзакция.
 
         Raises:
             NotFoundException: Транзакция не найдена.
         """
 
         logger.info(
-            "Получение транзакции с ID: {} для мерчанта с ID: {} и трейдера с ID: {}",
+            "Получение транзакции с ID: {} для пользователя с ID: {}",
             id,
-            merchant_id,
-            trader_id,
+            user_id,
         )
 
         transaction = await super().get_by_id(session, id)
 
-        if merchant_id and transaction.merchant_id != merchant_id:
-            raise exceptions.NotFoundException("Транзакция не найдена")
-
-        if trader_id and transaction.trader_id != trader_id:
+        if user_id and (
+            transaction.merchant_id != user_id and transaction.trader_id != user_id
+        ):
             raise exceptions.NotFoundException("Транзакция не найдена")
 
         return transaction

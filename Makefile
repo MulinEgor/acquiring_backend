@@ -2,12 +2,16 @@
 build:
 	docker compose --profile dev down -v; \
 	docker compose --profile dev build; \
-	$(MAKE) start; \
-	$(MAKE) migrate
+	$(MAKE) start
 start:
 	docker compose --profile dev up -d
 stop:
 	docker compose --profile dev down
+build-and-migrate:
+	$(MAKE) build; \
+	docker compose exec admin-api alembic revision --autogenerate -m "initial"; \
+	$(MAKE) migrate; \
+	docker compose exec admin-api alembic revision -m "seeds"
 # Запуск тестов
 test:
 	@EXIT_CODE=0; \

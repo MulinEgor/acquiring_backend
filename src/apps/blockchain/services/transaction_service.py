@@ -30,41 +30,6 @@ class BlockchainTransactionService(
 
     repository = BlockchainTransactionRepository
 
-    # MARK: Get
-    @classmethod
-    async def get_by_id(
-        cls,
-        session: AsyncSession,
-        id: int,
-        user_id: int | None = None,
-    ) -> BlockchainTransactionModel:
-        """
-        Получить транзакцию по идентификатору.
-
-        Args:
-            session: Сессия базы данных.
-            id: Идентификатор транзакции.
-            user_id: Идентификатор пользователя.
-
-        Returns:
-            Транзакция.
-
-        Raises:
-            NotFoundException: Транзакция не найдена.
-        """
-
-        transaction_db = await cls.repository.get_one_or_none(
-            session=session,
-            id=id,
-        )
-
-        if not transaction_db or (
-            user_id is not None and transaction_db.user_id != user_id
-        ):
-            raise exceptions.NotFoundException("Транзакция не найдена.")
-
-        return transaction_db
-
     @classmethod
     async def get_pending_by_user_id(
         cls,
@@ -212,7 +177,7 @@ class BlockchainTransactionService(
             private_key=wallet_db.private_key,
         )
 
-        transaction_db.status = TransactionStatusEnum.CONFIRMED
+        transaction_db.status = TransactionStatusEnum.SUCCESS
         transaction_db.hash = hash
 
         user = await UserRepository.get_one_or_none(

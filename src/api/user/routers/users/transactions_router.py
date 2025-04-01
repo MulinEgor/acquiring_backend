@@ -9,8 +9,8 @@ from src.apps.users.model import UserModel
 from src.core import constants, dependencies
 
 router = APIRouter(
-    prefix="/traders/transactions",
-    tags=["Транзакции трейдера"],
+    prefix="/transactions",
+    tags=["Транзакции"],
 )
 
 
@@ -19,15 +19,17 @@ router = APIRouter(
     "/{id}",
     summary="Получить свою транзакцию по ID.",
     status_code=status.HTTP_200_OK,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions(
+                [constants.PermissionEnum.GET_MY_TRANSACTION]
+            )
+        ),
+    ],
 )
 async def get_transaction_route(
     id: int,
     user: UserModel = Depends(dependencies.get_current_user),
-    _=Depends(
-        dependencies.check_user_permissions(
-            [constants.PermissionEnum.GET_MY_TRANSACTION]
-        )
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """
@@ -35,22 +37,24 @@ async def get_transaction_route(
 
     Требуется разрешение: `получить свою транзакцию`.
     """
-    return await TransactionService.get_by_id(session=session, id=id, trader_id=user.id)
+    return await TransactionService.get_by_id(session=session, id=id, user_id=user.id)
 
 
 @router.get(
     "",
     summary="Получить свои транзакции.",
     status_code=status.HTTP_200_OK,
+    dependencies=[
+        Depends(
+            dependencies.check_user_permissions(
+                [constants.PermissionEnum.GET_MY_TRANSACTION]
+            )
+        ),
+    ],
 )
 async def get_transactions_route(
     query_params: schemas.TransactionPaginationSchema = Depends(),
     user: UserModel = Depends(dependencies.get_current_user),
-    _=Depends(
-        dependencies.check_user_permissions(
-            [constants.PermissionEnum.GET_MY_TRANSACTION]
-        )
-    ),
     session: AsyncSession = Depends(dependencies.get_session),
 ):
     """
@@ -61,7 +65,7 @@ async def get_transactions_route(
     return await TransactionService.get_all(
         session=session,
         query_params=schemas.TransactionAdminPaginationSchema(
-            trader_id=user.id,
+            user_id=user.id,
             **query_params.model_dump(),
         ),
     )

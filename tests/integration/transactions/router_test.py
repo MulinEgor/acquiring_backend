@@ -1,14 +1,10 @@
-"""
-Тесты для роутера src.api.trader.routers.transactions_router.
-Роутер src.api.merchant.routers.transactions_router имеет схожий функционал,
-поэтому решил не дублировать тесты.
-"""
+"""Тесты для роутера src.api.user.routers.users.transactions_router."""
 
 import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.user.routers.merchant.transactions_router import (
+from src.api.user.routers.users.transactions_router import (
     router as transactions_router,
 )
 from src.apps.auth import schemas as auth_schemas
@@ -19,7 +15,7 @@ from src.core import constants
 from tests.integration.conftest import BaseTestRouter
 
 
-class TestMerchantTraderTransactionsRouter(BaseTestRouter):
+class TestTransactionsRouter(BaseTestRouter):
     """Класс для тестирования роутера."""
 
     router = transactions_router
@@ -35,7 +31,7 @@ class TestMerchantTraderTransactionsRouter(BaseTestRouter):
         """Получение транзакции."""
 
         response = await router_client.get(
-            f"/merchant/transactions/{transaction_db.id}",
+            f"/transactions/{transaction_db.id}",
             headers={constants.AUTH_HEADER_NAME: merchant_jwt_tokens.access_token},
         )
 
@@ -63,7 +59,7 @@ class TestMerchantTraderTransactionsRouter(BaseTestRouter):
         """Получение не своей транзакции."""
 
         response = await router_client.get(
-            f"/merchant/transactions/{transaction_db.id}",
+            f"/transactions/{transaction_db.id}",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
         )
 
@@ -78,7 +74,7 @@ class TestMerchantTraderTransactionsRouter(BaseTestRouter):
         """Получение всех транзакций мерчанта без пагинации и фильтрации."""
 
         response = await router_client.get(
-            "/merchant/transactions",
+            "/transactions",
             headers={constants.AUTH_HEADER_NAME: merchant_jwt_tokens.access_token},
         )
 
@@ -103,7 +99,7 @@ class TestMerchantTraderTransactionsRouter(BaseTestRouter):
         )
 
         response = await router_client.get(
-            "/merchant/transactions",
+            "/transactions",
             headers={constants.AUTH_HEADER_NAME: merchant_jwt_tokens.access_token},
             params=query_params.model_dump(exclude_none=True),
         )
