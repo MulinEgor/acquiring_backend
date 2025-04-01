@@ -1,12 +1,13 @@
 """Модуль для сервисов диспутов."""
 
+from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from apps.notifications.service import NotificationService
 from src.apps.disputes import schemas
 from src.apps.disputes.model import DisputeModel, DisputeStatusEnum
 from src.apps.disputes.repository import DisputeRepository
 from src.apps.notifications import schemas as notification_schemas
+from src.apps.notifications.service import NotificationService
 from src.apps.transactions.model import TransactionStatusEnum
 from src.apps.transactions.repository import TransactionRepository
 from src.apps.transactions.service import TransactionService
@@ -52,6 +53,8 @@ class DisputeService(
         Raises:
             NotFoundException: Диспут не найден.
         """
+
+        logger.info("Получение диспута по ID: {}, user_id: {}", id, user_id)
 
         dispute_db = await cls.repository.get_one_or_none(
             session=session,
@@ -103,6 +106,10 @@ class DisputeService(
             NotFoundException: Транзакция не найдена.
             ConflictException: Транзакция не завершена или не принадлежит пользователю.
         """
+
+        logger.info(
+            "Создание диспута: {}, merchant_id: {}", data.model_dump(), merchant_db.id
+        )
 
         # Получение и проверка транзакции
         transaction = await TransactionService.get_by_id(
@@ -174,6 +181,8 @@ class DisputeService(
             NotFoundException: Диспут не найден.
             ConflictException: Диспут не принадлежит пользователю.
         """
+
+        logger.info("Обновление диспута: {}, trader_id: {}", id, trader_db.id)
 
         dispute_db = await cls.repository.get_one_or_none(session=session, id=id)
         if not dispute_db:
@@ -254,6 +263,10 @@ class DisputeService(
             ConflictException: Диспут не находится в процессе рассмотрения,
                 победитель не является ни трейдером, ни мерчантом.
         """
+
+        logger.info(
+            "Вынесение решения по диспуту: {}, winner_id: {}", id, data.winner_id
+        )
 
         dispute_db = await cls.repository.get_one_or_none(session=session, id=id)
         if not dispute_db:
