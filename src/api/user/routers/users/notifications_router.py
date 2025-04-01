@@ -3,9 +3,9 @@
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from apps.notifications.repository import NotificationRepository
-from apps.notifications.service import NotificationService
 from src.apps.notifications import schemas
+from src.apps.notifications.repository import NotificationRepository
+from src.apps.notifications.service import NotificationService
 from src.apps.users.model import UserModel
 from src.core import constants, dependencies
 
@@ -62,7 +62,7 @@ async def read_my_notifications_route(
     data: schemas.NotificationReadSchema,
     user: UserModel = Depends(dependencies.get_current_user),
     session: AsyncSession = Depends(dependencies.get_session),
-) -> schemas.NotificationListSchema:
+) -> None:
     """
     Прочитать уведомления.
 
