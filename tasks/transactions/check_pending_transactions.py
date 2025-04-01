@@ -5,9 +5,12 @@ from datetime import datetime
 
 from loguru import logger
 
+from src.apps.notifications import schemas as notification_schemas
+from src.apps.notifications.service import NotificationService
 from src.apps.transactions.model import TransactionStatusEnum, TransactionTypeEnum
 from src.apps.transactions.repository import TransactionRepository
 from src.apps.users.repository import UserRepository
+from src.core import constants
 from src.core.dependencies import get_session
 from tasks.celery_worker import worker
 
@@ -63,6 +66,21 @@ async def _check_pending_transactions() -> None:
                             id=transaction.merchant_id,
                         )
                         merchant_db.amount_frozen -= transaction.amount
+
+                    # Отправление уведомления
+                    for user_id in [
+                        transaction.trader_id,
+                        transaction.merchant_id,
+                    ]:
+                        await NotificationService.create(
+                            session=session,
+                            data=notification_schemas.NotificationCreateSchema(
+                                user_id=user_id,
+                                message=constants.NOTIFICATION_MESSAGE_TRANSACTION_EXPIRED.format(
+                                    transaction_id=transaction.id,
+                                ),
+                            ),
+                        )
 
             await session.commit()
             logger.info(

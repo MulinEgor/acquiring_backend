@@ -3,6 +3,8 @@
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.apps.notifications import schemas as notification_schemas
+from src.apps.notifications.service import NotificationService
 from src.apps.transactions.model import (
     TransactionStatusEnum,
     TransactionTypeEnum,
@@ -76,6 +78,17 @@ class TraderService:
 
         await session.commit()
 
+        # Отправление уведомления
+        await NotificationService.create(
+            session=session,
+            data=notification_schemas.NotificationCreateSchema(
+                user_id=transaction_db.merchant_id,
+                message=constants.NOTIFICATION_MESSAGE_CONFIRM_MERCHANT_PAY_IN.format(
+                    amount=transaction_db.amount,
+                ),
+            ),
+        )
+
     # MARK: Pay out
     @classmethod
     async def confirm_merchant_pay_out(
@@ -139,3 +152,14 @@ class TraderService:
         transaction_db.status = TransactionStatusEnum.SUCCESS
 
         await session.commit()
+
+        # Отправление уведомления
+        await NotificationService.create(
+            session=session,
+            data=notification_schemas.NotificationCreateSchema(
+                user_id=transaction_db.merchant_id,
+                message=constants.NOTIFICATION_MESSAGE_CONFIRM_MERCHANT_PAY_OUT.format(
+                    amount=transaction_db.amount,
+                ),
+            ),
+        )

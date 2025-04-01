@@ -5,10 +5,13 @@ from datetime import datetime
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from apps.notifications.service import NotificationService
+from core import constants
 from src.apps.blockchain import schemas
 from src.apps.blockchain.model import BlockchainTransactionModel
 from src.apps.blockchain.repository import BlockchainTransactionRepository
 from src.apps.blockchain.services.tron_service import TronService
+from src.apps.notifications import schemas as notification_schemas
 from src.apps.transactions.model import TransactionStatusEnum, TransactionTypeEnum
 from src.apps.users.repository import UserRepository
 from src.apps.wallets.repository import WalletRepository
@@ -165,7 +168,6 @@ class BlockchainTransactionService(
             session=session,
             address=transaction_db.from_address,
         )
-
         if not wallet_db:
             raise exceptions.NotFoundException("Кошелек не найден.")
 
@@ -187,3 +189,15 @@ class BlockchainTransactionService(
 
         user.balance -= transaction_db.amount
         await session.commit()
+
+        # Отправление уведомления
+        await NotificationService.create(
+            session=session,
+            data=notification_schemas.NotificationCreateSchema(
+                user_id=transaction_db.user_id,
+                message=constants.NOTIFICATION_MESSAGE_PAY_OUT.format(
+                    amount=transaction_db.amount,
+                    address=transaction_db.to_address,
+                ),
+            ),
+        )
