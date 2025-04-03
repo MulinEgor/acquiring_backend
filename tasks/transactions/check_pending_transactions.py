@@ -7,9 +7,9 @@ from loguru import logger
 
 from src.apps.notifications import schemas as notification_schemas
 from src.apps.notifications.service import NotificationService
-from src.apps.transactions.model import TransactionStatusEnum, TransactionTypeEnum
+from src.apps.transactions.model import TransactionStatusEnum
 from src.apps.transactions.repository import TransactionRepository
-from src.apps.users.repository import UserRepository
+from src.apps.transactions.service import TransactionService
 from src.core import constants
 from src.core.dependencies import get_session
 from tasks.celery_worker import worker
@@ -51,38 +51,31 @@ async def _check_pending_transactions() -> None:
                 break
             i += 1
 
-            for transaction in transactions_db:
-                if transaction.expires_at < datetime.now():
-                    transaction.status = TransactionStatusEnum.FAILED
-                    if transaction.type == TransactionTypeEnum.PAY_IN:
-                        trader_db = await UserRepository.get_one_or_none(
-                            session=session,
-                            id=transaction.trader_id,
-                        )
-                        trader_db.amount_frozen -= transaction.amount
-                    else:
-                        merchant_db = await UserRepository.get_one_or_none(
-                            session=session,
-                            id=transaction.merchant_id,
-                        )
-                        merchant_db.amount_frozen -= transaction.amount
+            for transaction_db in transactions_db:
+                if transaction_db.expires_at < datetime.now():
+                    transaction_db.status = TransactionStatusEnum.FAILED
+                    await TransactionService.update_users_balances(
+                        session=session,
+                        transaction_db=transaction_db,
+                    )
 
                     # Отправление уведомления
                     for user_id in [
-                        transaction.trader_id,
-                        transaction.merchant_id,
+                        transaction_db.trader_id,
+                        transaction_db.merchant_id,
                     ]:
                         await NotificationService.create(
                             session=session,
                             data=notification_schemas.NotificationCreateSchema(
                                 user_id=user_id,
                                 message=constants.NOTIFICATION_MESSAGE_TRANSACTION_EXPIRED.format(
-                                    transaction_id=transaction.id,
+                                    transaction_id=transaction_db.id,
                                 ),
                             ),
                         )
 
             await session.commit()
+
             logger.info(
                 f"Обработано транзакций: {i * batch_size + len(transactions_db)}"
             )

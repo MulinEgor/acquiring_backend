@@ -162,12 +162,15 @@ PENDING_TRANSACTION_TIMEOUT: int = 60 * 15  # 15 минут
 PENDING_DISPUTE_TIMEOUT: int = 60 * 60 * 24  # 1 день
 
 # MARK: Commissions
-COMMISSION: float = 0.1  # коммисия площадки при пополнении средств
-MERCHANT_COMMISSION: float = (
-    0.1  # коммисия которая вычитается с баланса мерчанта, после проведения транзакции
+PLATFORM_PAY_IN_COMMISSION: float = 0.1  # коммисия площадки при пополнении средств
+PLATFORM_TRANSACTION_COMMISSION: float = (
+    0.1  # коммисия площадки при проведении транзакции
 )
-TRADER_COMMISSION: float = (
-    0.1  # коммисия которая идет на счет трейдера, после проведения транзакции
+MERCHANT_TRANSACTION_COMMISSION: float = (
+    0.1  # коммисия которая вычитается с баланса мерчанта
+)
+TRADER_TRANSACTION_COMMISSION: float = (
+    0.1 + PLATFORM_TRANSACTION_COMMISSION  # коммисия которая идет на счет трейдера
 )
 TRADER_DISPUTE_PENALTY: float = (
     0.2  # штраф который идет на счет мерчанта, если трейдер признает вину

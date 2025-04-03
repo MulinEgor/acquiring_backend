@@ -150,7 +150,7 @@ class MerchantService:
 
         if (
             merchant_db.balance - merchant_db.amount_frozen
-            < schema.amount + schema.amount * constants.MERCHANT_COMMISSION
+            < schema.amount + schema.amount * constants.MERCHANT_TRANSACTION_COMMISSION
         ):
             raise exceptions.ConflictException("На балансе недостаточно средств.")
 

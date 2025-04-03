@@ -343,7 +343,10 @@ class UserService(
         )
 
         # Зачисление средств на счет пользователя
-        user.balance += transaction_db.amount
+        user.balance += (
+            transaction_db.amount
+            - transaction_db.amount * constants.PLATFORM_PAY_IN_COMMISSION
+        )
         await session.commit()
 
     # MARK: Pay out
@@ -382,10 +385,7 @@ class UserService(
         )
 
         # Проверка баланса
-        if (
-            user.balance - user.amount_frozen
-            < data.amount + data.amount * constants.COMMISSION
-        ):
+        if user.balance - user.amount_frozen < data.amount:
             raise exceptions.BadRequestException("Недостаточно средств для вывода.")
 
         # Проверка на наличие транзакции в процессе обработки в БД

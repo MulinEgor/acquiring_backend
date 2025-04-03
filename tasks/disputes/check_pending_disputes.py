@@ -71,7 +71,8 @@ async def _check_pending_disputes() -> None:
                         )
                         merchant_db.balance += (
                             transaction_db.amount
-                            - transaction_db.amount * constants.MERCHANT_COMMISSION
+                            - transaction_db.amount
+                            * constants.MERCHANT_TRANSACTION_COMMISSION
                         )
                         trader_db.amount_frozen -= transaction_db.amount
                         trader_db.balance -= (

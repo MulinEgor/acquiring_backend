@@ -162,7 +162,10 @@ class TestUserRouter(BaseTestRouter):
         await session.refresh(user_trader_db_with_sbp)
         assert (
             user_trader_db_with_sbp.balance
-            == trader_balance_before + blockchain_transaction_db.amount
+            == trader_balance_before
+            + blockchain_transaction_db.amount
+            - blockchain_transaction_db.amount
+            * constants.PLATFORM_TRANSACTION_COMMISSION
         )
 
     async def test_confirm_pay_in_wrong_credentials(

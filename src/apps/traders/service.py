@@ -10,8 +10,8 @@ from src.apps.transactions.model import (
     TransactionTypeEnum,
 )
 from src.apps.transactions.repository import TransactionRepository
+from src.apps.transactions.service import TransactionService
 from src.apps.users.model import UserModel
-from src.apps.users.repository import UserRepository
 from src.core import constants, exceptions
 
 
@@ -57,24 +57,14 @@ class TraderService:
                 "Транзакция для пополнения средств не найдена"
             )
 
-        # Разморозка средств трейдера с учетом комиссии
-        trader_db.balance -= trader_db.amount_frozen
-        trader_db.balance += trader_db.amount_frozen * constants.TRADER_COMMISSION
-        trader_db.amount_frozen = 0
-
-        # Пополнение баланса мерчанта с учетом комиссии
-        merchant_db = await UserRepository.get_one_or_none(
-            session=session,
-            id=transaction_db.merchant_id,
-        )
-        if not merchant_db:
-            raise exceptions.NotFoundException("Мерчант не найден")
-
-        merchant_db.balance += (
-            transaction_db.amount
-            - transaction_db.amount * constants.MERCHANT_COMMISSION
-        )
         transaction_db.status = TransactionStatusEnum.SUCCESS
+
+        # Обновление балансов пользователей
+        await TransactionService.update_users_balances(
+            session=session,
+            transaction_db=transaction_db,
+            trader_db=trader_db,
+        )
 
         await session.commit()
 
@@ -130,26 +120,14 @@ class TraderService:
                 "Транзакция для перевода на счет не найдена"
             )
 
-        # Пополнение баланса трейдера с учетом комиссии
-        trader_db.balance += (
-            transaction_db.amount + transaction_db.amount * constants.TRADER_COMMISSION
-        )
-
-        # Пополнение баланса мерчанта с учетом комиссии
-        merchant_db = await UserRepository.get_one_or_none(
-            session=session,
-            id=transaction_db.merchant_id,
-        )
-        if not merchant_db:
-            raise exceptions.NotFoundException("Мерчант не найден")
-
-        merchant_db.balance -= (
-            transaction_db.amount
-            + transaction_db.amount * constants.MERCHANT_COMMISSION
-        )
-        merchant_db.amount_frozen -= transaction_db.amount
-
         transaction_db.status = TransactionStatusEnum.SUCCESS
+
+        # Обновление балансов пользователей
+        await TransactionService.update_users_balances(
+            session=session,
+            transaction_db=transaction_db,
+            trader_db=trader_db,
+        )
 
         await session.commit()
 

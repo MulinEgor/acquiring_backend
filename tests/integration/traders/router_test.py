@@ -103,13 +103,16 @@ class TestTradersRouter(BaseTestRouter):
             == user_trader_balance_before
             - transaction_merchant_pending_pay_in_db.amount
             + transaction_merchant_pending_pay_in_db.amount
-            * constants.TRADER_COMMISSION
+            * (
+                constants.TRADER_TRANSACTION_COMMISSION
+                - constants.PLATFORM_TRANSACTION_COMMISSION
+            )
         )
         assert (
             user_merchant_db.balance
             == transaction_merchant_pending_pay_in_db.amount
             - transaction_merchant_pending_pay_in_db.amount
-            * constants.MERCHANT_COMMISSION
+            * constants.MERCHANT_TRANSACTION_COMMISSION
         )
 
         assert (

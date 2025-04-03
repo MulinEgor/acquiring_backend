@@ -215,7 +215,7 @@ class DisputeService(
             )
             merchant_db.balance += (
                 transaction_db.amount
-                - transaction_db.amount * constants.MERCHANT_COMMISSION
+                - transaction_db.amount * constants.MERCHANT_TRANSACTION_COMMISSION
             )
 
             # Закрытие диспута и транзакции
@@ -292,7 +292,7 @@ class DisputeService(
             )
             merchant_db.balance += (
                 transaction_db.amount
-                - transaction_db.amount * constants.MERCHANT_COMMISSION
+                - transaction_db.amount * constants.MERCHANT_TRANSACTION_COMMISSION
             )
 
             # Списание средств с трейдера
