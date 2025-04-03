@@ -1,10 +1,10 @@
-"""Модуль для тестирования src.api.user.routers.users.blockchain_router."""
+"""Модуль для тестирования blockchain_router."""
 
 import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.user.routers.users.blockchain_router import (
+from src.api.user.routers.blockchain_router import (
     router as blockchain_transactions_router,
 )
 from src.apps.auth import schemas as auth_schemas

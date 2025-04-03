@@ -1,4 +1,4 @@
-"""Модуль для тестирования роутера src.api.common.routers.health_check_router"""
+"""Модуль для тестирования роутера health_check_router."""
 
 import httpx
 from fastapi import status

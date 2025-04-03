@@ -1,10 +1,13 @@
 """Модуль для сервисов диспутов."""
 
+from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.disputes import schemas
 from src.apps.disputes.model import DisputeModel, DisputeStatusEnum
 from src.apps.disputes.repository import DisputeRepository
+from src.apps.notifications import schemas as notification_schemas
+from src.apps.notifications.service import NotificationService
 from src.apps.transactions.model import TransactionStatusEnum
 from src.apps.transactions.repository import TransactionRepository
 from src.apps.transactions.service import TransactionService
@@ -50,6 +53,8 @@ class DisputeService(
         Raises:
             NotFoundException: Диспут не найден.
         """
+
+        logger.info("Получение диспута по ID: {}, user_id: {}", id, user_id)
 
         dispute_db = await cls.repository.get_one_or_none(
             session=session,
@@ -102,6 +107,10 @@ class DisputeService(
             ConflictException: Транзакция не завершена или не принадлежит пользователю.
         """
 
+        logger.info(
+            "Создание диспута: {}, merchant_id: {}", data.model_dump(), merchant_db.id
+        )
+
         # Получение и проверка транзакции
         transaction = await TransactionService.get_by_id(
             session=session, id=data.transaction_id
@@ -128,6 +137,18 @@ class DisputeService(
             **data.model_dump(),
         }
         dispute = await super().create(session=session, data=data)
+
+        # Отправление уведомления
+        await NotificationService.create(
+            session=session,
+            data=notification_schemas.NotificationCreateSchema(
+                user_id=transaction.trader_id,
+                message=constants.NOTIFICATION_MESSAGE_DISPUTE.format(
+                    dispute_id=dispute.id,
+                    transaction_id=transaction.id,
+                ),
+            ),
+        )
 
         return dispute
 
@@ -160,6 +181,8 @@ class DisputeService(
             NotFoundException: Диспут не найден.
             ConflictException: Диспут не принадлежит пользователю.
         """
+
+        logger.info("Обновление диспута: {}, trader_id: {}", id, trader_db.id)
 
         dispute_db = await cls.repository.get_one_or_none(session=session, id=id)
         if not dispute_db:
@@ -201,6 +224,19 @@ class DisputeService(
 
         await session.commit()
 
+        if data.accept:
+            # Отправление уведомления
+            await NotificationService.create(
+                session=session,
+                data=notification_schemas.NotificationCreateSchema(
+                    user_id=transaction_db.user_id,
+                    message=constants.NOTIFICATION_MESSAGE_PAY_OUT.format(
+                        amount=transaction_db.amount,
+                        address=transaction_db.to_address,
+                    ),
+                ),
+            )
+
     @classmethod
     async def update_by_support(
         cls,
@@ -227,6 +263,10 @@ class DisputeService(
             ConflictException: Диспут не находится в процессе рассмотрения,
                 победитель не является ни трейдером, ни мерчантом.
         """
+
+        logger.info(
+            "Вынесение решения по диспуту: {}, winner_id: {}", id, data.winner_id
+        )
 
         dispute_db = await cls.repository.get_one_or_none(session=session, id=id)
         if not dispute_db:
@@ -272,3 +312,25 @@ class DisputeService(
         dispute_db.winner_id = data.winner_id
 
         await session.commit()
+
+        # Отправление уведомления
+        await NotificationService.create(
+            session=session,
+            data=notification_schemas.NotificationCreateSchema(
+                user_id=dispute_db.winner_id,
+                message=constants.NOTIFICATION_MESSAGE_DISPUTE_WINNER.format(
+                    dispute_id=dispute_db.id,
+                ),
+            ),
+        )
+        await NotificationService.create(
+            session=session,
+            data=notification_schemas.NotificationCreateSchema(
+                user_id=transaction_db.trader_id
+                if data.winner_id == dispute_db.transaction.merchant_id
+                else transaction_db.merchant_id,
+                message=constants.NOTIFICATION_MESSAGE_DISPUTE_LOST.format(
+                    dispute_id=dispute_db.id,
+                ),
+            ),
+        )

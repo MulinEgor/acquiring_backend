@@ -7,6 +7,8 @@ from loguru import logger
 
 from src.apps.disputes.model import DisputeStatusEnum
 from src.apps.disputes.repository import DisputeRepository
+from src.apps.notifications import schemas as notification_schemas
+from src.apps.notifications.service import NotificationService
 from src.apps.transactions.repository import TransactionRepository
 from src.apps.users.repository import UserRepository
 from src.core import constants
@@ -75,6 +77,21 @@ async def _check_pending_disputes() -> None:
                         trader_db.balance -= (
                             transaction_db.amount
                             + transaction_db.amount * constants.TRADER_DISPUTE_PENALTY
+                        )
+
+                    # Отправление уведомления
+                    for user_id in [
+                        transaction_db.merchant_id,
+                        transaction_db.trader_id,
+                    ]:
+                        await NotificationService.create(
+                            session=session,
+                            data=notification_schemas.NotificationCreateSchema(
+                                user_id=user_id,
+                                message=constants.NOTIFICATION_MESSAGE_DISPUTE_EXPIRED.format(
+                                    dispute_id=dispute_db.id,
+                                ),
+                            ),
                         )
 
             await session.commit()

@@ -1,10 +1,10 @@
-"""Тесты для роутера src.api.user.routers.users.requisites_router."""
+"""Тесты для роутера requisites_router."""
 
 import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.user.routers.users.requisites_router import router as requisites_router
+from src.api.user.routers.requisites_router import router as requisites_router
 from src.apps.auth import schemas as auth_schemas
 from src.apps.requisites import schemas as requisite_schemas
 from src.apps.requisites.model import RequisiteModel
