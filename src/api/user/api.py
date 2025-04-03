@@ -2,14 +2,14 @@
 
 from fastapi import FastAPI
 
-from api.user.routers.support.disputes_router import (
-    router as support_dispute_router,
-)
 from src.api.common.api import get_api
 from src.api.common.routers.disputes_router import router as disputes_router
 from src.api.user.routers.merchants.router import router as merchant_router
 from src.api.user.routers.support.blockchain_router import (
     router as support_blockchain_router,
+)
+from src.api.user.routers.support.disputes_router import (
+    router as support_dispute_router,
 )
 from src.api.user.routers.traders.router import router as trader_router
 from src.api.user.routers.users.blockchain_router import (
