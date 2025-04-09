@@ -96,7 +96,7 @@ class RequisiteService(
         session: AsyncSession,
         id: int,
         user: UserModel | None = None,
-    ) -> schemas.RequisiteGetSchema:
+    ) -> None:
         """
         Удалить реквизиты по ID.
         Если пользователь не является администратором, то проверяется,
@@ -107,9 +107,6 @@ class RequisiteService(
             id (int): ID реквизитов.
             user (UserModel | None): Пользователь.
 
-        Returns:
-            schemas.RequisiteGetSchema: Реквизиты.
-
         Raises:
             NotFoundException: Если реквизиты не найдены.
         """
@@ -118,4 +115,4 @@ class RequisiteService(
         if user and user.id != requisite.user_id:
             raise exceptions.NotFoundException("Реквизиты не найдены")
 
-        return await super().delete(session, id)
+        await super().delete(session, id)

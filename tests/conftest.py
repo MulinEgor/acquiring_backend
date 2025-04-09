@@ -209,6 +209,9 @@ async def user_db(session: AsyncSession) -> UserModel:
             session=session,
             name=permission.value,
         )
+        if permission_db is None:
+            raise ValueError(f"Разрешение {permission.value} не найдено")
+
         await UsersPermissionsRepository.create(
             session=session,
             obj_in={
@@ -343,6 +346,7 @@ async def user_trader_db_with_card(
         user_id=user_trader_db_with_sbp.id,
         full_name=faker.word(),
         card_number=faker.word(),
+        bank_name=faker.word(),
     )
     session.add(requisite_db)
     await session.commit()
@@ -768,7 +772,6 @@ def dispute_support_update_data(
 
     return dispute_schemas.DisputeSupportUpdateSchema(
         winner_id=user_trader_db_with_sbp.id,
-        description=faker.word(),
     )
 
 

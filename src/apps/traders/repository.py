@@ -1,6 +1,6 @@
 """Модуль для репозиториев трейдеров."""
 
-from sqlalchemy import and_, not_, or_, select
+from sqlalchemy import Row, and_, not_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.requisites.model import RequisiteModel
@@ -29,12 +29,13 @@ class TraderRepository(
     model = UserModel
 
     @classmethod
-    async def get_by_payment_method_and_amount(
+    async def get_by_filters(
         cls,
         session: AsyncSession,
         payment_method: TransactionPaymentMethodEnum,
         amount: int,
-    ) -> tuple[UserModel, RequisiteModel]:
+        bank_name: str | None = None,
+    ) -> Row[tuple[UserModel, RequisiteModel]] | None:
         """
         Получить трейдера по методу оплаты,
         у которого нет транзакций в процессе обработки.
@@ -43,15 +44,16 @@ class TraderRepository(
             session: Сессия для работы с БД.
             payment_method: Метод оплаты.
             amount: Сумма транзакции.
+            bank_name: Название банка.
 
         Returns:
-            tuple[UserModel, RequisiteModel]: Тренер и его реквизиты.
+            Row[tuple[UserModel, RequisiteModel]] | None: Трейдер и его реквизиты.
 
         Raises:
             NotFoundException: Тренер с таким методом оплаты не найден.
         """
 
-        # Определение условия для фильтрации по методу оплаты
+        # Фильтрация по методу оплаты
         if payment_method == TransactionPaymentMethodEnum.CARD:
             payment_method_stmt = not_(RequisiteModel.card_number.is_(None))
         else:
@@ -60,6 +62,13 @@ class TraderRepository(
                     RequisiteModel.phone_number.is_(None),
                     RequisiteModel.bank_name.is_(None),
                 )
+            )
+
+        # Фильтрация по банку
+        if bank_name:
+            payment_method_stmt = and_(
+                payment_method_stmt,
+                RequisiteModel.bank_name == bank_name,
             )
 
         # Определение условия для фильтрации по реквизитам,

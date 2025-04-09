@@ -15,6 +15,10 @@ class MerchantPayInRequestSchema(BaseModel):
     payment_method: TransactionPaymentMethodEnum = Field(
         description="Способ оплаты.",
     )
+    bank_name: str | None = Field(
+        default=None,
+        description="Название банка.",
+    )
 
 
 class MerchantPayInResponseCardSchema(BaseModel):
@@ -29,6 +33,9 @@ class MerchantPayInResponseCardSchema(BaseModel):
     card_number: str = Field(
         description="Номер карты.",
     )
+    bank_name: str = Field(
+        description="Название банка.",
+    )
 
 
 class MerchantPayInResponseSBPSchema(BaseModel):
@@ -40,11 +47,11 @@ class MerchantPayInResponseSBPSchema(BaseModel):
     recipent_full_name: str = Field(
         description="Имя получателя.",
     )
-    bank_name: str = Field(
-        description="Название банка.",
-    )
     phone_number: str = Field(
         description="Номер телефона для перевода.",
+    )
+    bank_name: str = Field(
+        description="Название банка.",
     )
 
 

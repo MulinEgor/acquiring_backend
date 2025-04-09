@@ -67,15 +67,13 @@ class MerchantService:
             )
 
         # Получение трейдера и его реквизитов
-        trader_db, requisite_db = (
-            await TraderRepository.get_by_payment_method_and_amount(
-                session=session,
-                payment_method=schema.payment_method,
-                amount=schema.amount,
-            )
-            or (None, None)
-        )
-        if not trader_db:
+        trader_db, requisite_db = await TraderRepository.get_by_filters(
+            session=session,
+            payment_method=schema.payment_method,
+            amount=schema.amount,
+            bank_name=schema.bank_name,
+        ) or (None, None)
+        if not trader_db or not requisite_db:
             raise exceptions.NotFoundException(
                 "Трейдер с таким методом оплаты не найден"
             )
@@ -103,12 +101,13 @@ class MerchantService:
             return schemas.MerchantPayInResponseCardSchema(
                 recipent_full_name=requisite_db.full_name,
                 card_number=requisite_db.card_number,
+                bank_name=requisite_db.bank_name,
             )
         else:
             return schemas.MerchantPayInResponseSBPSchema(
                 recipent_full_name=requisite_db.full_name,
-                bank_name=requisite_db.bank_name,
                 phone_number=requisite_db.phone_number,
+                bank_name=requisite_db.bank_name,
             )
 
     # MARK: Pay out
@@ -175,14 +174,11 @@ class MerchantService:
             raise exceptions.ConflictException("Реквизиты не принадлежат вам")
 
         # Получение трейдера
-        trader_db, requisite_trader_db = (
-            await TraderRepository.get_by_payment_method_and_amount(
-                session=session,
-                payment_method=schema.payment_method,
-                amount=schema.amount,
-            )
-            or (None, None)
-        )
+        trader_db, requisite_trader_db = await TraderRepository.get_by_filters(
+            session=session,
+            payment_method=schema.payment_method,
+            amount=schema.amount,
+        ) or (None, None)
         if not trader_db or not requisite_trader_db:
             raise exceptions.NotFoundException(
                 "Трейдер с таким методом оплаты не найден"

@@ -12,7 +12,7 @@ class ConflictException(HTTPException):
 
     def __init__(
         self,
-        exc: Exception | None = None,
+        exc: Exception | str | None = None,
     ):
         status_code = status.HTTP_409_CONFLICT
         if exc:

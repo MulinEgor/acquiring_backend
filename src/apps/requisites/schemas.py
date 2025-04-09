@@ -12,22 +12,21 @@ class RequisiteCreateSchema(BaseModel):
     full_name: str = Field(description="ФИО")
 
     phone_number: str | None = Field(default=None, description="Номер телефона для СБП")
-    bank_name: str | None = Field(default=None, description="Название банка для СБП")
-
+    bank_name: str = Field(description="Название банка")
     card_number: str | None = Field(default=None, description="Номер карты")
 
     min_amount: int | None = Field(default=None, ge=0, description="Минимальная сумма")
     max_amount: int | None = Field(default=None, ge=0, description="Максимальная сумма")
 
     @model_validator(mode="after")
-    def validate_model(self) -> "RequisiteCreateSchema":
+    def validate_model(self):
         """
         Кастомный валидатор, который проверят, что либо привязан СБП либо карта.
 
         Raises:
             ValueError: Если привязаны оба способа оплаты.
         """
-        if (self.phone_number and self.bank_name and not self.card_number) or (
+        if (self.phone_number and not self.card_number) or (
             not self.phone_number and self.card_number
         ):
             return self

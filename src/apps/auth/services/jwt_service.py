@@ -17,7 +17,7 @@ class JWTService:
 
     # MARK: Utils
     @classmethod
-    async def _decode_refresh_token(cls, refresh_token: str) -> str:
+    async def _decode_refresh_token(cls, refresh_token: str) -> int:
         """
         Декодировать refresh_token.
 
@@ -56,14 +56,14 @@ class JWTService:
     @classmethod
     async def _create_token(
         cls,
-        user_id: str,
+        user_id: int,
         token_type: Literal["access_token", "refresh_token"],
     ) -> tuple[str, datetime]:
         """
         Создать access_token или refresh_token для пользователя.
 
         Args:
-            user_id(str): id пользователя.
+            user_id(int): id пользователя.
             token_type(Literal["access_token", "refresh_token"]):
                 access_token или refresh_token.
 
@@ -92,12 +92,12 @@ class JWTService:
         return f"Bearer {encoded_jwt}", expires_at
 
     @classmethod
-    async def create_tokens(cls, user_id: str) -> schemas.JWTGetSchema:
+    async def create_tokens(cls, user_id: int) -> schemas.JWTGetSchema:
         """
         Метод для создания access и refresh токенов.
 
         Args:
-            user_id (str): id пользователя.
+            user_id (int): id пользователя.
 
         Returns:
             schemas.JWTGetSchema: Схема с access и refresh токенами.
@@ -150,7 +150,6 @@ class JWTService:
             session=session,
             id=user_id,
         )
-
         if user_db is None:
             raise exceptions.NotFoundException()
 

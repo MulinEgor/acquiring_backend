@@ -19,7 +19,7 @@ from src.lib.base.service import BaseService
 class TransactionService(
     BaseService[
         TransactionModel,
-        schemas.TransactionCreateSchema,
+        schemas.TransactionCreateSchema | schemas.TransactionUpdateSchema,
         schemas.TransactionGetSchema,
         schemas.TransactionAdminPaginationSchema,
         schemas.TransactionListGetSchema,
@@ -106,7 +106,7 @@ class TransactionService(
         if transaction_db.type == TransactionTypeEnum.PAY_IN:
             if transaction_db.status == TransactionStatusEnum.SUCCESS:
                 # Разморозка и списание средств трейдера с учетом комиссии
-                trader_db.balance -= (
+                trader_db.balance -= int(
                     trader_db.amount_frozen
                     - trader_db.amount_frozen
                     * (
@@ -116,8 +116,10 @@ class TransactionService(
                 )
 
                 # Пополнение баланса мерчанта с учетом комиссии
-                merchant_db.balance += transaction_db.amount - transaction_db.amount * (
-                    constants.MERCHANT_TRANSACTION_COMMISSION
+                merchant_db.balance += int(
+                    transaction_db.amount
+                    - transaction_db.amount
+                    * (constants.MERCHANT_TRANSACTION_COMMISSION)
                 )
 
             trader_db.amount_frozen -= transaction_db.amount
@@ -125,13 +127,17 @@ class TransactionService(
         else:
             if transaction_db.status == TransactionStatusEnum.SUCCESS:
                 # Пополнение баланса трейдера с учетом комиссии
-                trader_db.balance += transaction_db.amount + transaction_db.amount * (
-                    constants.TRADER_TRANSACTION_COMMISSION
-                    - constants.PLATFORM_TRANSACTION_COMMISSION
+                trader_db.balance += int(
+                    transaction_db.amount
+                    + transaction_db.amount
+                    * (
+                        constants.TRADER_TRANSACTION_COMMISSION
+                        - constants.PLATFORM_TRANSACTION_COMMISSION
+                    )
                 )
 
                 # Разморозка и списание средств мерчанта с учетом комиссии
-                merchant_db.balance -= (
+                merchant_db.balance -= int(
                     transaction_db.amount
                     + transaction_db.amount * constants.MERCHANT_TRANSACTION_COMMISSION
                 )
