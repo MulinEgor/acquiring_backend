@@ -178,6 +178,7 @@ class MerchantService:
             session=session,
             payment_method=schema.payment_method,
             amount=schema.amount,
+            bank_name=schema.bank_name,
         ) or (None, None)
         if not trader_db or not requisite_trader_db:
             raise exceptions.NotFoundException(

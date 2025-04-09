@@ -68,3 +68,7 @@ class MerchantPayOutRequestSchema(BaseModel):
     requisite_id: int = Field(
         description="ID реквизита.",
     )
+    bank_name: str | None = Field(
+        default=None,
+        description="Название банка.",
+    )
