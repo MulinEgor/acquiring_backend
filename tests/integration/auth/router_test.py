@@ -33,6 +33,7 @@ class TestAuthRouter(BaseTestRouter):
             obj_in=user_schemas.UserCreateRepositorySchema(
                 email=email,
                 hashed_password=HashService.generate(password),
+                priority=0,
             ),
         )
 
@@ -73,6 +74,7 @@ class TestAuthRouter(BaseTestRouter):
             obj_in=user_schemas.UserCreateRepositorySchema(
                 email=email,
                 hashed_password=HashService.generate(password),
+                priority=0,
             ),
         )
         user.is_2fa_enabled = True

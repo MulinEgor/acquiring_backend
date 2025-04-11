@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from src.core.settings import settings
 
@@ -10,15 +10,6 @@ from src.core.settings import settings
 class HealthCheckSchema(BaseModel):
     """Схема ответа для проверки состояния работы API."""
 
-    mode: Literal["DEV", "TEST", "PROD"] = Field(
-        default=settings.MODE,
-        description="Режим, в котором работает API.",
-    )
-    version: str = Field(
-        default=settings.APP_VERSION,
-        description="Версия API. Соответствует хэшу актуального коммита.",
-    )
-    status: str = Field(
-        default="OK",
-        description="Статус API.",
-    )
+    mode: Literal["DEV", "TEST", "PROD"] = settings.MODE
+    version: str = settings.APP_VERSION
+    status: str = "OK"

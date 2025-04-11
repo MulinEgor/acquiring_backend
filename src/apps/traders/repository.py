@@ -109,6 +109,8 @@ class TraderRepository(
                     *requisite_amount_checks,
                 )
             )
+            .order_by(cls.model.priority.desc())
+            .order_by(RequisiteModel.priority.desc())
         )
         result = await session.execute(stmt)
 

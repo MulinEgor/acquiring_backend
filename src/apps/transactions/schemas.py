@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from src.apps.transactions.model import (
     TransactionPaymentMethodEnum,
@@ -15,24 +15,22 @@ from src.lib.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
 class TransactionCreateSchema(BaseModel):
     """Схема для создания транзакции."""
 
-    merchant_id: int = Field(description="Идентификатор мерчанта")
-    amount: int = Field(description="Сумма транзакции")
-    payment_method: TransactionPaymentMethodEnum = Field(description="Способ оплаты")
-    type: TransactionTypeEnum = Field(description="Тип транзакции")
+    merchant_id: int
+    amount: int
+    payment_method: TransactionPaymentMethodEnum
+    type: TransactionTypeEnum
 
 
 class TransactionGetSchema(TransactionCreateSchema):
     """Схема для получения транзакции."""
 
-    id: int = Field(description="Идентификатор транзакции")
-    status: TransactionStatusEnum = Field(description="Статус транзакции")
-    trader_id: int | None = Field(default=None, description="Идентификатор трейдера")
-    trader_requisite_id: int | None = Field(
-        default=None, description="Идентификатор реквизитов трейдера"
-    )
-    expires_at: datetime = Field(description="Время истечения транзакции")
-    created_at: datetime = Field(description="Время создания транзакции")
-    updated_at: datetime = Field(description="Время обновления транзакции")
+    id: int
+    status: TransactionStatusEnum
+    trader_id: int | None = None
+    trader_requisite_id: int | None = None
+    expires_at: datetime
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True
@@ -41,50 +39,35 @@ class TransactionGetSchema(TransactionCreateSchema):
 class TransactionListGetSchema(DataListGetBaseSchema):
     """Схема для списка транзакций."""
 
-    data: list[TransactionGetSchema] = Field(description="Список транзакций")
+    data: list[TransactionGetSchema]
 
 
 class TransactionPaginationSchema(PaginationBaseSchema):
     """Схема для пагинации транзакций для трейдера и мерчанта."""
 
-    min_amount: int | None = Field(default=None, description="Минимальная сумма")
-    max_amount: int | None = Field(default=None, description="Максимальная сумма")
-    status: TransactionStatusEnum | None = Field(
-        default=None, description="Статус транзакции"
-    )
-    payment_method: TransactionPaymentMethodEnum | None = Field(
-        default=None, description="Способ оплаты"
-    )
-    type: TransactionTypeEnum | None = Field(default=None, description="Тип транзакции")
-    requisite_id: int | None = Field(
-        default=None, description="Идентификатор реквизитов"
-    )
+    min_amount: int | None = None
+    max_amount: int | None = None
+    status: TransactionStatusEnum | None = None
+    payment_method: TransactionPaymentMethodEnum | None = None
+    type: TransactionTypeEnum | None = None
+    requisite_id: int | None = None
 
 
 class TransactionAdminPaginationSchema(TransactionPaginationSchema):
     """Схема для пагинации транзакций для админа."""
 
-    user_id: int | None = Field(
-        default=None,
-        description="Идентификатор пользователя, мерчанта или трейдера",
-    )
-    merchant_id: int | None = Field(default=None, description="Идентификатор мерчанта")
-    trader_id: int | None = Field(default=None, description="Идентификатор трейдера")
+    user_id: int | None = None
+    merchant_id: int | None = None
+    trader_id: int | None = None
 
 
 class TransactionUpdateSchema(BaseModel):
     """Схема для обновления транзакции."""
 
-    merchant_id: int | None = Field(default=None, description="Идентификатор мерчанта")
-    amount: int | None = Field(default=None, description="Сумма транзакции")
-    payment_method: TransactionPaymentMethodEnum | None = Field(
-        default=None, description="Способ оплаты"
-    )
-    type: TransactionTypeEnum | None = Field(default=None, description="Тип транзакции")
-    trader_id: int | None = Field(default=None, description="Идентификатор трейдера")
-    requisite_id: int | None = Field(
-        default=None, description="Идентификатор реквизитов трейдера"
-    )
-    status: TransactionStatusEnum | None = Field(
-        default=None, description="Статус транзакции"
-    )
+    merchant_id: int | None = None
+    amount: int | None = None
+    payment_method: TransactionPaymentMethodEnum | None = None
+    type: TransactionTypeEnum | None = None
+    trader_id: int | None = None
+    requisite_id: int | None = None
+    status: TransactionStatusEnum | None = None

@@ -58,6 +58,12 @@ def upgrade() -> None:
             comment="Хэшированный пароль пользователя.",
         ),
         sa.Column(
+            "priority",
+            sa.Integer(),
+            nullable=False,
+            comment="Приоритет трейдера.",
+        ),
+        sa.Column(
             "balance", sa.Integer(), nullable=False, comment="Баланс пользователя."
         ),
         sa.Column(
@@ -148,6 +154,7 @@ def upgrade() -> None:
         "requisites",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("user_id", sa.Integer(), nullable=False),
+        sa.Column("priority", sa.Integer(), nullable=False),
         sa.Column("full_name", sa.String(), nullable=False),
         sa.Column("phone_number", sa.String(), nullable=True),
         sa.Column("bank_name", sa.String(), nullable=True),

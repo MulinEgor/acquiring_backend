@@ -195,6 +195,7 @@ async def user_db(session: AsyncSession) -> UserModel:
     user_db = UserModel(
         email=faker.email(),
         hashed_password=HashService.generate(faker.password()),
+        priority=0,
     )
     session.add(user_db)
     await session.commit()
@@ -244,6 +245,7 @@ async def user_admin_db(
     user_admin_db = UserModel(
         email=faker.email(),
         hashed_password=HashService.generate(faker.password()),
+        priority=0,
     )
     session.add(user_admin_db)
 
@@ -276,6 +278,7 @@ async def user_trader_db_with_sbp(
         email=faker.email(),
         hashed_password=HashService.generate(faker.password()),
         is_active=True,
+        priority=0,
     )
     session.add(user_trader_db_with_sbp)
 
@@ -318,6 +321,7 @@ async def user_trader_db_with_sbp(
         full_name=faker.word(),
         phone_number=faker.phone_number(),
         bank_name=faker.word(),
+        priority=0,
     )
     session.add(requisite_db)
     await session.commit()
@@ -347,6 +351,7 @@ async def user_trader_db_with_card(
         full_name=faker.word(),
         card_number=faker.word(),
         bank_name=faker.word(),
+        priority=0,
     )
     session.add(requisite_db)
     await session.commit()
@@ -363,6 +368,7 @@ async def user_merchant_db(
     user_merchant_db = UserModel(
         email=faker.email(),
         hashed_password=HashService.generate(faker.password()),
+        priority=0,
     )
     session.add(user_merchant_db)
 
@@ -654,6 +660,7 @@ async def requisite_trader_db(
             "full_name": faker.word(),
             "phone_number": faker.phone_number(),
             "bank_name": faker.word(),
+            "priority": 0,
         },
     )
 
@@ -717,6 +724,7 @@ async def requisite_card_merchant_db(
             "user_id": user_merchant_db.id,
             "full_name": faker.word(),
             "card_number": faker.word(),
+            "priority": 0,
         },
     )
 

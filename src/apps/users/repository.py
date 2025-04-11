@@ -12,8 +12,8 @@ from src.lib.base.repository import BaseRepository
 class UserRepository(
     BaseRepository[
         UserModel,
-        user_schemas.UserCreateSchema,
-        user_schemas.UserUpdateSchema,
+        user_schemas.UserCreateRepositorySchema,
+        user_schemas.UserUpdateRepositorySchema,
     ],
 ):
     """
@@ -49,13 +49,14 @@ class UserRepository(
         if query_params.permissions_ids:
             raise NotImplementedError("Фильтрация по разрешениям не реализована.")
 
-        # Фильтрация по флагу активности.
-        if query_params.is_active is not None:
-            stmt = stmt.where(cls.model.is_active == query_params.is_active)
-
-        # Фильтрация по флагу 2FA.
-        if query_params.is_2fa_enabled is not None:
-            stmt = stmt.where(cls.model.is_2fa_enabled == query_params.is_2fa_enabled)
+        field_to_value = {
+            cls.model.priority: query_params.priority,
+            cls.model.is_active: query_params.is_active,
+            cls.model.is_2fa_enabled: query_params.is_2fa_enabled,
+        }
+        for field, value in field_to_value.items():
+            if value is not None:
+                stmt = stmt.where(field == value)
 
         # Сортировка по дате создания.
         if not query_params.asc:

@@ -76,6 +76,7 @@ class UserService(
         db_data = user_schemas.UserCreateRepositorySchema(
             email=data.email,
             hashed_password=hashed_password,
+            priority=data.priority,
         )
 
         try:
@@ -343,7 +344,7 @@ class UserService(
         )
 
         # Зачисление средств на счет пользователя
-        user.balance += (
+        user.balance += int(
             transaction_db.amount
             - transaction_db.amount * constants.PLATFORM_PAY_IN_COMMISSION
         )

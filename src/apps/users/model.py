@@ -22,31 +22,16 @@ class UserModel(Base):
     id: Mapped[int] = mapped_column(
         autoincrement=True,
         primary_key=True,
-        comment="Уникальный идентификатор пользователя.",
     )
     email: Mapped[str] = mapped_column(
         unique=True,
-        comment="Электронная почта пользователя.",
     )
-    hashed_password: Mapped[str] = mapped_column(
-        comment="Хэшированный пароль пользователя.",
-    )
-    balance: Mapped[int] = mapped_column(
-        default=0,
-        comment="Баланс пользователя.",
-    )
-    amount_frozen: Mapped[int] = mapped_column(
-        default=0,
-        comment="Замороженные средства пользователя.",
-    )
-    is_active: Mapped[bool] = mapped_column(
-        default=False,
-        comment="Применяется для трейдера, а именно находится ли он в работе.",
-    )
-    is_2fa_enabled: Mapped[bool] = mapped_column(
-        default=False,
-        comment="Является ли 2FA включенным.",
-    )
+    hashed_password: Mapped[str] = mapped_column()
+    balance: Mapped[int] = mapped_column(default=0)
+    amount_frozen: Mapped[int] = mapped_column(default=0)
+    priority: Mapped[int] = mapped_column(default=0)
+    is_active: Mapped[bool] = mapped_column(default=False)
+    is_2fa_enabled: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True),
         server_default=constants.CURRENT_TIMESTAMP_UTC,

@@ -57,8 +57,10 @@ class AuthService:
         code_hash = HashService.generate(code)
         await RedisService.set(
             redis_key_hash,
-            orjson.dumps(
-                auth_schemas.Redis2FAValueSchema(code_hash=code_hash).model_dump()
+            str(
+                orjson.dumps(
+                    auth_schemas.Redis2FAValueSchema(code_hash=code_hash).model_dump()
+                )
             ),
         )
 
@@ -117,7 +119,7 @@ class AuthService:
             redis_value_schema.tries += 1
             await RedisService.set(
                 redis_key_hash,
-                orjson.dumps(redis_value_schema.model_dump()),
+                str(orjson.dumps(redis_value_schema.model_dump())),
             )
             raise exceptions.BadRequestException("Неверный код.")
 

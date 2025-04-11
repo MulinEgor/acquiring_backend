@@ -15,16 +15,15 @@ from src.lib.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
 class UserGetSchema(BaseModel):
     """Pydantic схема для получения пользователя."""
 
-    id: int = Field(description="ID пользователя.")
-    email: EmailStr = Field(description="Электронная почта пользователя.")
-    balance: int = Field(description="Баланс пользователя.")
-    amount_frozen: int = Field(description="Замороженные средства пользователя.")
-    is_active: bool = Field(description="Является ли аккаунт пользователя активным.")
-    permissions: list[PermissionGetSchema] = Field(
-        description="Разрешения пользователя."
-    )
-    requisites: list[RequisiteGetSchema] = Field(description="Реквизиты пользователя.")
-    is_2fa_enabled: bool = Field(description="Является ли 2FA включенным.")
+    id: int
+    email: EmailStr
+    balance: int
+    amount_frozen: int
+    is_active: bool
+    priority: int
+    permissions: list[PermissionGetSchema]
+    requisites: list[RequisiteGetSchema]
+    is_2fa_enabled: bool
 
     class Config:
         from_attributes = True
@@ -44,84 +43,65 @@ class UserGetSchema(BaseModel):
             obj = obj.__dict__
 
         obj["permissions"] = [
-            PermissionGetSchema.model_validate(user_permission.permission)
+            PermissionGetSchema.validate(user_permission.permission)
             for user_permission in obj["users_permissions"]
         ]
 
-        return super().model_validate(obj)
+        return super(UserGetSchema, cls).model_validate(obj)
 
 
 class UserLoginSchema(BaseModel):
     """Pydantic схема для авторизации пользователя."""
 
-    email: EmailStr = Field(description="Электронная почта пользователя.")
-    password: str = Field(description="Пароль пользователя.")
+    email: EmailStr
+    password: str
 
 
 class UserCreateSchema(BaseModel):
     """Pydantic схема для создания пользователя."""
 
-    email: EmailStr = Field(description="Электронная почта пользователя.")
-    permissions_ids: list[int] = Field(description="ID разрешений пользователя.")
+    email: EmailStr
+    priority: int = Field(default=0)
+    permissions_ids: list[int]
 
 
 class UserCreatedGetSchema(UserGetSchema):
     """Pydantic схема для получения созданного пользователя."""
 
-    password: str = Field(description="Сгенерированный пароль пользователя.")
+    password: str
 
 
 class UserCreateRepositorySchema(BaseModel):
     """Pydantic схема для создания пользователя в БД."""
 
-    email: EmailStr = Field(description="Электронная почта пользователя.")
-    hashed_password: str = Field(description="Хэшированный пароль пользователя.")
+    email: EmailStr
+    priority: int
+    hashed_password: str
 
 
 class UserUpdateSchema(BaseModel):
     """Pydantic схема для обновления данных пользователя."""
 
-    email: EmailStr | None = Field(
-        default=None,
-        description="Электронная почта пользователя.",
-    )
-    password: str | None = Field(
-        default=None,
-        description="Пароль пользователя.",
-    )
-    permissions_ids: list[int] | None = Field(
-        default=None,
-        description="ID разрешений пользователя.",
-    )
-    is_active: bool | None = Field(
-        default=None,
-        description="Является ли аккаунт пользователя активным.",
-    )
+    email: EmailStr | None = None
+    password: str | None = None
+    priority: int | None = None
+    permissions_ids: list[int] | None = None
+    is_active: bool | None = None
 
 
 class UserUpdateRepositorySchema(BaseModel):
     """Pydantic схема для обновления данных пользователя в БД."""
 
-    email: EmailStr | None = Field(
-        default=None,
-        description="Электронная почта пользователя.",
-    )
-    hashed_password: str | None = Field(
-        default=None,
-        description="Хэшированный пароль пользователя.",
-    )
-    is_active: bool | None = Field(
-        default=None,
-        description="Является ли аккаунт пользователя активным.",
-    )
+    email: EmailStr | None = None
+    hashed_password: str | None = None
+    priority: int | None = None
+    is_active: bool | None = None
 
 
 class UsersListGetSchema(DataListGetBaseSchema):
     """Pydantic схема для получения списка пользователя."""
 
-    data: list[UserGetSchema] = Field(
-        description="Список пользователей, соответствующих query параметрам.",
-    )
+    data: list[UserGetSchema]
 
 
 class UsersPaginationSchema(PaginationBaseSchema):
@@ -130,23 +110,9 @@ class UsersPaginationSchema(PaginationBaseSchema):
     списка пользователей от имени администратора.
     """
 
-    id: int | None = Field(
-        default=None,
-        description="ID пользователя.",
-    )
-    email: EmailStr | None = Field(
-        default=None,
-        description="Электронная почта пользователя.",
-    )
-    permissions_ids: list[int] | None = Field(
-        default=None,
-        description="ID разрешений пользователя.",
-    )
-    is_active: bool | None = Field(
-        default=None,
-        description="Является ли аккаунт пользователя активным.",
-    )
-    is_2fa_enabled: bool | None = Field(
-        default=None,
-        description="Является ли 2FA включенным.",
-    )
+    id: int | None = None
+    email: EmailStr | None = None
+    priority: int | None = None
+    permissions_ids: list[int] | None = None
+    is_active: bool | None = None
+    is_2fa_enabled: bool | None = None

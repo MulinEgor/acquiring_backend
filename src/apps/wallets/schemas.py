@@ -10,30 +10,16 @@ from src.lib.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
 class WalletCreateSchema(BaseModel):
     """Схема для создания кошелька."""
 
-    address: str = Field(
-        min_length=42,
-        max_length=42,
-        description="Адрес кошелька на блокчейне",
-    )
-    private_key: str = Field(
-        min_length=66,
-        max_length=66,
-        description="Приватный ключ кошелька",
-    )
+    address: str = Field(min_length=42, max_length=42)
+    private_key: str = Field(min_length=66, max_length=66)
 
 
 class WalletGetSchema(WalletCreateSchema):
     """Схема для получения кошелька."""
 
-    id: int = Field(
-        description="Идентификатор кошелька в БД",
-    )
-    created_at: datetime = Field(
-        description="Дата создания кошелька",
-    )
-    updated_at: datetime = Field(
-        description="Дата обновления кошелька",
-    )
+    id: int
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True
@@ -42,23 +28,19 @@ class WalletGetSchema(WalletCreateSchema):
 class WalletListSchema(DataListGetBaseSchema):
     """Схема для списка кошельков."""
 
-    data: list[WalletGetSchema] = Field(
-        description="Список кошельков",
-    )
+    data: list[WalletGetSchema]
 
 
 class WalletPaginationSchema(PaginationBaseSchema):
     """Схема для пагинации кошельков."""
 
     address: str | None = Field(
+        default=None,
         min_length=42,
         max_length=42,
-        default=None,
-        description="Адрес кошелька",
     )
     private_key: str | None = Field(
+        default=None,
         min_length=66,
         max_length=66,
-        default=None,
-        description="Приватный ключ кошелька",
     )

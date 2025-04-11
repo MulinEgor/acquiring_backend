@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from src.lib.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
 
@@ -10,33 +10,18 @@ from src.lib.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
 class DisputeCreateSchema(BaseModel):
     """Схема для создания диспута."""
 
-    transaction_id: int = Field(
-        description="Идентификатор транзакции в БД",
-    )
-    description: str = Field(
-        max_length=255,
-        description="Описание диспута",
-    )
-    image_urls: list[str] = Field(
-        description="Ссылки на изображения",
-    )
+    transaction_id: int
+    description: str
+    image_urls: list[str]
 
 
 class DisputeGetSchema(DisputeCreateSchema):
     """Схема для получения диспута."""
 
-    id: int = Field(
-        description="Идентификатор диспута в БД",
-    )
-    winner_id: int | None = Field(
-        description="Идентификатор победителя в БД",
-    )
-    created_at: datetime = Field(
-        description="Дата создания диспута",
-    )
-    updated_at: datetime = Field(
-        description="Дата обновления диспута",
-    )
+    id: int
+    winner_id: int | None
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True
@@ -45,58 +30,32 @@ class DisputeGetSchema(DisputeCreateSchema):
 class DisputeUpdateSchema(BaseModel):
     """Схема для обновления диспута."""
 
-    accept: bool = Field(
-        description="Подтверждение вины со своей стороны",
-    )
-    description: str | None = Field(
-        max_length=255,
-        default=None,
-        description="Описание диспута",
-    )
-    image_urls: list[str] | None = Field(
-        default=None,
-        description="Ссылки на изображения",
-    )
+    accept: bool
+    description: str | None = None
+    image_urls: list[str] | None = None
 
 
 class DisputeSupportUpdateSchema(BaseModel):
     """Схема для обновления диспута поддержкой."""
 
-    winner_id: int | None = Field(
-        default=None,
-        description="Идентификатор победителя в БД",
-    )
+    winner_id: int | None = None
 
 
 class DisputeListSchema(DataListGetBaseSchema):
     """Схема для списка диспутов."""
 
-    data: list[DisputeGetSchema] = Field(
-        description="Список диспутов",
-    )
+    data: list[DisputeGetSchema]
 
 
 class DisputePaginationSchema(PaginationBaseSchema):
     """Схема для пагинации диспутов."""
 
-    transaction_id: int | None = Field(
-        default=None,
-        description="Идентификатор транзакции в БД",
-    )
-    description: str | None = Field(
-        default=None,
-        description="Описание диспута",
-    )
-    winner_id: int | None = Field(
-        default=None,
-        description="Идентификатор победителя в БД",
-    )
+    transaction_id: int | None = None
+    description: str | None = None
+    winner_id: int | None = None
 
 
 class DisputeSupportPaginationSchema(DisputePaginationSchema):
     """Схема для пагинации диспутов поддержкой."""
 
-    user_id: int | None = Field(
-        default=None,
-        description="Идентификатор пользователя в БД",
-    )
+    user_id: int | None = None

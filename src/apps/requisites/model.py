@@ -15,6 +15,7 @@ class RequisiteModel(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    priority: Mapped[int] = mapped_column()
     full_name: Mapped[str] = mapped_column()
     phone_number: Mapped[str] = mapped_column(nullable=True)
     bank_name: Mapped[str] = mapped_column(nullable=True)

@@ -1,6 +1,6 @@
 """Модуль для Pydanitc схем для мерчантов."""
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from src.apps.transactions.model import TransactionPaymentMethodEnum
 
@@ -9,16 +9,9 @@ from src.apps.transactions.model import TransactionPaymentMethodEnum
 class MerchantPayInRequestSchema(BaseModel):
     """Схема для запроса на перевод средств для мерчанта."""
 
-    amount: int = Field(
-        description="Сумма перевода.",
-    )
-    payment_method: TransactionPaymentMethodEnum = Field(
-        description="Способ оплаты.",
-    )
-    bank_name: str | None = Field(
-        default=None,
-        description="Название банка.",
-    )
+    amount: int
+    payment_method: TransactionPaymentMethodEnum
+    bank_name: str | None = None
 
 
 class MerchantPayInResponseCardSchema(BaseModel):
@@ -27,15 +20,9 @@ class MerchantPayInResponseCardSchema(BaseModel):
     способ оплаты - карта.
     """
 
-    recipent_full_name: str = Field(
-        description="Имя получателя.",
-    )
-    card_number: str = Field(
-        description="Номер карты.",
-    )
-    bank_name: str = Field(
-        description="Название банка.",
-    )
+    recipent_full_name: str
+    card_number: str
+    bank_name: str
 
 
 class MerchantPayInResponseSBPSchema(BaseModel):
@@ -44,31 +31,16 @@ class MerchantPayInResponseSBPSchema(BaseModel):
     способ оплаты - сбп.
     """
 
-    recipent_full_name: str = Field(
-        description="Имя получателя.",
-    )
-    phone_number: str = Field(
-        description="Номер телефона для перевода.",
-    )
-    bank_name: str = Field(
-        description="Название банка.",
-    )
+    recipent_full_name: str
+    phone_number: str
+    bank_name: str
 
 
 # MARK: Pay out
 class MerchantPayOutRequestSchema(BaseModel):
     """Схема для запроса на вывод средств для мерчанта."""
 
-    amount: int = Field(
-        description="Сумма перевода.",
-    )
-    payment_method: TransactionPaymentMethodEnum = Field(
-        description="Способ оплаты.",
-    )
-    requisite_id: int = Field(
-        description="ID реквизита.",
-    )
-    bank_name: str | None = Field(
-        default=None,
-        description="Название банка.",
-    )
+    amount: int
+    payment_method: TransactionPaymentMethodEnum
+    requisite_id: int
+    bank_name: str | None = None

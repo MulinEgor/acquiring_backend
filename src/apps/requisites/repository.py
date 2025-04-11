@@ -47,6 +47,7 @@ class RequisiteRepository(
             cls.model.phone_number: query_params.phone_number,
             cls.model.bank_name: query_params.bank_name,
             cls.model.card_number: query_params.card_number,
+            cls.model.priority: query_params.priority,
         }
         for field, value in field_to_value.items():
             if value:
