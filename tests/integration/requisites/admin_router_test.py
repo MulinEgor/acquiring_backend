@@ -1,5 +1,3 @@
-"""Тесты для роутера requisites_router."""
-
 import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,8 +13,6 @@ from tests.integration.conftest import BaseTestRouter
 
 
 class TestAdminRequisitesRouter(BaseTestRouter):
-    """Класс для тестирования роутера."""
-
     router = requisites_router
 
     # MARK: Post
@@ -27,8 +23,6 @@ class TestAdminRequisitesRouter(BaseTestRouter):
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
     ):
-        """Создание реквизита."""
-
         response = await router_client.post(
             "/requisites",
             json=requisite_admin_create_data.model_dump(),
@@ -57,8 +51,6 @@ class TestAdminRequisitesRouter(BaseTestRouter):
         trader_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
     ):
-        """Создание реквизита не авторизованным пользователем."""
-
         response = await router_client.post(
             "/requisites",
             json=requisite_admin_create_data.model_dump(),
@@ -82,8 +74,6 @@ class TestAdminRequisitesRouter(BaseTestRouter):
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
     ):
-        """Получение реквизита."""
-
         response = await router_client.get(
             f"/requisites/{requisite_trader_db.id}",
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
@@ -111,8 +101,6 @@ class TestAdminRequisitesRouter(BaseTestRouter):
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
         user_trader_db_with_sbp: UserModel,
     ):
-        """Получение всех реквизитов администратором без пагинации и фильтрации."""
-
         response = await router_client.get(
             "/requisites",
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
@@ -131,8 +119,6 @@ class TestAdminRequisitesRouter(BaseTestRouter):
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
         user_trader_db_with_sbp: UserModel,
     ):
-        """Получение всех реквизитов с пагинацией и фильтрацией."""
-
         query_params = requisite_schemas.RequisitePaginationAdminSchema(
             user_id=user_trader_db_with_sbp.id,
         )
@@ -158,8 +144,6 @@ class TestAdminRequisitesRouter(BaseTestRouter):
         requisite_admin_update_data: requisite_schemas.RequisiteUpdateAdminSchema,
         session: AsyncSession,
     ):
-        """Обновление реквизита."""
-
         response = await router_client.put(
             f"/requisites/{requisite_trader_db.id}",
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
@@ -189,8 +173,6 @@ class TestAdminRequisitesRouter(BaseTestRouter):
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
     ):
-        """Удаление реквизита."""
-
         response = await router_client.delete(
             f"/requisites/{requisite_trader_db.id}",
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},

@@ -1,5 +1,3 @@
-"""Модуль для Pydantic схем пользователей."""
-
 from pydantic import (
     BaseModel,
     EmailStr,

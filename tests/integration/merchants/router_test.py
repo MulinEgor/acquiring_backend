@@ -1,5 +1,3 @@
-"""Модуль для тестирования роутера merchants_router."""
-
 import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,8 +20,6 @@ from tests.integration.conftest import BaseTestRouter
 
 
 class TestMerchantsRouter(BaseTestRouter):
-    """Класс для тестирования роутера."""
-
     router = merchants_router
 
     # MARK: Pay in
@@ -35,8 +31,6 @@ class TestMerchantsRouter(BaseTestRouter):
         user_merchant_db: UserModel,
         user_trader_db_with_sbp: UserModel,
     ):
-        """Запрос пополнения средств как мерчант с сбп."""
-
         response = await router_client.post(
             "/merchant-clients/request-pay-in",
             headers={constants.AUTH_HEADER_NAME: merchant_jwt_tokens.access_token},
@@ -66,8 +60,6 @@ class TestMerchantsRouter(BaseTestRouter):
         user_merchant_db: UserModel,
         user_trader_db_with_card: UserModel,
     ):
-        """Запрос пополнения средств как мерчант с картой."""
-
         trader_requisite_db = await RequisiteRepository.get_one_or_none(
             session=session,
             user_id=user_trader_db_with_card.id,
@@ -109,10 +101,6 @@ class TestMerchantsRouter(BaseTestRouter):
         user_merchant_db: UserModel,
         user_trader_db_with_card: UserModel,
     ):
-        """
-        Запрос пополнения средств как мерчант с картой, когда реквизиты не найдены.
-        """
-
         trader_requisite_db = await RequisiteRepository.get_one_or_none(
             session=session,
             user_id=user_trader_db_with_card.id,
@@ -146,11 +134,6 @@ class TestMerchantsRouter(BaseTestRouter):
         user_merchant_db: UserModel,
         user_trader_db_with_sbp: UserModel,
     ):
-        """
-        Запрос пополнения средств как мерчант,
-        когда уже есть транзакция в процессе обработки.
-        """
-
         # Создание транзакции в процессе обработки
         await self.test_request_pay_in_with_sbp(
             router_client=router_client,
@@ -181,8 +164,6 @@ class TestMerchantsRouter(BaseTestRouter):
         user_trader_db_with_card: UserModel,
         merchant_pay_out_create_data: merchant_schemas.MerchantPayOutRequestSchema,
     ):
-        """Запрос вывода средств как мерчант."""
-
         user_merchant_db.balance = 200
         await session.commit()
 
@@ -216,8 +197,6 @@ class TestMerchantsRouter(BaseTestRouter):
         user_merchant_db: UserModel,
         merchant_pay_out_create_data: merchant_schemas.MerchantPayOutRequestSchema,
     ):
-        """Запрос вывода средств как мерчант, когда трейдер не найден."""
-
         user_merchant_db.balance = 200
         await session.commit()
 
@@ -253,8 +232,6 @@ class TestMerchantsRouter(BaseTestRouter):
         user_merchant_db: UserModel,
         merchant_pay_out_create_data: merchant_schemas.MerchantPayOutRequestSchema,
     ):
-        """Запрос вывода средств как мерчант, когда не хватает средств."""
-
         response = await router_client.post(
             "/merchant-clients/request-pay-out",
             headers={constants.AUTH_HEADER_NAME: merchant_jwt_tokens.access_token},

@@ -1,5 +1,3 @@
-"""Модуль для SQLAlchemy моделей транзакций на платформе."""
-
 from datetime import datetime, timedelta, timezone
 from enum import Enum, StrEnum
 

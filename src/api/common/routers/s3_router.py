@@ -1,5 +1,3 @@
-"""Модуль для роутера S3."""
-
 from fastapi import APIRouter, Depends, File, UploadFile, status
 
 from src.core import constants, dependencies

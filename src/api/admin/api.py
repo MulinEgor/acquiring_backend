@@ -1,5 +1,3 @@
-"""Модуль для API админа."""
-
 from fastapi import FastAPI
 
 from src.api.admin.routers.blockchain_router import router as blockchain_router
@@ -14,7 +12,6 @@ from src.api.common.api import get_api
 
 
 def include_routers(api: FastAPI) -> None:
-    """Подключение роутеров"""
     for router in [
         users_router,
         permissions_router,

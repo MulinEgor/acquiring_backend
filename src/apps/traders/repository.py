@@ -1,5 +1,3 @@
-"""Модуль для репозиториев трейдеров."""
-
 from sqlalchemy import Row, and_, not_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 

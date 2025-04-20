@@ -1,5 +1,3 @@
-"""Модулья для SQLAlchemy моделей для работы с разрешениями."""
-
 from datetime import datetime, timezone
 
 from sqlalchemy import TIMESTAMP

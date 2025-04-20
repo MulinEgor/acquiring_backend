@@ -1,5 +1,3 @@
-"""Модуль для админского роутера для работы с разрешениями."""
-
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 

@@ -1,5 +1,3 @@
-"""Основной модуль для конфигурации FastAPI."""
-
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
@@ -14,7 +12,6 @@ from src.core.settings import settings
 
 
 def setup_middlewares(api: FastAPI):
-    """Настройка middlewares."""
     api.add_middleware(
         middleware_class=CORSMiddleware,
         allow_origins=settings.CORS_ORIGINS,
@@ -26,13 +23,11 @@ def setup_middlewares(api: FastAPI):
 
 
 def setup_exception_handlers(api: FastAPI):
-    """Настройка обработчиков исключений."""
     api.add_exception_handler(HTTPException, handlers.http_exception_handler)
     api.add_exception_handler(Exception, handlers.exception_handler)
 
 
 def include_routers(api: FastAPI) -> None:
-    """Подключение роутеров."""
     for router in [
         health_check_router,
         users_router,
@@ -43,12 +38,6 @@ def include_routers(api: FastAPI) -> None:
 
 
 def get_api(title: str) -> FastAPI:
-    """
-    Получить экземпляр FastAPI с настроенной конфигурацией.
-
-    Returns:
-        FastAPI: экземпляр FastAPI.
-    """
     api = FastAPI(
         title=title,
         version=settings.APP_VERSION,

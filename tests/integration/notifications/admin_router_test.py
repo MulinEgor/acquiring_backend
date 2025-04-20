@@ -1,5 +1,3 @@
-"""Модуль для тестирования роутера notifications_router."""
-
 import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,8 +12,6 @@ from tests.integration.conftest import BaseTestRouter
 
 
 class TestNotificationsRouter(BaseTestRouter):
-    """Класс для тестирования роутера."""
-
     router = notifications_router
 
     # MARK: Post
@@ -25,8 +21,6 @@ class TestNotificationsRouter(BaseTestRouter):
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
         notification_create_data: notification_schemas.NotificationCreateSchema,
     ):
-        """Создание уведомления."""
-
         response = await router_client.post(
             "/notifications",
             json=notification_create_data.model_dump(),
@@ -46,8 +40,6 @@ class TestNotificationsRouter(BaseTestRouter):
         notification_db: NotificationModel,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Получение уведомления по ID."""
-
         response = await router_client.get(
             url=f"/notifications/{notification_db.id}",
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
@@ -66,8 +58,6 @@ class TestNotificationsRouter(BaseTestRouter):
         session: AsyncSession,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Получение списка уведомлений без учета фильтрации."""
-
         response = await router_client.get(
             url="/notifications",
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
@@ -85,8 +75,6 @@ class TestNotificationsRouter(BaseTestRouter):
         notification_db: NotificationModel,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Получение списка уведомлений с учетом фильтрации."""
-
         params = notification_schemas.NotificationPaginationSchema(
             message=notification_db.message
         )
@@ -111,8 +99,6 @@ class TestNotificationsRouter(BaseTestRouter):
         session: AsyncSession,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Удаление уведомления по ID."""
-
         response = await router_client.delete(
             url=f"/notifications/{notification_db.id}",
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},

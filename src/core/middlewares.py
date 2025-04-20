@@ -1,5 +1,3 @@
-"""Модулья для middlewares"""
-
 import orjson
 from fastapi import Request
 from fastapi.concurrency import run_in_threadpool

@@ -1,5 +1,3 @@
-"""Модуль роутера для работы с пользователями."""
-
 from fastapi import APIRouter, Depends, status
 
 from src.apps.users.model import UserModel

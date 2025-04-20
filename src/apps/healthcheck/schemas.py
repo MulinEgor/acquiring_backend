@@ -1,5 +1,3 @@
-"""Модуль для Pydantic схем для модуля healthcheck."""
-
 from typing import Literal
 
 from pydantic import BaseModel

@@ -1,5 +1,3 @@
-"""Модуль для Pydantic схем разрешений пользователей."""
-
 from pydantic import BaseModel
 
 

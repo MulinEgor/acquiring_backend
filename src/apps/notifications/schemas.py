@@ -1,5 +1,3 @@
-"""Модуль для Pydantic схем уведомлений."""
-
 from datetime import datetime
 
 from pydantic import BaseModel

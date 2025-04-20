@@ -1,5 +1,3 @@
-"""Модуль для проверки ожидающих транзакций на платформе."""
-
 import asyncio
 from datetime import datetime
 
@@ -17,7 +15,6 @@ from tasks.celery_worker import worker
 
 @worker.task
 def check_pending_transactions() -> None:
-    """Задача для проверки ожидающих транзакций на платформе."""
     asyncio.run(_check_pending_transactions())
 
 

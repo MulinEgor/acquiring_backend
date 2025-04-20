@@ -1,5 +1,3 @@
-"""Модуль для тестирования роутера users_router."""
-
 import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,8 +12,6 @@ from tests.integration.conftest import BaseTestRouter
 
 
 class TestAdminUserRouter(BaseTestRouter):
-    """Класс для тестирования роутера."""
-
     router = users_router
 
     # MARK: Get
@@ -25,8 +21,6 @@ class TestAdminUserRouter(BaseTestRouter):
         user_admin_db: UserModel,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Получение информации о пользователе по id."""
-
         response = await router_client.get(
             url=f"/users/{user_admin_db.id}",
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
@@ -46,8 +40,6 @@ class TestAdminUserRouter(BaseTestRouter):
         user_db: UserModel,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Получение списка пользователей без учета фильтрации."""
-
         response = await router_client.get(
             url="/users",
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
@@ -73,8 +65,6 @@ class TestAdminUserRouter(BaseTestRouter):
         user_db: UserModel,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Получение списка пользователей с учетом фильтрации."""
-
         params = user_schemas.UsersPaginationSchema(email=user_db.email)
 
         response = await router_client.get(
@@ -97,8 +87,6 @@ class TestAdminUserRouter(BaseTestRouter):
         user_create_data: user_schemas.UserCreateSchema,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Создание пользователя."""
-
         response = await router_client.post(
             url="/users",
             json=user_create_data.model_dump(),
@@ -123,8 +111,6 @@ class TestAdminUserRouter(BaseTestRouter):
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
     ):
-        """Обновление данных пользователя."""
-
         response = await router_client.put(
             url=f"/users/{user_db.id}",
             json=user_update_data.model_dump(exclude_unset=True),
@@ -137,9 +123,11 @@ class TestAdminUserRouter(BaseTestRouter):
         assert updated_user.id == user_db.id
         assert updated_user.email == user_update_data.email
 
-        user_db = await UserRepository.get_one_or_none(session=session, id=user_db.id)
-        assert user_db is not None
-        assert user_db.email == user_update_data.email
+        updated_user_db = await UserRepository.get_one_or_none(
+            session=session, id=user_db.id
+        )
+        assert updated_user_db is not None
+        assert updated_user_db.email == user_update_data.email
 
     # MARK: Delete
     async def test_delete_user_by_admin(
@@ -149,8 +137,6 @@ class TestAdminUserRouter(BaseTestRouter):
         user_db: UserModel,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Удаление пользователя."""
-
         response = await router_client.delete(
             url=f"/users/{user_db.id}",
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},

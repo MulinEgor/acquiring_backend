@@ -1,5 +1,3 @@
-"""Модуль для работы с репозиториями кошельков."""
-
 from typing import Tuple
 
 from sqlalchemy import Select, select

@@ -1,5 +1,3 @@
-"""Модуль для сервисов JWT."""
-
 from datetime import datetime, timedelta, timezone
 from typing import Literal
 

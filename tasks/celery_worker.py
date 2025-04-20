@@ -1,5 +1,3 @@
-"""Модуль для работы с Celery."""
-
 from celery import Celery
 
 from src.core import constants

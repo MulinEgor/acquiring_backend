@@ -1,5 +1,3 @@
-"""Модуль для SQLAlchemy моделей пользователей."""
-
 from datetime import datetime
 
 from sqlalchemy import TIMESTAMP

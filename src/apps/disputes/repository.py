@@ -1,5 +1,3 @@
-"""Модуль для репозитория диспутов."""
-
 from typing import Tuple
 
 from sqlalchemy import Select, or_, select

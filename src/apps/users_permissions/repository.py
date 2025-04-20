@@ -1,4 +1,4 @@
-"""Модуль для репозитория с разрешениями пользователей."""
+from typing import Any
 
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,7 +12,7 @@ class UsersPermissionsRepository(
     BaseRepository[
         UsersPermissionsModel,
         schemas.UsersPermissionsCreateSchema,
-        any,
+        Any,
     ],
 ):
     """Репозиторий для работы с разрешениями пользователей."""

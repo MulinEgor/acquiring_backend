@@ -1,5 +1,3 @@
-"""Модуль для тестирования роутера users_router."""
-
 from datetime import datetime, timedelta
 
 import httpx
@@ -24,8 +22,6 @@ from tests.integration.conftest import BaseTestRouter
 
 
 class TestCommonUserRouter(BaseTestRouter):
-    """Класс для тестирования роутера."""
-
     router = common_users_router
 
     # MARK: Get
@@ -35,8 +31,6 @@ class TestCommonUserRouter(BaseTestRouter):
         user_db: UserModel,
         user_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Получение информации о текущем пользователе."""
-
         response = await router_client.get(
             url="/users/me",
             headers={constants.AUTH_HEADER_NAME: user_jwt_tokens.access_token},
@@ -51,8 +45,6 @@ class TestCommonUserRouter(BaseTestRouter):
 
 
 class TestUserRouter(BaseTestRouter):
-    """Класс для тестирования роутера."""
-
     router = users_router
 
     # MARK: Patch, Pay in
@@ -65,8 +57,6 @@ class TestUserRouter(BaseTestRouter):
         wallet_db: WalletModel,
         mocker,
     ):
-        """Запрос пополнения средств как трейдер."""
-
         mocker.patch(
             "src.apps.blockchain.services.tron_service.TronService.get_wallets_balances",
             return_value={
@@ -98,11 +88,6 @@ class TestUserRouter(BaseTestRouter):
         wallet_db: WalletModel,
         mocker,
     ):
-        """
-        Запрос пополнения средств как трейдер,
-        когда уже есть транзакция в процессе обработки.
-        """
-
         # Создание транзакции в процессе обработки
         await self.test_request_pay_in(
             router_client=router_client,
@@ -130,8 +115,6 @@ class TestUserRouter(BaseTestRouter):
         blockchain_transaction_db: BlockchainTransactionModel,
         mocker,
     ):
-        """Подтверждение пополнения средств как трейдер."""
-
         mocker.patch(
             "src.apps.blockchain.services.tron_service.TronService.get_transaction_by_hash",
             return_value={
@@ -152,12 +135,12 @@ class TestUserRouter(BaseTestRouter):
 
         assert response.status_code == status.HTTP_202_ACCEPTED
 
-        assert (
-            await BlockchainTransactionRepository.get_one_or_none(
-                session=session,
-                user_id=user_trader_db_with_sbp.id,
-            )
-        ).status == TransactionStatusEnum.SUCCESS
+        transaction_db = await BlockchainTransactionRepository.get_one_or_none(
+            session=session,
+            user_id=user_trader_db_with_sbp.id,
+        )
+        assert transaction_db is not None
+        assert transaction_db.status == TransactionStatusEnum.SUCCESS
 
         await session.refresh(user_trader_db_with_sbp)
         assert (
@@ -177,11 +160,6 @@ class TestUserRouter(BaseTestRouter):
         blockchain_transaction_db: BlockchainTransactionModel,
         mocker,
     ):
-        """
-        Подтверждение пополнения средств как трейдер,
-        когда транзакция не соответствует ожидаемой.
-        """
-
         mocker.patch(
             "src.apps.blockchain.services.tron_service.TronService.get_transaction_by_hash",
             return_value={
@@ -202,12 +180,12 @@ class TestUserRouter(BaseTestRouter):
 
         assert response.status_code == status.HTTP_409_CONFLICT
 
-        assert (
-            await BlockchainTransactionRepository.get_one_or_none(
-                session=session,
-                user_id=user_trader_db_with_sbp.id,
-            )
-        ).status == TransactionStatusEnum.FAILED
+        transaction_db = await BlockchainTransactionRepository.get_one_or_none(
+            session=session,
+            user_id=user_trader_db_with_sbp.id,
+        )
+        assert transaction_db is not None
+        assert transaction_db.status == TransactionStatusEnum.FAILED
 
         await session.refresh(user_trader_db_with_sbp)
         assert (
@@ -224,11 +202,6 @@ class TestUserRouter(BaseTestRouter):
         blockchain_transaction_db: BlockchainTransactionModel,
         mocker,
     ):
-        """
-        Подтверждение пополнения средств как трейдер,
-        когда транзакция просрочена.
-        """
-
         blockchain_transaction_db.expires_at = datetime.now() - timedelta(
             seconds=constants.PENDING_BLOCKCHAIN_TRANSACTION_TIMEOUT + 1
         )
@@ -253,12 +226,12 @@ class TestUserRouter(BaseTestRouter):
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-        assert (
-            await BlockchainTransactionRepository.get_one_or_none(
-                session=session,
-                user_id=user_trader_db_with_sbp.id,
-            )
-        ).status == TransactionStatusEnum.FAILED
+        transaction_db = await BlockchainTransactionRepository.get_one_or_none(
+            session=session,
+            user_id=user_trader_db_with_sbp.id,
+        )
+        assert transaction_db is not None
+        assert transaction_db.status == TransactionStatusEnum.FAILED
 
         await session.refresh(user_trader_db_with_sbp)
         assert (
@@ -276,8 +249,6 @@ class TestUserRouter(BaseTestRouter):
         wallet_db: WalletModel,
         mocker,
     ):
-        """Запрос вывода средств как трейдер."""
-
         user_trader_db_with_sbp.balance = 200
         await session.commit()
         amount = 100
@@ -323,8 +294,6 @@ class TestUserRouter(BaseTestRouter):
         user_trader_db_with_sbp: UserModel,
         wallet_db: WalletModel,
     ):
-        """Запрос вывода средств как трейдер, когда недостаточно средств."""
-
         user_trader_db_with_sbp.balance = 100
         await session.commit()
         amount = 200

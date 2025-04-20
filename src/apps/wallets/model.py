@@ -1,5 +1,3 @@
-"""Модуль для работы с моделями кошельков."""
-
 from datetime import datetime
 
 from sqlalchemy import TIMESTAMP, String

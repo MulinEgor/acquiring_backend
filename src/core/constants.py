@@ -1,5 +1,3 @@
-"""Модуль для констант."""
-
 from enum import StrEnum
 
 from sqlalchemy import TextClause, text

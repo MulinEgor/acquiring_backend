@@ -1,5 +1,3 @@
-"""Модуль для маршрутов авторизации пользователей."""
-
 from fastapi import APIRouter, BackgroundTasks, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 

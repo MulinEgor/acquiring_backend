@@ -1,5 +1,3 @@
-"""Модуль для тестирования роутера notifications_router."""
-
 import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,8 +14,6 @@ from tests.integration.conftest import BaseTestRouter
 
 
 class TestNotificationsRouter(BaseTestRouter):
-    """Класс для тестирования роутера."""
-
     router = notifications_router
 
     # MARK: Get
@@ -28,8 +24,6 @@ class TestNotificationsRouter(BaseTestRouter):
         session: AsyncSession,
         user_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Получение списка уведомлений без учета фильтрации."""
-
         response = await router_client.get(
             url="/notifications",
             headers={constants.AUTH_HEADER_NAME: user_jwt_tokens.access_token},
@@ -47,8 +41,6 @@ class TestNotificationsRouter(BaseTestRouter):
         notification_db: NotificationModel,
         user_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Получение списка уведомлений с учетом фильтрации."""
-
         params = notification_schemas.NotificationPaginationSchema(
             message=notification_db.message
         )
@@ -73,8 +65,6 @@ class TestNotificationsRouter(BaseTestRouter):
         user_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
     ):
-        """Прочитать все уведомления."""
-
         assert not notification_db.is_read
 
         data = notification_schemas.NotificationReadSchema(
@@ -92,5 +82,5 @@ class TestNotificationsRouter(BaseTestRouter):
         notification = await NotificationRepository.get_one_or_none(
             session=session, id=notification_db.id
         )
-
+        assert notification is not None
         assert notification.is_read

@@ -1,5 +1,3 @@
-"""Модуль для проверки ожидающих диспутов на платформе."""
-
 import asyncio
 from datetime import datetime
 
@@ -18,7 +16,6 @@ from tasks.celery_worker import worker
 
 @worker.task
 def check_pending_disputes() -> None:
-    """Задача для проверки ожидающих диспутов на платформе."""
     asyncio.run(_check_pending_disputes())
 
 
@@ -53,10 +50,16 @@ async def _check_pending_disputes() -> None:
                         session=session,
                         id=dispute_db.transaction_id,
                     )
+                    if transaction_db is None:
+                        continue
+
                     trader_db = await UserRepository.get_one_or_none(
                         session=session,
                         id=transaction_db.trader_id,
                     )
+                    if trader_db is None:
+                        continue
+
                     # Разморозка средств трейдера
                     if (
                         dispute_db.winner_id is None
@@ -69,13 +72,16 @@ async def _check_pending_disputes() -> None:
                             session=session,
                             id=transaction_db.merchant_id,
                         )
-                        merchant_db.balance += (
+                        if merchant_db is None:
+                            continue
+
+                        merchant_db.balance += int(
                             transaction_db.amount
                             - transaction_db.amount
                             * constants.MERCHANT_TRANSACTION_COMMISSION
                         )
                         trader_db.amount_frozen -= transaction_db.amount
-                        trader_db.balance -= (
+                        trader_db.balance -= int(
                             transaction_db.amount
                             + transaction_db.amount * constants.TRADER_DISPUTE_PENALTY
                         )

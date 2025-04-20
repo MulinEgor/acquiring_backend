@@ -1,5 +1,3 @@
-"""Модуль для тестирования disputes_router."""
-
 import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,8 +14,6 @@ from tests.integration.conftest import BaseTestRouter
 
 
 class TestDisputesRouter(BaseTestRouter):
-    """Класс для тестирования роутера."""
-
     router = disputes_router
 
     # MARK: Post
@@ -28,8 +24,6 @@ class TestDisputesRouter(BaseTestRouter):
         dispute_create_data: dispute_schemas.DisputeCreateSchema,
         session: AsyncSession,
     ):
-        """Создание диспута."""
-
         response = await router_client.post(
             "/disputes",
             json=dispute_create_data.model_dump(),
@@ -45,15 +39,18 @@ class TestDisputesRouter(BaseTestRouter):
         dispute_db = await DisputeRepository.get_one_or_none(
             session=session, id=schema.id
         )
+        assert dispute_db is not None
 
         assert dispute_db.transaction_id == dispute_create_data.transaction_id
 
         transaction_db = await TransactionRepository.get_one_or_none(
             session=session, id=dispute_db.transaction_id
         )
+        assert transaction_db is not None
         trader_db = await UserRepository.get_one_or_none(
             session=session, id=transaction_db.trader_id
         )
+        assert trader_db is not None
         assert trader_db.amount_frozen == transaction_db.amount
 
     # MARK: Get
@@ -63,8 +60,6 @@ class TestDisputesRouter(BaseTestRouter):
         dispute_db: DisputeModel,
         merchant_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Получение диспута по ID."""
-
         response = await router_client.get(
             url=f"/disputes/{dispute_db.id}",
             headers={constants.AUTH_HEADER_NAME: merchant_jwt_tokens.access_token},
@@ -83,8 +78,6 @@ class TestDisputesRouter(BaseTestRouter):
         session: AsyncSession,
         merchant_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Получение списка диспутов без учета фильтрации."""
-
         response = await router_client.get(
             url="/disputes",
             headers={constants.AUTH_HEADER_NAME: merchant_jwt_tokens.access_token},
@@ -102,8 +95,6 @@ class TestDisputesRouter(BaseTestRouter):
         dispute_db: DisputeModel,
         merchant_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Получение списка диспутов с учетом фильтрации."""
-
         params = dispute_schemas.DisputePaginationSchema(
             transaction_id=dispute_db.transaction_id
         )
@@ -129,8 +120,6 @@ class TestDisputesRouter(BaseTestRouter):
         trader_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
     ):
-        """Обновление диспута по ID."""
-
         response = await router_client.put(
             url=f"/disputes/{dispute_db.id}",
             json=dispute_update_data.model_dump(),
@@ -139,9 +128,10 @@ class TestDisputesRouter(BaseTestRouter):
 
         assert response.status_code == status.HTTP_202_ACCEPTED
 
-        dispute_db = await DisputeRepository.get_one_or_none(
+        updated_dispute_db = await DisputeRepository.get_one_or_none(
             session=session, id=dispute_db.id
         )
-
-        assert dispute_update_data.description in dispute_db.description
-        assert dispute_db.status == DisputeStatusEnum.PENDING
+        assert updated_dispute_db is not None
+        assert dispute_update_data.description is not None
+        assert dispute_update_data.description in updated_dispute_db.description
+        assert updated_dispute_db.status == DisputeStatusEnum.PENDING

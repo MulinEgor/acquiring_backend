@@ -1,5 +1,3 @@
-"""Модуль для сервисов для работы с реквизитами."""
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.requisites import schemas
@@ -15,9 +13,9 @@ class RequisiteService(
         RequisiteModel,
         schemas.RequisiteCreateAdminSchema,
         schemas.RequisiteGetSchema,
-        schemas.RequisitePaginationAdminSchema,
+        schemas.RequisitePaginationAdminSchema | schemas.RequisitePaginationSchema,
         schemas.RequisiteListGetSchema,
-        schemas.RequisiteUpdateAdminSchema,
+        schemas.RequisiteUpdateAdminSchema | schemas.RequisiteUpdateSchema,
     ],
 ):
     """Сервис для работы с реквизитами."""
@@ -61,7 +59,7 @@ class RequisiteService(
         cls,
         session: AsyncSession,
         id: int,
-        data: schemas.RequisiteUpdateAdminSchema,
+        data: schemas.RequisiteUpdateAdminSchema | schemas.RequisiteUpdateSchema,
         user: UserModel | None = None,
     ) -> schemas.RequisiteGetSchema:
         """

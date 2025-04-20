@@ -1,5 +1,3 @@
-"""Обработчики исключений"""
-
 from fastapi import HTTPException, Request
 from fastapi.responses import ORJSONResponse
 from loguru import logger

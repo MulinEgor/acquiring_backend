@@ -1,5 +1,3 @@
-"""Модулья для сервисов для работы с разрешениями."""
-
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 

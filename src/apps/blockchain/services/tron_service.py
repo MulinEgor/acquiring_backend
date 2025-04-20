@@ -1,5 +1,3 @@
-"""Модуль для сервиса для работы с Tron."""
-
 import asyncio
 import hashlib
 import random

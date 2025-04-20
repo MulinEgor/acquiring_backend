@@ -1,5 +1,3 @@
-"""Модуль для API пользователя."""
-
 from fastapi import FastAPI
 
 from src.api.common.api import get_api
@@ -28,8 +26,6 @@ from src.api.user.routers.transactions_router import (
 
 
 def include_routers(api: FastAPI) -> None:
-    """Подключение роутеров"""
-
     for router in [
         user_router,
         trader_router,

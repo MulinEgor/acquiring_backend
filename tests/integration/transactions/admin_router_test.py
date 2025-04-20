@@ -1,5 +1,3 @@
-"""Тесты для роутера transactions_router."""
-
 import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,8 +13,6 @@ from tests.integration.conftest import BaseTestRouter
 
 
 class TestAdminTransactionsRouter(BaseTestRouter):
-    """Класс для тестирования роутера."""
-
     router = transactions_router
 
     # MARK: Post
@@ -27,8 +23,6 @@ class TestAdminTransactionsRouter(BaseTestRouter):
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
     ):
-        """Создание транзакции."""
-
         response = await router_client.post(
             "/transactions",
             json=transaction_create_data.model_dump(),
@@ -57,8 +51,6 @@ class TestAdminTransactionsRouter(BaseTestRouter):
         trader_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
     ):
-        """Создание транзакции не авторизованным пользователем."""
-
         response = await router_client.post(
             "/transactions",
             json=transaction_create_data.model_dump(),
@@ -78,8 +70,6 @@ class TestAdminTransactionsRouter(BaseTestRouter):
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
     ):
-        """Получение транзакции."""
-
         response = await router_client.get(
             f"/transactions/{transaction_db.id}",
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
@@ -89,16 +79,16 @@ class TestAdminTransactionsRouter(BaseTestRouter):
 
         schema = transaction_schemas.TransactionGetSchema(**response.json())
 
-        transaction_db = await TransactionRepository.get_one_or_none(
+        created_transaction_db = await TransactionRepository.get_one_or_none(
             session=session,
             id=schema.id,
         )
 
-        assert transaction_db is not None
-        assert transaction_db.merchant_id == transaction_db.merchant_id
-        assert transaction_db.amount == transaction_db.amount
-        assert transaction_db.type == transaction_db.type
-        assert transaction_db.payment_method == transaction_db.payment_method
+        assert created_transaction_db is not None
+        assert created_transaction_db.merchant_id == transaction_db.merchant_id
+        assert created_transaction_db.amount == transaction_db.amount
+        assert created_transaction_db.type == transaction_db.type
+        assert created_transaction_db.payment_method == transaction_db.payment_method
 
     async def test_get_transactions_no_query(
         self,
@@ -107,8 +97,6 @@ class TestAdminTransactionsRouter(BaseTestRouter):
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
         user_trader_db_with_sbp: UserModel,
     ):
-        """Получение всех транзакций администратором без пагинации и фильтрации."""
-
         response = await router_client.get(
             "/transactions",
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
@@ -129,8 +117,6 @@ class TestAdminTransactionsRouter(BaseTestRouter):
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
         user_merchant_db: UserModel,
     ):
-        """Получение всех транзакций с пагинацией и фильтрацией."""
-
         query_params = transaction_schemas.TransactionAdminPaginationSchema(
             merchant_id=user_merchant_db.id,
         )
@@ -158,8 +144,6 @@ class TestAdminTransactionsRouter(BaseTestRouter):
         transaction_update_data: transaction_schemas.TransactionUpdateSchema,
         session: AsyncSession,
     ):
-        """Обновление транзакции."""
-
         response = await router_client.put(
             f"/transactions/{transaction_db.id}",
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
@@ -189,8 +173,6 @@ class TestAdminTransactionsRouter(BaseTestRouter):
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
     ):
-        """Удаление транзакции."""
-
         response = await router_client.delete(
             f"/transactions/{transaction_db.id}",
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},

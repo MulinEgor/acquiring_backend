@@ -1,5 +1,3 @@
-"""Модулья для Pydantic схем для работы с разрешениями."""
-
 from datetime import datetime
 
 from pydantic import BaseModel

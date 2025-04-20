@@ -1,5 +1,3 @@
-"""Модуль для тестирования роутера traders_router."""
-
 import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,8 +15,6 @@ from tests.integration.conftest import BaseTestRouter
 
 
 class TestTradersRouter(BaseTestRouter):
-    """Класс для тестирования роутера."""
-
     router = traders_router
 
     # MARK: Start/stop working
@@ -29,8 +25,6 @@ class TestTradersRouter(BaseTestRouter):
         trader_jwt_tokens: auth_schemas.JWTGetSchema,
         user_trader_db_with_sbp: UserModel,
     ):
-        """Начать работу как трейдер, буучи уже активным."""
-
         response = await router_client.patch(
             "/traders/start",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
@@ -48,8 +42,6 @@ class TestTradersRouter(BaseTestRouter):
         trader_jwt_tokens: auth_schemas.JWTGetSchema,
         user_trader_db_with_sbp: UserModel,
     ):
-        """Начать работу как трейдер, буучи не активным."""
-
         user_trader_db_with_sbp.is_active = False
         await session.commit()
 
@@ -73,8 +65,6 @@ class TestTradersRouter(BaseTestRouter):
         user_trader_db_with_sbp: UserModel,
         user_merchant_db: UserModel,
     ):
-        """Подтверждение пополнения средств мерчантом от трейдера."""
-
         user_trader_balance_before = user_trader_db_with_sbp.balance
 
         user_trader_db_with_sbp.amount_frozen = (
@@ -130,8 +120,6 @@ class TestTradersRouter(BaseTestRouter):
         user_trader_db_with_card: UserModel,
         user_merchant_db: UserModel,
     ):
-        """Подтверждение перевода средств мерчанту от трейдера."""
-
         user_merchant_balance_before = user_merchant_db.balance
         user_trader_balance_before = user_trader_db_with_card.balance
 
@@ -169,8 +157,6 @@ class TestTradersRouter(BaseTestRouter):
         user_trader_db_with_card: UserModel,
         user_merchant_db: UserModel,
     ):
-        """Подтверждение перевода средств мерчанту от трейдера."""
-
         user_merchant_balance_before = user_merchant_db.balance
         user_trader_balance_before = user_trader_db_with_card.balance
 

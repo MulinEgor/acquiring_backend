@@ -1,5 +1,3 @@
-"""Модуль для настройки логгера."""
-
 import sys
 
 from loguru import logger

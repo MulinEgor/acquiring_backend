@@ -1,5 +1,3 @@
-"""Зависимости эндпоинтов API."""
-
 from typing import AsyncGenerator
 
 import jwt

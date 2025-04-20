@@ -1,5 +1,3 @@
-"""Модуль для моделей транзакций на блокчейне."""
-
 from datetime import datetime, timedelta
 
 from sqlalchemy import TIMESTAMP, ForeignKey, String

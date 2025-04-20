@@ -1,5 +1,3 @@
-"""Модуль для Pydantic схем для переводов средств."""
-
 from pydantic import BaseModel
 
 

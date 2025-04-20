@@ -1,5 +1,3 @@
-"""Модуль для Pydanitc схем для мерчантов."""
-
 from pydantic import BaseModel
 
 from src.apps.transactions.model import TransactionPaymentMethodEnum

@@ -1,5 +1,3 @@
-"""Модуль для роутера транзакций с блокчейна."""
-
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 

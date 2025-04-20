@@ -1,5 +1,3 @@
-"""Модуль для работы с авторизацией пользователей"""
-
 import orjson
 from fastapi import BackgroundTasks
 from loguru import logger
@@ -18,8 +16,6 @@ from src.lib.services.redis_service import RedisService
 
 
 class AuthService:
-    """Сервис для работы с авторизацией пользователей"""
-
     # MARK: Utils
     @classmethod
     async def _send_2fa_code(

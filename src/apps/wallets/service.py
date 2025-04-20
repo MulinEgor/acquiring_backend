@@ -1,6 +1,4 @@
-"""Модуль для работы с сервисами кошельков."""
-
-from typing import Literal
+from typing import Any, Literal
 
 from loguru import logger
 from sqlalchemy import delete
@@ -21,7 +19,7 @@ class WalletService(
         schemas.WalletGetSchema,
         schemas.WalletPaginationSchema,
         schemas.WalletListSchema,
-        any,
+        Any,
     ],
 ):
     """Сервис для работы с кошельками."""

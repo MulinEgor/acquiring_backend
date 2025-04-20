@@ -11,7 +11,7 @@ class NotificationService(
         schemas.NotificationGetSchema,
         schemas.NotificationPaginationSchema,
         schemas.NotificationListSchema,
-        any,
+        schemas.NotificationUpdateSchema,
     ],
 ):
     """Сервис для работы с уведомлениями."""

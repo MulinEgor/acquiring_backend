@@ -1,5 +1,3 @@
-"""Модуль для конфигурации тестов."""
-
 from typing import AsyncGenerator
 
 import httpx

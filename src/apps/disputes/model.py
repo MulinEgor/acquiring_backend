@@ -1,5 +1,3 @@
-"""Модуль для SQLAlchemy моделей диспутов."""
-
 from datetime import datetime, timedelta, timezone
 from enum import StrEnum
 

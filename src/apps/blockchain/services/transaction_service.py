@@ -1,5 +1,3 @@
-"""Сервис для работы с транзакциями на блокчейне."""
-
 from datetime import datetime
 
 from loguru import logger

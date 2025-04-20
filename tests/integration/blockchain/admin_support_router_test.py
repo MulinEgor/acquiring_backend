@@ -1,5 +1,3 @@
-"""Модуль для тестирования blockchain_router."""
-
 import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,8 +16,6 @@ from tests.integration.conftest import BaseTestRouter
 
 
 class TestBlockchainTransactionsRouter(BaseTestRouter):
-    """Класс для тестирования роутера."""
-
     router = blockchain_transactions_router
 
     # MARK: Get
@@ -29,8 +25,6 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
         blockchain_transaction_db: BlockchainTransactionModel,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Тест на получение транзакции по ID."""
-
         response = await router_client.get(
             f"/blockchain-transactions/{blockchain_transaction_db.id}",
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
@@ -47,8 +41,6 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
         blockchain_transaction_db: BlockchainTransactionModel,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Тест на получение транзакции по ID, которого не существует."""
-
         response = await router_client.get(
             f"/blockchain-transactions/{blockchain_transaction_db.id + 1}",
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
@@ -63,8 +55,6 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
     ):
-        """Тест на получение транзакций с пагинацией."""
-
         query_params = blockchain_schemas.TransactionPaginationSchema(
             from_address=blockchain_transaction_db.from_address,
             max_amount=blockchain_transaction_db.amount,
@@ -91,11 +81,6 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
         blockchain_transaction_db: BlockchainTransactionModel,
     ):
-        """
-        Тест на получение транзакций с пагинацией,
-        для которых нет подходящих транзакций.
-        """
-
         query_params = blockchain_schemas.TransactionPaginationSchema(
             min_amount=blockchain_transaction_db.amount + 1,
         )
@@ -118,8 +103,6 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
         session: AsyncSession,
         mocker,
     ):
-        """Тест на подтверждение транзакции."""
-
         hash = "0x123"
         trader_balance_before = user_trader_db_with_sbp.balance
 
@@ -158,8 +141,6 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
         session: AsyncSession,
         mocker,
     ):
-        """Тест на подтверждение транзакции с неверным статусом."""
-
         hash = "0x123"
         trader_balance_before = user_trader_db_with_sbp.balance
 

@@ -1,5 +1,3 @@
-"""Модуль для SQLAlchemy моделей реквизитов."""
-
 from datetime import datetime, timezone
 
 from sqlalchemy import TIMESTAMP, ForeignKey

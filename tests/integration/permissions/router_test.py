@@ -1,5 +1,3 @@
-"""Модуль для тестирования роутера permissions_router."""
-
 import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,8 +12,6 @@ from tests.integration.conftest import BaseTestRouter
 
 
 class TestPermissionsRouter(BaseTestRouter):
-    """Класс для тестирования роутера."""
-
     router = permissions_router
 
     # MARK: Post
@@ -26,8 +22,6 @@ class TestPermissionsRouter(BaseTestRouter):
         user_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
     ):
-        """Создание разрешения, не иммея на это права."""
-
         response = await router_client.post(
             "/permissions",
             json=permission_create_data.model_dump(),
@@ -49,8 +43,6 @@ class TestPermissionsRouter(BaseTestRouter):
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
     ):
-        """Создание разрешения."""
-
         response = await router_client.post(
             "/permissions",
             json=permission_create_data.model_dump(),
@@ -76,8 +68,6 @@ class TestPermissionsRouter(BaseTestRouter):
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
         permission_db: PermissionModel,
     ):
-        """Получение разрешения."""
-
         response = await router_client.get(
             f"/permissions/{permission_db.id}",
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
@@ -95,8 +85,6 @@ class TestPermissionsRouter(BaseTestRouter):
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
         permission_db: PermissionModel,
     ):
-        """Получение всех разрешений без учета фильтрации."""
-
         response = await router_client.get(
             "/permissions",
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
@@ -114,8 +102,6 @@ class TestPermissionsRouter(BaseTestRouter):
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
         permission_db: PermissionModel,
     ):
-        """Получение всех разрешений с учетом фильтрации."""
-
         query_params = schemas.PermissionPaginationSchema(name=permission_db.name[:2])
 
         response = await router_client.get(
@@ -139,8 +125,6 @@ class TestPermissionsRouter(BaseTestRouter):
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
         permission_db: PermissionModel,
     ):
-        """Обновление разрешения."""
-
         update_data = schemas.PermissionCreateSchema(name="new_name")
 
         response = await router_client.put(
@@ -163,8 +147,6 @@ class TestPermissionsRouter(BaseTestRouter):
         permission_db: PermissionModel,
         session: AsyncSession,
     ):
-        """Удаление разрешения."""
-
         response = await router_client.delete(
             f"/permissions/{permission_db.id}",
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
@@ -172,8 +154,8 @@ class TestPermissionsRouter(BaseTestRouter):
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
-        permission_db = await PermissionRepository.get_one_or_none(
+        deleted_permission_db = await PermissionRepository.get_one_or_none(
             session=session,
             name=permission_db.name,
         )
-        assert permission_db is None
+        assert deleted_permission_db is None

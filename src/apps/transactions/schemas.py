@@ -1,5 +1,3 @@
-"""Модуль для Pydanitc схем транзакций."""
-
 from datetime import datetime
 
 from pydantic import BaseModel

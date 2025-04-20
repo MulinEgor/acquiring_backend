@@ -1,5 +1,3 @@
-"""Модуль для маршрутов проверки состояния работы API."""
-
 from fastapi import APIRouter, status
 
 from src.apps.healthcheck.schemas import HealthCheckSchema

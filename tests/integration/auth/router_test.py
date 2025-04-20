@@ -1,5 +1,3 @@
-"""Модуль для тестирования роутера auth_router."""
-
 import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,8 +13,6 @@ from tests.integration.conftest import BaseTestRouter
 
 
 class TestAuthRouter(BaseTestRouter):
-    """Класс для тестирования роутера auth_router."""
-
     router = auth_router
 
     # MARK: Login
@@ -25,8 +21,6 @@ class TestAuthRouter(BaseTestRouter):
         router_client: httpx.AsyncClient,
         session: AsyncSession,
     ):
-        """Проверка авторизации пользователя без 2FA."""
-
         email, password = faker.email(), faker.password()
         await UserRepository.create(
             session=session,
@@ -59,8 +53,6 @@ class TestAuthRouter(BaseTestRouter):
     async def test_login_with_2fa(
         self, router_client: httpx.AsyncClient, session: AsyncSession, mocker
     ):
-        """Проверка авторизации пользователя с 2FA, должен вернуться словарь."""
-
         mocker.patch(
             "src.apps.auth.services.auth_service.AuthService._send_2fa_code",
             return_value={
@@ -100,8 +92,6 @@ class TestAuthRouter(BaseTestRouter):
         user_db_2fa: UserModel,
         mocker,
     ):
-        """Проверка подтверждения авторизации пользователя с 2FA."""
-
         mocker.patch(
             "src.apps.auth.services.auth_service.AuthService._check_and_delete_2fa_code",
             return_value=None,
@@ -130,8 +120,6 @@ class TestAuthRouter(BaseTestRouter):
         user_db_2fa: UserModel,
         mocker,
     ):
-        """Проверка включения 2FA, если 2FA уже включено."""
-
         mocker.patch(
             "src.apps.auth.services.auth_service.AuthService._check_and_delete_2fa_code",
             return_value=None,
@@ -157,8 +145,6 @@ class TestAuthRouter(BaseTestRouter):
         user_db: UserModel,
         mocker,
     ):
-        """Проверка включения 2FA, если 2FA еще не включено."""
-
         mocker.patch(
             "src.apps.auth.services.auth_service.AuthService._check_and_delete_2fa_code",
             return_value=None,
@@ -183,8 +169,6 @@ class TestAuthRouter(BaseTestRouter):
         router_client: httpx.AsyncClient,
         user_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Проверка обновления токенов."""
-
         schema = auth_schemas.JWTRefreshSchema(
             refresh_token=user_jwt_tokens.refresh_token
         )

@@ -1,5 +1,3 @@
-"""Тесты для роутера transactions_router."""
-
 import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,8 +14,6 @@ from tests.integration.conftest import BaseTestRouter
 
 
 class TestTransactionsRouter(BaseTestRouter):
-    """Класс для тестирования роутера."""
-
     router = transactions_router
 
     # MARK: Get
@@ -28,8 +24,6 @@ class TestTransactionsRouter(BaseTestRouter):
         merchant_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
     ):
-        """Получение транзакции."""
-
         response = await router_client.get(
             f"/transactions/{transaction_db.id}",
             headers={constants.AUTH_HEADER_NAME: merchant_jwt_tokens.access_token},
@@ -39,16 +33,16 @@ class TestTransactionsRouter(BaseTestRouter):
 
         schema = transaction_schemas.TransactionGetSchema(**response.json())
 
-        transaction_db = await TransactionRepository.get_one_or_none(
+        fetched_transaction_db = await TransactionRepository.get_one_or_none(
             session=session,
             id=schema.id,
         )
 
-        assert transaction_db is not None
-        assert transaction_db.merchant_id == transaction_db.merchant_id
-        assert transaction_db.amount == transaction_db.amount
-        assert transaction_db.type == transaction_db.type
-        assert transaction_db.payment_method == transaction_db.payment_method
+        assert fetched_transaction_db is not None
+        assert fetched_transaction_db.merchant_id == transaction_db.merchant_id
+        assert fetched_transaction_db.amount == transaction_db.amount
+        assert fetched_transaction_db.type == transaction_db.type
+        assert fetched_transaction_db.payment_method == transaction_db.payment_method
 
     async def test_get_transaction_not_mine(
         self,
@@ -56,8 +50,6 @@ class TestTransactionsRouter(BaseTestRouter):
         transaction_db: TransactionModel,
         trader_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Получение не своей транзакции."""
-
         response = await router_client.get(
             f"/transactions/{transaction_db.id}",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
@@ -71,8 +63,6 @@ class TestTransactionsRouter(BaseTestRouter):
         transaction_db: TransactionModel,
         merchant_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Получение всех транзакций мерчанта без пагинации и фильтрации."""
-
         response = await router_client.get(
             "/transactions",
             headers={constants.AUTH_HEADER_NAME: merchant_jwt_tokens.access_token},
@@ -92,8 +82,6 @@ class TestTransactionsRouter(BaseTestRouter):
         transaction_db: TransactionModel,
         merchant_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Получение всех транзакций с пагинацией и фильтрацией."""
-
         query_params = transaction_schemas.TransactionPaginationSchema(
             min_amount=transaction_db.amount - 100,
         )

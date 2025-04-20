@@ -1,5 +1,3 @@
-"""Модуль для сервиса с разрешениями пользователей."""
-
 from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError

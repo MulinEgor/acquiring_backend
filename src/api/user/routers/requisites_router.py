@@ -1,5 +1,3 @@
-"""Модуль для роутера трейдера для работы с реквизитами."""
-
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 

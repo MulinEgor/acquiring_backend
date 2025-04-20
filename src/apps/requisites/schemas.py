@@ -1,5 +1,3 @@
-"""Модуль для Pydanitc схем реквизитов."""
-
 from pydantic import BaseModel, Field, model_validator
 
 from src.lib.base.schemas import DataListGetBaseSchema, PaginationBaseSchema

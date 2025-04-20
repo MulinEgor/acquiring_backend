@@ -1,5 +1,3 @@
-"""Модуль для репозитория транзакций на блокчейне."""
-
 from typing import Tuple
 
 from sqlalchemy import Select, select

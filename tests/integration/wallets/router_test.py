@@ -1,5 +1,3 @@
-"""Модуль для тестирования роутера wallets_router."""
-
 import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,8 +12,6 @@ from tests.integration.conftest import BaseTestRouter
 
 
 class TestWalletsRouter(BaseTestRouter):
-    """Класс для тестирования роутера."""
-
     router = wallets_router
 
     # MARK: Post
@@ -26,8 +22,6 @@ class TestWalletsRouter(BaseTestRouter):
         wallet_create_data: wallet_schemas.WalletCreateSchema,
         mocker,
     ):
-        """Создание кошелька."""
-
         mocker.patch(
             "src.apps.blockchain.services.tron_service.TronService.does_wallet_exist",
             return_value=True,
@@ -52,8 +46,6 @@ class TestWalletsRouter(BaseTestRouter):
         wallet_db: WalletModel,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Получение кошелька по адресу."""
-
         response = await router_client.get(
             url=f"/wallets/{wallet_db.address}",
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
@@ -72,8 +64,6 @@ class TestWalletsRouter(BaseTestRouter):
         session: AsyncSession,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Получение списка кошельков без учета фильтрации."""
-
         response = await router_client.get(
             url="/wallets",
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
@@ -91,8 +81,6 @@ class TestWalletsRouter(BaseTestRouter):
         wallet_db: WalletModel,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Получение списка кошельков с учетом фильтрации."""
-
         params = wallet_schemas.WalletPaginationSchema(address=wallet_db.address)
 
         response = await router_client.get(
@@ -115,8 +103,6 @@ class TestWalletsRouter(BaseTestRouter):
         session: AsyncSession,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Удаление кошелька по адресу."""
-
         response = await router_client.delete(
             url=f"/wallets/{wallet_db.address}",
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},

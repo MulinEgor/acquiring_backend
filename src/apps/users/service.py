@@ -1,5 +1,3 @@
-"""Модуль для сервиса пользователей."""
-
 from loguru import logger
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession

@@ -1,5 +1,3 @@
-"""Модуль для сервиса для работы с мерчантами."""
-
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 

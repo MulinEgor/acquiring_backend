@@ -1,5 +1,3 @@
-"""Основной модуль `conftest` для всех тестов."""
-
 import asyncio
 import sys
 from typing import AsyncGenerator
@@ -170,8 +168,6 @@ async def mock_redis(mocker):
 # MARK: Permissions
 @pytest_asyncio.fixture
 async def permission_db(session: AsyncSession) -> PermissionModel:
-    """Добавить разрешение в БД."""
-
     permission = PermissionModel(
         name=faker.word(),
     )
@@ -183,8 +179,6 @@ async def permission_db(session: AsyncSession) -> PermissionModel:
 
 @pytest.fixture
 def permission_create_data() -> permission_schemas.PermissionCreateSchema:
-    """Подготовленные данные для создания разрешения в БД."""
-
     return permission_schemas.PermissionCreateSchema(
         name=faker.word(),
     )
@@ -193,8 +187,6 @@ def permission_create_data() -> permission_schemas.PermissionCreateSchema:
 # MARK: Users
 @pytest_asyncio.fixture
 async def user_db(session: AsyncSession) -> UserModel:
-    """Добавить пользователя в БД."""
-
     user_db = UserModel(
         email=faker.email(),
         hashed_password=HashService.generate(faker.password()),
@@ -231,8 +223,6 @@ async def user_db(session: AsyncSession) -> UserModel:
 
 @pytest_asyncio.fixture
 async def user_db_2fa(session: AsyncSession, user_db: UserModel) -> UserModel:
-    """Добавить пользователя в БД с 2FA."""
-
     user_db.is_2fa_enabled = True
     await session.commit()
 
@@ -243,8 +233,6 @@ async def user_db_2fa(session: AsyncSession, user_db: UserModel) -> UserModel:
 async def user_admin_db(
     session: AsyncSession,
 ) -> UserModel:
-    """Добавить пользователя-администратора в БД."""
-
     user_admin_db = UserModel(
         email=faker.email(),
         hashed_password=HashService.generate(faker.password()),
@@ -275,8 +263,6 @@ async def user_admin_db(
 async def user_trader_db_with_sbp(
     session: AsyncSession,
 ) -> UserModel:
-    """Добавить пользователя-трейдера в БД."""
-
     user_trader_db_with_sbp = UserModel(
         email=faker.email(),
         hashed_password=HashService.generate(faker.password()),
@@ -340,8 +326,6 @@ async def user_trader_db_with_card(
     session: AsyncSession,
     user_trader_db_with_sbp: UserModel,
 ) -> UserModel:
-    """Добавить пользователя-трейдера в БД."""
-
     old_requisite_db = await RequisiteRepository.get_one_or_none(
         session=session,
         user_id=user_trader_db_with_sbp.id,
@@ -366,8 +350,6 @@ async def user_trader_db_with_card(
 async def user_merchant_db(
     session: AsyncSession,
 ) -> UserModel:
-    """Добавить пользователя-мерчанта в БД."""
-
     user_merchant_db = UserModel(
         email=faker.email(),
         hashed_password=HashService.generate(faker.password()),
@@ -406,11 +388,6 @@ async def user_merchant_db(
 def user_create_data(
     permission_db: PermissionModel,
 ) -> user_schemas.UserCreateSchema:
-    """
-    Подготовленные данные для создания
-    пользователя в БД администратором.
-    """
-
     return user_schemas.UserCreateSchema(
         email=faker.email(),
         permissions_ids=[permission_db.id],
@@ -419,11 +396,6 @@ def user_create_data(
 
 @pytest.fixture
 def user_update_data() -> user_schemas.UserUpdateSchema:
-    """
-    Подготовленные данные для обновления
-    пользователя в БД администратором.
-    """
-
     return user_schemas.UserUpdateSchema(
         email=faker.email(),
         password=faker.password(),
@@ -433,15 +405,11 @@ def user_update_data() -> user_schemas.UserUpdateSchema:
 # MARK: JWT tokens
 @pytest_asyncio.fixture
 async def user_jwt_tokens(user_db: UserModel) -> auth_schemas.JWTGetSchema:
-    """Создать JWT токены  для тестового пользователя."""
-
     return await JWTService.create_tokens(user_id=user_db.id)
 
 
 @pytest_asyncio.fixture
 async def admin_jwt_tokens(user_admin_db: UserModel) -> auth_schemas.JWTGetSchema:
-    """Создать JWT токены  для тестового пользователя-администратора."""
-
     return await JWTService.create_tokens(user_id=user_admin_db.id)
 
 
@@ -449,23 +417,17 @@ async def admin_jwt_tokens(user_admin_db: UserModel) -> auth_schemas.JWTGetSchem
 async def trader_jwt_tokens(
     user_trader_db_with_sbp: UserModel,
 ) -> auth_schemas.JWTGetSchema:
-    """Создать JWT токены  для тестового пользователя-трейдера."""
-
     return await JWTService.create_tokens(user_id=user_trader_db_with_sbp.id)
 
 
 @pytest_asyncio.fixture
 async def merchant_jwt_tokens(user_merchant_db: UserModel) -> auth_schemas.JWTGetSchema:
-    """Создать JWT токены  для тестового пользователя-мерчанта."""
-
     return await JWTService.create_tokens(user_id=user_merchant_db.id)
 
 
 # MARK: Wallets
 @pytest_asyncio.fixture
 async def wallet_db(session: AsyncSession) -> WalletModel:
-    """Добавить кошелек в БД."""
-
     wallet = WalletModel(
         address="*" * 42,  # тестовая строка с нужной длинойs
         private_key="*" * 66,  # тестовая строка с нужной длиной
@@ -478,8 +440,6 @@ async def wallet_db(session: AsyncSession) -> WalletModel:
 
 @pytest.fixture
 def wallet_create_data() -> wallet_schemas.WalletCreateSchema:
-    """Подготовленные данные для создания кошелька в БД."""
-
     return wallet_schemas.WalletCreateSchema(
         address="*" * 42,  # тестовая строка с нужной длинойs
         private_key="*" * 66,  # тестовая строка с нужной длиной
@@ -492,8 +452,6 @@ async def blockchain_transaction_db(
     session: AsyncSession,
     user_trader_db_with_sbp: UserModel,
 ) -> BlockchainTransactionModel:
-    """Добавить транзакцию в БД."""
-
     transaction = BlockchainTransactionModel(
         user_id=user_trader_db_with_sbp.id,
         to_address="*" * 42,  # тестовая строка с нужной длиной
@@ -512,8 +470,6 @@ async def blockchain_transaction_pay_out_db(
     session: AsyncSession,
     user_trader_db_with_sbp: UserModel,
 ) -> BlockchainTransactionModel:
-    """Добавить транзакцию в БД."""
-
     transaction = BlockchainTransactionModel(
         user_id=user_trader_db_with_sbp.id,
         from_address="*" * 42,  # тестовая строка с нужной длиной
@@ -533,8 +489,6 @@ async def transaction_db(
     session: AsyncSession,
     user_merchant_db: UserModel,
 ) -> TransactionModel:
-    """Добавить транзакцию в БД."""
-
     transaction_db = TransactionModel(
         merchant_id=user_merchant_db.id,
         amount=100,
@@ -553,8 +507,6 @@ async def transaction_merchant_pay_in_db(
     user_merchant_db: UserModel,
     user_trader_db_with_sbp: UserModel,
 ) -> TransactionModel:
-    """Добавить транзакцию в БД, которую обрабатывает трейдер."""
-
     transaction_db = TransactionModel(
         merchant_id=user_merchant_db.id,
         trader_id=user_trader_db_with_sbp.id,
@@ -576,8 +528,6 @@ async def transaction_merchant_pay_out_db(
     user_trader_db_with_sbp: UserModel,
     requisite_card_merchant_db: RequisiteModel,
 ) -> TransactionModel:
-    """Добавить транзакцию в БД, которую обрабатывает трейдер."""
-
     transaction_db = TransactionModel(
         merchant_id=user_merchant_db.id,
         trader_id=user_trader_db_with_sbp.id,
@@ -599,8 +549,6 @@ async def transaction_merchant_pending_pay_in_db(
     user_merchant_db: UserModel,
     user_trader_db_with_sbp: UserModel,
 ) -> TransactionModel:
-    """Добавить транзакцию в БД, которую обрабатывает трейдер."""
-
     transaction_db = TransactionModel(
         merchant_id=user_merchant_db.id,
         trader_id=user_trader_db_with_sbp.id,
@@ -641,8 +589,6 @@ def transaction_create_data(
 def transaction_update_data(
     user_trader_db_with_sbp: UserModel,
 ) -> transaction_schemas.TransactionUpdateSchema:
-    """Подготовленные данные для обновления транзакции в БД."""
-
     return transaction_schemas.TransactionUpdateSchema(
         merchant_id=user_trader_db_with_sbp.id,
     )
@@ -654,8 +600,6 @@ async def requisite_trader_db(
     session: AsyncSession,
     user_trader_db_with_sbp: UserModel,
 ) -> RequisiteModel:
-    """Добавить реквизит в БД."""
-
     return await RequisiteRepository.create(
         session=session,
         obj_in={
@@ -670,8 +614,6 @@ async def requisite_trader_db(
 
 @pytest.fixture
 def requisite_trader_create_data() -> requisite_schemas.RequisiteCreateSchema:
-    """Подготовленные данные для создания реквизита в БД."""
-
     return requisite_schemas.RequisiteCreateSchema(
         full_name=faker.word(),
         phone_number=faker.word(),
@@ -683,8 +625,6 @@ def requisite_trader_create_data() -> requisite_schemas.RequisiteCreateSchema:
 def requisite_admin_create_data(
     user_trader_db_with_sbp: UserModel,
 ) -> requisite_schemas.RequisiteCreateAdminSchema:
-    """Подготовленные данные для создания реквизита в БД администратором."""
-
     return requisite_schemas.RequisiteCreateAdminSchema(
         user_id=user_trader_db_with_sbp.id,
         full_name=faker.word(),
@@ -695,8 +635,6 @@ def requisite_admin_create_data(
 
 @pytest.fixture
 def requisite_trader_update_data() -> requisite_schemas.RequisiteUpdateSchema:
-    """Подготовленные данные для обновления реквизита в БД."""
-
     return requisite_schemas.RequisiteUpdateSchema(
         full_name=faker.word(),
     )
@@ -706,8 +644,6 @@ def requisite_trader_update_data() -> requisite_schemas.RequisiteUpdateSchema:
 def requisite_admin_update_data(
     user_admin_db: UserModel,
 ) -> requisite_schemas.RequisiteUpdateAdminSchema:
-    """Подготовленные данные для обновления реквизита в БД администратором."""
-
     return requisite_schemas.RequisiteUpdateAdminSchema(
         user_id=user_admin_db.id,
         full_name=faker.word(),
@@ -719,8 +655,6 @@ async def requisite_card_merchant_db(
     session: AsyncSession,
     user_merchant_db: UserModel,
 ) -> RequisiteModel:
-    """Добавить реквизит в БД."""
-
     return await RequisiteRepository.create(
         session=session,
         obj_in={
@@ -738,8 +672,6 @@ async def dispute_db(
     session: AsyncSession,
     transaction_merchant_pay_in_db: TransactionModel,
 ) -> DisputeModel:
-    """Добавить диспут в БД."""
-
     return await DisputeRepository.create(
         session=session,
         obj_in=dispute_schemas.DisputeCreateSchema(
@@ -754,8 +686,6 @@ async def dispute_db(
 def dispute_create_data(
     transaction_merchant_pay_in_db: TransactionModel,
 ) -> dispute_schemas.DisputeCreateSchema:
-    """Подготовленные данные для создания диспута в БД."""
-
     return dispute_schemas.DisputeCreateSchema(
         transaction_id=transaction_merchant_pay_in_db.id,
         description=faker.word(),
@@ -767,8 +697,6 @@ def dispute_create_data(
 def dispute_update_data(
     user_trader_db_with_sbp: UserModel,
 ) -> dispute_schemas.DisputeUpdateSchema:
-    """Подготовленные данные для обновления диспута в БД."""
-
     return dispute_schemas.DisputeUpdateSchema(
         accept=False,
         description=faker.word(),
@@ -779,8 +707,6 @@ def dispute_update_data(
 def dispute_support_update_data(
     user_trader_db_with_sbp: UserModel,
 ) -> dispute_schemas.DisputeSupportUpdateSchema:
-    """Подготовленные данные для обновления диспута в БД суппортом."""
-
     return dispute_schemas.DisputeSupportUpdateSchema(
         winner_id=user_trader_db_with_sbp.id,
     )
@@ -791,8 +717,6 @@ def dispute_support_update_data(
 async def notification_db(
     session: AsyncSession, user_db: UserModel
 ) -> NotificationModel:
-    """Добавить уведомление в БД."""
-
     return await NotificationRepository.create(
         session=session,
         obj_in=notification_schemas.NotificationCreateSchema(
@@ -806,8 +730,6 @@ async def notification_db(
 def notification_create_data(
     user_db: UserModel,
 ) -> notification_schemas.NotificationCreateSchema:
-    """Подготовленные данные для создания уведомления в БД."""
-
     return notification_schemas.NotificationCreateSchema(
         user_id=user_db.id,
         message=faker.word(),

@@ -1,5 +1,3 @@
-"""Модуль для моделей SQLAlchemy для связи пользователей и разрешений."""
-
 import datetime
 
 from sqlalchemy import TIMESTAMP, ForeignKey

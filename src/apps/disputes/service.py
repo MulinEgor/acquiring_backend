@@ -1,5 +1,3 @@
-"""Модуль для сервисов диспутов."""
-
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,7 +20,7 @@ class DisputeService(
         DisputeModel,
         schemas.DisputeCreateSchema,
         schemas.DisputeGetSchema,
-        schemas.DisputeSupportPaginationSchema,
+        schemas.DisputeSupportPaginationSchema | schemas.DisputePaginationSchema,
         schemas.DisputeListSchema,
         schemas.DisputeSupportUpdateSchema,
     ],

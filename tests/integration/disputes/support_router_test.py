@@ -1,5 +1,3 @@
-"""Модуль для тестирования роутера disputes_router."""
-
 import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,8 +13,6 @@ from tests.integration.conftest import BaseTestRouter
 
 
 class TestSupportDisputesRouter(BaseTestRouter):
-    """Класс для тестирования роутера суппорта."""
-
     router = disputes_router
 
     async def test_update_dispute_by_support(
@@ -27,8 +23,6 @@ class TestSupportDisputesRouter(BaseTestRouter):
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
     ):
-        """Обновление диспута суппортом."""
-
         response = await router_client.put(
             url=f"/support/disputes/{dispute_db.id}",
             json=dispute_support_update_data.model_dump(),
@@ -37,13 +31,15 @@ class TestSupportDisputesRouter(BaseTestRouter):
 
         assert response.status_code == status.HTTP_202_ACCEPTED
 
-        dispute_db = await DisputeRepository.get_one_or_none(
+        updated_dispute_db = await DisputeRepository.get_one_or_none(
             session=session, id=dispute_db.id
         )
-        assert dispute_db.status == DisputeStatusEnum.CLOSED
+        assert updated_dispute_db is not None
+        assert updated_dispute_db.status == DisputeStatusEnum.CLOSED
 
         assert dispute_db.winner_id == dispute_support_update_data.winner_id
         trader_db = await UserRepository.get_one_or_none(
             session=session, id=dispute_db.winner_id
         )
+        assert trader_db is not None
         assert trader_db.amount_frozen < dispute_db.transaction.amount

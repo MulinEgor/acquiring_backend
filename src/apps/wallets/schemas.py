@@ -1,5 +1,3 @@
-"""Модуль для работы с схемами кошельков."""
-
 from datetime import datetime
 
 from pydantic import BaseModel, Field

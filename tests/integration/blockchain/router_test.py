@@ -1,5 +1,3 @@
-"""Модуль для тестирования blockchain_router."""
-
 import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,8 +14,6 @@ from tests.integration.conftest import BaseTestRouter
 
 
 class TestBlockchainTransactionsRouter(BaseTestRouter):
-    """Класс для тестирования роутера."""
-
     router = blockchain_transactions_router
 
     # MARK: Get
@@ -27,8 +23,6 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
         blockchain_transaction_db: BlockchainTransactionModel,
         trader_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Тест на получение транзакции по ID."""
-
         response = await router_client.get(
             f"/blockchain-transactions/{blockchain_transaction_db.id}",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
@@ -45,8 +39,6 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
         blockchain_transaction_db: BlockchainTransactionModel,
         trader_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """Тест на получение транзакции по ID, которого не существует."""
-
         response = await router_client.get(
             f"/blockchain-transactions/{blockchain_transaction_db.id + 1}",
             headers={constants.AUTH_HEADER_NAME: trader_jwt_tokens.access_token},
@@ -61,11 +53,6 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
         trader_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
     ):
-        """
-        Тест на получение транзакций для текущего пользователя,
-        для которого есть транзакции.
-        """
-
         query_params = blockchain_schemas.TransactionPaginationSchema(
             from_address=blockchain_transaction_db.from_address,
             max_amount=blockchain_transaction_db.amount,
@@ -101,11 +88,6 @@ class TestBlockchainTransactionsRouter(BaseTestRouter):
         blockchain_transaction_db: BlockchainTransactionModel,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
     ):
-        """
-        Тест на получение всех транзакций для текущего пользователя,
-        которому не принадлежат никакие транзакции.
-        """
-
         query_params = blockchain_schemas.TransactionPaginationSchema(
             from_address=blockchain_transaction_db.from_address,
             max_amount=blockchain_transaction_db.amount,

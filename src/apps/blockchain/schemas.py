@@ -1,5 +1,3 @@
-"""Модуль для Pydantic схем транзакций на блокчейне."""
-
 from datetime import datetime
 
 from pydantic import BaseModel
