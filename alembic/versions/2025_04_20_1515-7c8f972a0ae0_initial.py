@@ -1,8 +1,8 @@
 """initial
 
-Revision ID: c5641c157f61
+Revision ID: 7c8f972a0ae0
 Revises:
-Create Date: 2025-04-01 08:15:31.615262+00:00
+Create Date: 2025-04-20 15:15:38.777580+00:00
 
 """
 
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "c5641c157f61"
+revision: str = "7c8f972a0ae0"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -37,53 +37,25 @@ def upgrade() -> None:
         sa.UniqueConstraint("name", name=op.f("permissions_name_key")),
     )
     op.create_table(
+        "sms_regex",
+        sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column("sender", sa.String(), nullable=False),
+        sa.Column("regex", sa.String(), nullable=False),
+        sa.Column("created_at", sa.TIMESTAMP(timezone=True), nullable=False),
+        sa.Column("updated_at", sa.TIMESTAMP(timezone=True), nullable=False),
+        sa.PrimaryKeyConstraint("id", name=op.f("sms_regex_pkey")),
+        sa.UniqueConstraint("sender", name=op.f("sms_regex_sender_key")),
+    )
+    op.create_table(
         "users",
-        sa.Column(
-            "id",
-            sa.Integer(),
-            autoincrement=True,
-            nullable=False,
-            comment="Уникальный идентификатор пользователя.",
-        ),
-        sa.Column(
-            "email",
-            sa.String(),
-            nullable=False,
-            comment="Электронная почта пользователя.",
-        ),
-        sa.Column(
-            "hashed_password",
-            sa.String(),
-            nullable=False,
-            comment="Хэшированный пароль пользователя.",
-        ),
-        sa.Column(
-            "priority",
-            sa.Integer(),
-            nullable=False,
-            comment="Приоритет трейдера.",
-        ),
-        sa.Column(
-            "balance", sa.Integer(), nullable=False, comment="Баланс пользователя."
-        ),
-        sa.Column(
-            "amount_frozen",
-            sa.Integer(),
-            nullable=False,
-            comment="Замороженные средства пользователя.",
-        ),
-        sa.Column(
-            "is_active",
-            sa.Boolean(),
-            nullable=False,
-            comment="Применяется для трейдера, а именно находится ли он в работе.",
-        ),
-        sa.Column(
-            "is_2fa_enabled",
-            sa.Boolean(),
-            nullable=False,
-            comment="Является ли 2FA включенным.",
-        ),
+        sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column("email", sa.String(), nullable=False),
+        sa.Column("hashed_password", sa.String(), nullable=False),
+        sa.Column("balance", sa.Integer(), nullable=False),
+        sa.Column("amount_frozen", sa.Integer(), nullable=False),
+        sa.Column("priority", sa.Integer(), nullable=False),
+        sa.Column("is_active", sa.Boolean(), nullable=False),
+        sa.Column("is_2fa_enabled", sa.Boolean(), nullable=False),
         sa.Column(
             "created_at",
             sa.TIMESTAMP(timezone=True),
@@ -268,5 +240,6 @@ def downgrade() -> None:
     op.drop_table("blockchain_transactions")
     op.drop_table("wallets")
     op.drop_table("users")
+    op.drop_table("sms_regex")
     op.drop_table("permissions")
     # ### end Alembic commands ###

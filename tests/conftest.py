@@ -32,6 +32,9 @@ from src.apps.permissions.repository import PermissionRepository
 from src.apps.requisites import schemas as requisite_schemas
 from src.apps.requisites.model import RequisiteModel
 from src.apps.requisites.repository import RequisiteRepository
+from src.apps.sms_regex import schemas as sms_regex_schemas
+from src.apps.sms_regex.model import SmsRegexModel
+from src.apps.sms_regex.repository import SmsRegexRepository
 from src.apps.transactions import schemas as transaction_schemas
 from src.apps.transactions.model import (
     TransactionModel,
@@ -808,4 +811,31 @@ def notification_create_data(
     return notification_schemas.NotificationCreateSchema(
         user_id=user_db.id,
         message=faker.word(),
+    )
+
+
+# MARK: SMS-Regex
+@pytest_asyncio.fixture
+async def sms_regex_db(session: AsyncSession) -> SmsRegexModel:
+    return await SmsRegexRepository.create(
+        session=session,
+        obj_in=sms_regex_schemas.SmsRegexCreateSchema(
+            sender=faker.word(),
+            regex=faker.word(),
+        ),
+    )
+
+
+@pytest.fixture
+def sms_regex_create_data() -> sms_regex_schemas.SmsRegexCreateSchema:
+    return sms_regex_schemas.SmsRegexCreateSchema(
+        sender=faker.word(),
+        regex=faker.word(),
+    )
+
+
+@pytest.fixture
+def sms_regex_update_data() -> sms_regex_schemas.SmsRegexUpdateSchema:
+    return sms_regex_schemas.SmsRegexUpdateSchema(
+        regex=faker.word(),
     )

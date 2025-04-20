@@ -1,5 +1,3 @@
-"""Модуль конфигурации базы данных."""
-
 from sqlalchemy import MetaData, NullPool
 from sqlalchemy.ext.asyncio import (
     AsyncAttrs,

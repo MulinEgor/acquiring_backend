@@ -130,6 +130,12 @@ class PermissionEnum(StrEnum):
     UPDATE_NOTIFICATION = "обновить уведомление"
     DELETE_NOTIFICATION = "удалить уведомление"
 
+    # MARK: SMS-Regex
+    CREATE_SMS_REGEX = "создать sms-regex"
+    GET_SMS_REGEX = "получить sms-regex"
+    UPDATE_SMS_REGEX = "обновить sms-regex"
+    DELETE_SMS_REGEX = "удалить sms-regex"
+
 
 # MARK: Redis
 REDIS_EXPIRE_SECONDS: int = 60 * 15  # 15 минут

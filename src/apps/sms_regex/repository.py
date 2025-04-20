@@ -1,0 +1,47 @@
+from typing import Tuple
+
+from sqlalchemy import Select, select
+
+from src.apps.sms_regex import schemas
+from src.apps.sms_regex.model import SmsRegexModel
+from src.lib.base.repository import BaseRepository
+
+
+class SmsRegexRepository(
+    BaseRepository[
+        SmsRegexModel,
+        schemas.SmsRegexCreateSchema,
+        schemas.SmsRegexCreateSchema,
+    ],
+):
+    model = SmsRegexModel
+
+    @classmethod
+    async def get_stmt_by_query(
+        cls,
+        query_params: schemas.SmsRegexPaginationSchema,
+    ) -> Select[Tuple[SmsRegexModel]]:
+        """
+        Создать подготовленное выражение для запроса в БД,
+        применив основные query параметры без учета пагинации,
+        для получения списка sms-regex.
+        """
+
+        stmt = select(cls.model)
+
+        # Фильтрация по текстовым полям.
+        text_filters = {
+            cls.model.sender: query_params.sender,
+            cls.model.regex: query_params.regex,
+        }
+        for field, value in text_filters.items():
+            if value:
+                stmt = stmt.where(field.ilike(f"%{value}%"))
+
+        # Сортировка по дате создания.
+        if not query_params.asc:
+            stmt = stmt.order_by(cls.model.created_at.desc())
+        else:
+            stmt = stmt.order_by(cls.model.created_at)
+
+        return stmt

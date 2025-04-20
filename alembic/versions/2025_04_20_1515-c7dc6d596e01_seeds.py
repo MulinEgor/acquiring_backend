@@ -1,8 +1,8 @@
 """seeds
 
-Revision ID: 0884e577622e
-Revises: c5641c157f61
-Create Date: 2025-04-01 08:15:34.684426+00:00
+Revision ID: c7dc6d596e01
+Revises: 7c8f972a0ae0
+Create Date: 2025-04-20 15:15:41.733074+00:00
 
 """
 
@@ -19,8 +19,8 @@ from src.core import constants
 from src.lib.services.hash_service import HashService
 
 # revision identifiers, used by Alembic.
-revision: str = "0884e577622e"
-down_revision: Union[str, None] = "c5641c157f61"
+revision: str = "c7dc6d596e01"
+down_revision: Union[str, None] = "7c8f972a0ae0"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

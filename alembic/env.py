@@ -7,7 +7,10 @@ from sqlalchemy import engine_from_config, pool
 from alembic import context
 from src.apps.blockchain.model import BlockchainTransactionModel
 from src.apps.disputes.model import DisputeModel
+from src.apps.notifications.model import NotificationModel
 from src.apps.permissions.model import PermissionModel
+from src.apps.requisites.model import RequisiteModel
+from src.apps.sms_regex.model import SmsRegexModel
 from src.apps.transactions.model import TransactionModel
 from src.apps.users.model import UserModel
 from src.apps.users_permissions.model import UsersPermissionsModel
