@@ -7,8 +7,6 @@ from src.core.database import Base
 
 
 class NotificationModel(Base):
-    """Модель уведомлений."""
-
     __tablename__ = "notifications"
 
     id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)

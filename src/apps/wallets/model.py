@@ -7,8 +7,6 @@ from src.core.database import Base
 
 
 class WalletModel(Base):
-    """Модель кошелька."""
-
     __tablename__ = "wallets"
 
     id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)

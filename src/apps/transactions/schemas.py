@@ -11,8 +11,6 @@ from src.lib.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
 
 
 class TransactionCreateSchema(BaseModel):
-    """Схема для создания транзакции."""
-
     merchant_id: int
     amount: int
     payment_method: TransactionPaymentMethodEnum
@@ -20,8 +18,6 @@ class TransactionCreateSchema(BaseModel):
 
 
 class TransactionGetSchema(TransactionCreateSchema):
-    """Схема для получения транзакции."""
-
     id: int
     status: TransactionStatusEnum
     trader_id: int | None = None
@@ -35,14 +31,10 @@ class TransactionGetSchema(TransactionCreateSchema):
 
 
 class TransactionListGetSchema(DataListGetBaseSchema):
-    """Схема для списка транзакций."""
-
     data: list[TransactionGetSchema]
 
 
 class TransactionPaginationSchema(PaginationBaseSchema):
-    """Схема для пагинации транзакций для трейдера и мерчанта."""
-
     min_amount: int | None = None
     max_amount: int | None = None
     status: TransactionStatusEnum | None = None
@@ -52,16 +44,12 @@ class TransactionPaginationSchema(PaginationBaseSchema):
 
 
 class TransactionAdminPaginationSchema(TransactionPaginationSchema):
-    """Схема для пагинации транзакций для админа."""
-
     user_id: int | None = None
     merchant_id: int | None = None
     trader_id: int | None = None
 
 
 class TransactionUpdateSchema(BaseModel):
-    """Схема для обновления транзакции."""
-
     merchant_id: int | None = None
     amount: int | None = None
     payment_method: TransactionPaymentMethodEnum | None = None

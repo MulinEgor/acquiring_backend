@@ -10,8 +10,6 @@ from src.core.database import Base
 
 
 class BlockchainTransactionModel(Base):
-    """Модель транзакции на блокчейне."""
-
     __tablename__ = "blockchain_transactions"
 
     id: Mapped[int] = mapped_column(primary_key=True)

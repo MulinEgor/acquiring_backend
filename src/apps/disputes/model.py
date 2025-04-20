@@ -9,15 +9,11 @@ from src.core.database import Base
 
 
 class DisputeStatusEnum(StrEnum):
-    """Перечисление статусов диспута."""
-
     PENDING = "в процессе рассмотрения"
     CLOSED = "закрыт"
 
 
 class DisputeModel(Base):
-    """Модель диспута."""
-
     __tablename__ = "disputes"
 
     id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)

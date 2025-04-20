@@ -7,8 +7,6 @@ from src.lib.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
 
 
 class TransactionCreateSchema(BaseModel):
-    """Схема для создания транзакции на блокчейне."""
-
     user_id: int
     to_address: str
     from_address: str | None = None
@@ -17,8 +15,6 @@ class TransactionCreateSchema(BaseModel):
 
 
 class TransactionUpdateSchema(BaseModel):
-    """Схема для обновления транзакции на блокчейне."""
-
     hash: str
     from_address: str
     status: TransactionStatusEnum
@@ -26,8 +22,6 @@ class TransactionUpdateSchema(BaseModel):
 
 
 class TransactionGetSchema(BaseModel):
-    """Схема для получения транзакции на блокчейне."""
-
     id: int
     user_id: int
     amount: int
@@ -42,14 +36,10 @@ class TransactionGetSchema(BaseModel):
 
 
 class TransactionListSchema(DataListGetBaseSchema):
-    """Схема для списка транзакций на блокчейне."""
-
     data: list[TransactionGetSchema]
 
 
 class TransactionPaginationSchema(PaginationBaseSchema):
-    """Схема для пагинации транзакций на блокчейне."""
-
     hash: str | None = None
     from_address: str | None = None
     to_address: str | None = None

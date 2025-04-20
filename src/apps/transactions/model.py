@@ -10,8 +10,6 @@ from src.core.database import Base
 
 
 class TransactionStatusEnum(StrEnum):
-    """Статус транзакции."""
-
     PENDING = "в процессе обработки"
     FAILED = "не удачна"
     SUCCESS = "успешна"
@@ -19,22 +17,16 @@ class TransactionStatusEnum(StrEnum):
 
 
 class TransactionTypeEnum(str, Enum):
-    """Тип транзакции."""
-
     PAY_IN = "входящая"
     PAY_OUT = "исходящая"
 
 
 class TransactionPaymentMethodEnum(str, Enum):
-    """Способ оплаты транзакции."""
-
     CARD = "карта"
     SBP = "сбп"
 
 
 class TransactionModel(Base):
-    """SQLAlchemy модель транзакций на платформе."""
-
     __tablename__ = "transactions"
 
     id: Mapped[int] = mapped_column(primary_key=True)

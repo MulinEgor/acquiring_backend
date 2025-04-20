@@ -5,8 +5,6 @@ from src.lib.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
 
 # MARK: Trader
 class RequisiteCreateSchema(BaseModel):
-    """Pydanitc схема для создания реквизитов."""
-
     priority: int = 0
     full_name: str
 
@@ -36,8 +34,6 @@ class RequisiteCreateSchema(BaseModel):
 
 
 class RequisiteGetSchema(RequisiteCreateSchema):
-    """Pydanitc схема для получения реквизитов."""
-
     id: int
     user_id: int
 
@@ -46,8 +42,6 @@ class RequisiteGetSchema(RequisiteCreateSchema):
 
 
 class RequisiteUpdateSchema(BaseModel):
-    """Pydanitc схема для обновления реквизитов."""
-
     priority: int | None = None
     full_name: str | None = None
 
@@ -61,14 +55,10 @@ class RequisiteUpdateSchema(BaseModel):
 
 
 class RequisiteListGetSchema(DataListGetBaseSchema):
-    """Pydanitc схема для получения списка реквизитов."""
-
     data: list[RequisiteGetSchema]
 
 
 class RequisitePaginationSchema(PaginationBaseSchema):
-    """Pydanitc схема для пагинации реквизитов."""
-
     priority: int | None = None
     full_name: str | None = None
 
@@ -83,18 +73,12 @@ class RequisitePaginationSchema(PaginationBaseSchema):
 
 # MARK: Admin
 class RequisiteCreateAdminSchema(RequisiteCreateSchema):
-    """Pydanitc схема для создания реквизитов админом."""
-
     user_id: int
 
 
 class RequisiteUpdateAdminSchema(RequisiteUpdateSchema):
-    """Pydanitc схема для обновления реквизитов."""
-
     user_id: int | None = None
 
 
 class RequisitePaginationAdminSchema(RequisitePaginationSchema):
-    """Pydanitc схема для пагинации реквизитов админом."""
-
     user_id: int | None = None

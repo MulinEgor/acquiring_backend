@@ -11,8 +11,6 @@ from src.lib.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
 
 
 class UserGetSchema(BaseModel):
-    """Pydantic схема для получения пользователя."""
-
     id: int
     email: EmailStr
     balance: int
@@ -49,15 +47,11 @@ class UserGetSchema(BaseModel):
 
 
 class UserLoginSchema(BaseModel):
-    """Pydantic схема для авторизации пользователя."""
-
     email: EmailStr
     password: str
 
 
 class UserCreateSchema(BaseModel):
-    """Pydantic схема для создания пользователя."""
-
     email: EmailStr
     priority: int = Field(default=0)
     permissions_ids: list[int]
@@ -70,16 +64,12 @@ class UserCreatedGetSchema(UserGetSchema):
 
 
 class UserCreateRepositorySchema(BaseModel):
-    """Pydantic схема для создания пользователя в БД."""
-
     email: EmailStr
     priority: int
     hashed_password: str
 
 
 class UserUpdateSchema(BaseModel):
-    """Pydantic схема для обновления данных пользователя."""
-
     email: EmailStr | None = None
     password: str | None = None
     priority: int | None = None
@@ -88,8 +78,6 @@ class UserUpdateSchema(BaseModel):
 
 
 class UserUpdateRepositorySchema(BaseModel):
-    """Pydantic схема для обновления данных пользователя в БД."""
-
     email: EmailStr | None = None
     hashed_password: str | None = None
     priority: int | None = None
@@ -97,17 +85,10 @@ class UserUpdateRepositorySchema(BaseModel):
 
 
 class UsersListGetSchema(DataListGetBaseSchema):
-    """Pydantic схема для получения списка пользователя."""
-
     data: list[UserGetSchema]
 
 
 class UsersPaginationSchema(PaginationBaseSchema):
-    """
-    Основная схема query параметров для запроса
-    списка пользователей от имени администратора.
-    """
-
     id: int | None = None
     email: EmailStr | None = None
     priority: int | None = None

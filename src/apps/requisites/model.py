@@ -7,8 +7,6 @@ from src.core.database import Base
 
 
 class RequisiteModel(Base):
-    """SQLAlchemy модель реквизитов."""
-
     __tablename__ = "requisites"
 
     id: Mapped[int] = mapped_column(primary_key=True)

@@ -9,8 +9,6 @@ from src.core.database import Base
 
 
 class UsersPermissionsModel(Base):
-    """Модель для связи пользователей и разрешений."""
-
     __tablename__ = "users_permissions"
 
     user_id: Mapped[int] = mapped_column(

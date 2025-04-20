@@ -13,8 +13,6 @@ from src.core.database import Base
 
 
 class UserModel(Base):
-    """SQLAlchemy модель пользователя."""
-
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(

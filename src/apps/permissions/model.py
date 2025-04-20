@@ -7,8 +7,6 @@ from src.core.database import Base
 
 
 class PermissionModel(Base):
-    """Модель для работы с разрешениями."""
-
     __tablename__ = "permissions"
 
     id: Mapped[int] = mapped_column(
