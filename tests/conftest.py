@@ -744,6 +744,7 @@ async def sms_regex_db(session: AsyncSession) -> SmsRegexModel:
         obj_in=sms_regex_schemas.SmsRegexCreateSchema(
             sender=faker.word(),
             regex=faker.word(),
+            is_card=True,
         ),
     )
 
@@ -753,6 +754,7 @@ def sms_regex_create_data() -> sms_regex_schemas.SmsRegexCreateSchema:
     return sms_regex_schemas.SmsRegexCreateSchema(
         sender=faker.word(),
         regex=faker.word(),
+        is_card=True,
     )
 
 

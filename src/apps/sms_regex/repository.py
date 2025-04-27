@@ -38,6 +38,10 @@ class SmsRegexRepository(
             if value:
                 stmt = stmt.where(field.ilike(f"%{value}%"))
 
+        # Фильтрация по типу.
+        if query_params.is_card is not None:
+            stmt = stmt.where(cls.model.is_card == query_params.is_card)
+
         # Сортировка по дате создания.
         if not query_params.asc:
             stmt = stmt.order_by(cls.model.created_at.desc())
