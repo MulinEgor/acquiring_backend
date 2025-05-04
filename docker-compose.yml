@@ -35,7 +35,8 @@ x-api-base: &api-base
         condition: service_healthy
       redis:
         condition: service_started
-    
+      s3:
+        condition: service_started
 
 services:
   # MARK: DB
@@ -115,7 +116,7 @@ services:
   admin-api:
     container_name: "admin-api"
     <<: *api-base
-    command: granian --interface asgi --reload --host 0.0.0.0 --port 80 src.api.admin.api:api
+    command: uvicorn src.api.admin.api:api --reload --host 0.0.0.0 --port 80 
     ports:
       - 80:80
     expose:
@@ -124,7 +125,7 @@ services:
   user-api:
     container_name: "user-api"
     <<: *api-base
-    command: granian --interface asgi --reload --host 0.0.0.0 --port 81 src.api.user.api:api
+    command: uvicorn src.api.user.api:api --reload --host 0.0.0.0 --port 81
     ports:
       - 81:81
     expose:
