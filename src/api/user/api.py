@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from src.api.admin.routers.sms_regex_router import router as sms_regex_router
 from src.api.common.api import get_api
 from src.api.common.routers.disputes_router import router as disputes_router
 from src.api.user.routers.blockchain_router import (
@@ -37,6 +38,7 @@ def include_routers(api: FastAPI) -> None:
         disputes_router,
         support_dispute_router,
         notifications_router,
+        sms_regex_router,
     ]:
         api.include_router(router)
 

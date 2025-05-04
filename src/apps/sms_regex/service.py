@@ -15,3 +15,5 @@ class SmsRegexService(
     ],
 ):
     repository: SmsRegexRepository = SmsRegexRepository()
+    not_found_exception_message = "Регулярные выражения не найдены."
+    conflict_exception_message = "Возник конфликт при создании регулярного выражения."

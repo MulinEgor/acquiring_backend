@@ -25,6 +25,8 @@ class WalletService(
     """Сервис для работы с кошельками."""
 
     repository = WalletRepository
+    not_found_exception_message = "Кошелки не найдены."
+    conflict_exception_message = "Возник конфликт при создании кошелька."
 
     # MARK: Create
     @classmethod

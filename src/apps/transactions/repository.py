@@ -46,6 +46,7 @@ class TransactionRepository(
         field_to_value = {
             cls.model.payment_method: query_params.payment_method,
             cls.model.type: query_params.type,
+            cls.model.status: query_params.status,
         }
         for field, value in field_to_value.items():
             if value:

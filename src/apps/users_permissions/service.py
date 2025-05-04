@@ -14,6 +14,8 @@ class UsersPermissionsService:
     """Сервис для работы с разрешениями пользователей."""
 
     repository = UsersPermissionsRepository
+    not_found_exception_message = "Разрешения не найдены."
+    conflict_exception_message = "Возник конфликт при создании разрешения."
 
     # MARK: Create
     @classmethod
@@ -59,7 +61,9 @@ class UsersPermissionsService:
             )
 
         except IntegrityError as e:
-            raise exceptions.ConflictException(exc=e)
+            raise exceptions.ConflictException(
+                message=cls.conflict_exception_message, exc=e
+            )
 
     # MARK: Get
     @classmethod

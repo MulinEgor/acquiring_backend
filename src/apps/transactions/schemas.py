@@ -21,7 +21,7 @@ class TransactionGetSchema(TransactionCreateSchema):
     id: int
     status: TransactionStatusEnum
     trader_id: int | None = None
-    trader_requisite_id: int | None = None
+    requisite_id: int | None = None
     expires_at: datetime
     created_at: datetime
     updated_at: datetime

@@ -5,7 +5,7 @@ from src.apps.sms_regex import schemas
 from src.apps.sms_regex.service import SmsRegexService
 from src.core import constants, dependencies
 
-router = APIRouter(prefix="/sms-regex", tags=["SMS-regex"])
+router = APIRouter(prefix="/sms-regex", tags=["Регулярные выражения для SMS"])
 
 
 # MARK: Post

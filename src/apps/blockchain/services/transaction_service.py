@@ -12,6 +12,7 @@ from src.apps.notifications.service import NotificationService
 from src.apps.transactions.model import TransactionStatusEnum, TransactionTypeEnum
 from src.apps.users.repository import UserRepository
 from src.apps.wallets.repository import WalletRepository
+from src.apps.wallets.service import WalletService
 from src.core import constants, exceptions
 from src.lib.base.service import BaseService
 
@@ -29,6 +30,8 @@ class BlockchainTransactionService(
     """Сервис для работы с транзакциями на блокчейне."""
 
     repository = BlockchainTransactionRepository
+    not_found_exception_message = "Блокчейн транзакции не найдены."
+    conflict_exception_message = "Возник конфликт при создании блокчейн транзакции."
 
     @classmethod
     async def get_pending_by_user_id(
@@ -65,20 +68,17 @@ class BlockchainTransactionService(
             status=TransactionStatusEnum.PENDING,
             type=type,
         )
-
         if not transaction_db:
-            raise exceptions.NotFoundException("Транзакций в процессе обработки нет.")
+            raise exceptions.NotFoundException(message=cls.not_found_exception_message)
 
-        elif transaction_db.expires_at < datetime.now():
+        if transaction_db.expires_at < datetime.now():
             await cls.update_status_by_id(
                 session=session,
                 id=transaction_db.id,
                 status=TransactionStatusEnum.FAILED,
             )
 
-            raise exceptions.NotFoundException(
-                "Транзакция в процессе обработки просрочена."
-            )
+            raise exceptions.NotFoundException(message=cls.not_found_exception_message)
 
         return transaction_db
 
@@ -110,7 +110,7 @@ class BlockchainTransactionService(
         )
 
         if not transaction_db:
-            raise exceptions.NotFoundException("Транзакция не найдена.")
+            raise exceptions.NotFoundException(message=cls.not_found_exception_message)
 
         transaction_db.status = status
         await session.commit()
@@ -149,7 +149,7 @@ class BlockchainTransactionService(
         )
 
         if not transaction_db:
-            raise exceptions.NotFoundException("Транзакция не найдена.")
+            raise exceptions.NotFoundException(cls.not_found_exception_message)
 
         err_msgs = []
         if transaction_db.status != TransactionStatusEnum.PENDING:
@@ -166,7 +166,9 @@ class BlockchainTransactionService(
             address=transaction_db.from_address,
         )
         if not wallet_db:
-            raise exceptions.NotFoundException("Кошелек не найден.")
+            raise exceptions.NotFoundException(
+                message=WalletService.not_found_exception_message
+            )
 
         # Создание и подписание транзакции на блокчейне
         hash = await TronService.create_and_sign_transaction(

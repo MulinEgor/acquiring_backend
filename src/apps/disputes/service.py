@@ -28,6 +28,8 @@ class DisputeService(
     """Сервис для работы с диспутами."""
 
     repository = DisputeRepository
+    not_found_exception_message = "Диспуты не найдены."
+    conflict_exception_message = "Возник конфликт при создании диспута."
 
     # MARK: Get
     @classmethod
@@ -59,7 +61,7 @@ class DisputeService(
             id=id,
         )
         if not dispute_db:
-            raise exceptions.NotFoundException("Диспут не найден")
+            raise exceptions.NotFoundException(message=cls.not_found_exception_message)
 
         if user_id:
             transaction_db = await TransactionRepository.get_one_or_none(
@@ -67,13 +69,17 @@ class DisputeService(
                 id=dispute_db.transaction_id,
             )
             if not transaction_db:
-                raise exceptions.NotFoundException("Транзакция не найдена")
+                raise exceptions.NotFoundException(
+                    message=TransactionService.not_found_exception_message
+                )
 
             if (
                 transaction_db.merchant_id != user_id
                 and transaction_db.trader_id != user_id
             ):
-                raise exceptions.NotFoundException("Диспут не принадлежит пользователю")
+                raise exceptions.NotFoundException(
+                    message=cls.not_found_exception_message
+                )
 
         return dispute_db
 
@@ -118,7 +124,9 @@ class DisputeService(
                 "Транзакция должна быть завершена, чтобы создать диспут"
             )
         elif transaction.merchant_id != merchant_db.id:
-            raise exceptions.ConflictException("Эта транзакция не принадлежит вам")
+            raise exceptions.ConflictException(
+                message=TransactionService.not_found_exception_message
+            )
 
         # Изменение статуса транзакции
         transaction.status = TransactionStatusEnum.DISPUTED
@@ -177,16 +185,13 @@ class DisputeService(
 
         Raises:
             NotFoundException: Диспут не найден.
-            ConflictException: Диспут не принадлежит пользователю.
         """
 
         logger.info("Обновление диспута: {}, trader_id: {}", id, trader_db.id)
 
         dispute_db = await cls.repository.get_one_or_none(session=session, id=id)
-        if not dispute_db:
-            raise exceptions.NotFoundException("Диспут не найден")
-        elif dispute_db.transaction.trader_id != trader_db.id:
-            raise exceptions.ConflictException("Этот диспут не принадлежит вам")
+        if not dispute_db or dispute_db.transaction.trader_id != trader_db.id:
+            raise exceptions.NotFoundException(message=cls.not_found_exception_message)
 
         transaction_db = await TransactionRepository.get_one_or_none(
             session=session, id=dispute_db.transaction_id
@@ -258,8 +263,6 @@ class DisputeService(
 
         Raises:
             NotFoundException: Диспут не найден.
-            ConflictException: Диспут не находится в процессе рассмотрения,
-                победитель не является ни трейдером, ни мерчантом.
         """
 
         logger.info(
@@ -267,12 +270,15 @@ class DisputeService(
         )
 
         dispute_db = await cls.repository.get_one_or_none(session=session, id=id)
-        if not dispute_db:
-            raise exceptions.NotFoundException("Диспут не найден")
-        elif dispute_db.status != DisputeStatusEnum.PENDING:
-            raise exceptions.ConflictException(
-                "Диспут не находится в процессе рассмотрения"
+        if (
+            not dispute_db
+            or dispute_db.status != DisputeStatusEnum.PENDING
+            or (
+                data.winner_id != dispute_db.transaction.trader_id
+                and data.winner_id != dispute_db.transaction.merchant_id
             )
+        ):
+            raise exceptions.NotFoundException(message=cls.not_found_exception_message)
 
         transaction_db = await TransactionRepository.get_one_or_none(
             session=session, id=dispute_db.transaction_id
@@ -298,10 +304,6 @@ class DisputeService(
             trader_db.balance -= (
                 transaction_db.amount
                 + transaction_db.amount * constants.TRADER_DISPUTE_PENALTY
-            )
-        else:
-            raise exceptions.ConflictException(
-                "Победитель не является ни трейдером, ни мерчантом"
             )
 
         # Закрытие диспута и транзакции

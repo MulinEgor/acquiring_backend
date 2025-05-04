@@ -21,6 +21,8 @@ class RequisiteService(
     """Сервис для работы с реквизитами."""
 
     repository = RequisiteRepository
+    not_found_exception_message = "Реквизиты не найдены."
+    conflict_exception_message = "Возник конфликт при создании реквизитов."
 
     # MARK: Get
     @classmethod
@@ -49,7 +51,7 @@ class RequisiteService(
         requisite = await super().get_by_id(session, id)
 
         if user and user.id != requisite.user_id:
-            raise exceptions.NotFoundException("Реквизиты не найдены")
+            raise exceptions.NotFoundException(message=cls.not_found_exception_message)
 
         return requisite
 
@@ -83,7 +85,7 @@ class RequisiteService(
         requisite = await super().get_by_id(session, id)
 
         if user and user.id != requisite.user_id:
-            raise exceptions.NotFoundException("Реквизиты не найдены")
+            raise exceptions.NotFoundException(message=cls.not_found_exception_message)
 
         return await super().update(session, id, data)
 
@@ -111,6 +113,6 @@ class RequisiteService(
         requisite = await super().get_by_id(session, id)
 
         if user and user.id != requisite.user_id:
-            raise exceptions.NotFoundException("Реквизиты не найдены")
+            raise exceptions.NotFoundException(message=cls.not_found_exception_message)
 
         await super().delete(session, id)

@@ -33,6 +33,8 @@ class UserService(
     """Сервис для работы с пользователями."""
 
     repository = UserRepository
+    not_found_exception_message = "Пользователи не найдены."
+    conflict_exception_message = "Возник конфликт при создании пользователя."
 
     # MARK: Create
     @classmethod
@@ -64,7 +66,7 @@ class UserService(
             ids=data.permissions_ids,
         ):
             raise exceptions.NotFoundException(
-                message="Какие то разрешения не найдены.",
+                message=PermissionService.not_found_exception_message
             )
 
         # Генерация и хэширование пароля
@@ -96,7 +98,9 @@ class UserService(
             await session.refresh(user)
 
         except IntegrityError as ex:
-            raise exceptions.ConflictException(exc=ex)
+            raise exceptions.ConflictException(
+                message=cls.conflict_exception_message, exc=ex
+            )
 
         return user_schemas.UserCreatedGetSchema(
             **user_schemas.UserGetSchema.model_validate(user).model_dump(),
@@ -138,7 +142,7 @@ class UserService(
             ids=data.permissions_ids,
         ):
             raise exceptions.NotFoundException(
-                message="Какие то разрешения не найдены.",
+                message=PermissionService.not_found_exception_message
             )
 
         hashed_password = None

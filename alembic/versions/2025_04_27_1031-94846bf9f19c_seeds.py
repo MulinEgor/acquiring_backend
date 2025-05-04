@@ -31,6 +31,7 @@ def upgrade() -> None:
     user = UserModel(
         email="admin@gmail.com",
         hashed_password=HashService.generate("admin"),
+        balance=10000,
     )
 
     session.add(user)
@@ -50,7 +51,14 @@ def upgrade() -> None:
         session.add(user_permission)
         session.commit()
 
+    user = UserModel(
+        email="test@gmail.com",
+        hashed_password=HashService.generate("test"),
+    )
+
+    session.add(user)
     session.commit()
+    session.refresh(user)
 
 
 def downgrade() -> None:

@@ -20,6 +20,8 @@ class PermissionService(
     """Сервис для работы с разрешениями."""
 
     repository = PermissionRepository
+    not_found_exception_message = "Разрешения не найдены."
+    conflict_exception_message = "Возник конфликт при создании разрешения."
 
     @classmethod
     async def check_all_exist(

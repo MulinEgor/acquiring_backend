@@ -27,6 +27,8 @@ class TransactionService(
     """Сервис для работы с транзакциями."""
 
     repository = TransactionRepository
+    not_found_exception_message = "Транзакции не найдены."
+    conflict_exception_message = "Возник конфликт при создании транзакции."
 
     # MARK: Get
     @classmethod
@@ -63,7 +65,7 @@ class TransactionService(
         if user_id and (
             transaction.merchant_id != user_id and transaction.trader_id != user_id
         ):
-            raise exceptions.NotFoundException("Транзакция не найдена")
+            raise exceptions.NotFoundException(message=cls.not_found_exception_message)
 
         return transaction
 

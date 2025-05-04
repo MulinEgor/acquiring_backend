@@ -39,12 +39,12 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
 async def get_current_user(
     header_value: str | None = Depends(oauth2_scheme),
     session: AsyncSession = Depends(get_session),
-) -> UserModel:
+) -> UserModel | None:
     """
     Вернуть текущего пользователя, если передан верный `access_token`.
 
     Returns:
-        UserModel: модель пользователя.
+        UserModel | None: модель пользователя.
 
     Raises:
         InvalidTokenException: Невалидный токен `HTTP_401_UNAUTHORIZED`.
@@ -86,7 +86,7 @@ async def get_current_user(
 
 def check_user_permissions(
     permissions: list[constants.PermissionEnum],
-) -> None:
+):
     """
     Декоратор для проверки наличия разрешений у пользователя.
 
@@ -94,15 +94,16 @@ def check_user_permissions(
         permissions: Список разрешений.
 
     Raises:
+        NotAuthorizedException: Пользователь не авторизован.
         ForbiddenException: Пользователь не имеет необходимых разрешений.
     """
 
     async def wrapper(
         user: UserModel | None = Depends(get_current_user),
         session: AsyncSession = Depends(get_session),
-    ):
+    ) -> None:
         if not user:
-            raise exceptions.ForbiddenException()
+            raise exceptions.NotAuthorizedException()
 
         user_permissions = await UsersPermissionsService.get_user_permissions(
             session,

@@ -17,3 +17,5 @@ class NotificationService(
     """Сервис для работы с уведомлениями."""
 
     repository = NotificationRepository
+    not_found_exception_message = "Уведомления не найдены."
+    conflict_exception_message = "Возник конфликт при создании уведомлений."

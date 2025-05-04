@@ -12,11 +12,14 @@ class ConflictException(HTTPException):
 
     def __init__(
         self,
+        message: str | None = None,
         exc: Exception | str | None = None,
     ):
         status_code = status.HTTP_409_CONFLICT
+        if message:
+            self.default_message = message
         if exc:
-            self.default_message += f"Exception: {exc}"
+            self.default_message += f"Исключение: {exc}"
 
         super().__init__(
             status_code=status_code,
@@ -53,6 +56,24 @@ class BadRequestException(HTTPException):
 
     def __init__(self, message: str | None = None):
         status_code = status.HTTP_400_BAD_REQUEST
+
+        super().__init__(
+            status_code=status_code,
+            detail=message or self.default_message,
+        )
+
+
+class NotAuthorizedException(HTTPException):
+    """
+    Основной класс исключений, если пользователь не авторизован.
+
+    Код ответа - `HTTP_403_FORBIDDEN`.
+    """
+
+    default_message = "Вы не авторизованы."
+
+    def __init__(self, message: str | None = None):
+        status_code = status.HTTP_403_FORBIDDEN
 
         super().__init__(
             status_code=status_code,
