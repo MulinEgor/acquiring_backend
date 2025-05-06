@@ -27,12 +27,12 @@ from src.apps.notifications.repository import NotificationRepository
 from src.apps.permissions import schemas as permission_schemas
 from src.apps.permissions.model import PermissionModel
 from src.apps.permissions.repository import PermissionRepository
+from src.apps.regex import schemas as regex_schemas
+from src.apps.regex.model import RegexModel, RegexType
+from src.apps.regex.repository import RegexRepository
 from src.apps.requisites import schemas as requisite_schemas
 from src.apps.requisites.model import RequisiteModel
 from src.apps.requisites.repository import RequisiteRepository
-from src.apps.sms_regex import schemas as sms_regex_schemas
-from src.apps.sms_regex.model import SmsRegexModel
-from src.apps.sms_regex.repository import SmsRegexRepository
 from src.apps.transactions import schemas as transaction_schemas
 from src.apps.transactions.model import (
     TransactionModel,
@@ -736,30 +736,32 @@ def notification_create_data(
     )
 
 
-# MARK: SMS-Regex
+# MARK: Regex
 @pytest_asyncio.fixture
-async def sms_regex_db(session: AsyncSession) -> SmsRegexModel:
-    return await SmsRegexRepository.create(
+async def regex_db(session: AsyncSession) -> RegexModel:
+    return await RegexRepository.create(
         session=session,
-        obj_in=sms_regex_schemas.SmsRegexCreateSchema(
+        obj_in=regex_schemas.RegexCreateSchema(
             sender=faker.word(),
             regex=faker.word(),
             is_card=True,
+            type=RegexType.SMS,
         ),
     )
 
 
 @pytest.fixture
-def sms_regex_create_data() -> sms_regex_schemas.SmsRegexCreateSchema:
-    return sms_regex_schemas.SmsRegexCreateSchema(
+def regex_create_data() -> regex_schemas.RegexCreateSchema:
+    return regex_schemas.RegexCreateSchema(
         sender=faker.word(),
         regex=faker.word(),
         is_card=True,
+        type=RegexType.SMS.value,
     )
 
 
 @pytest.fixture
-def sms_regex_update_data() -> sms_regex_schemas.SmsRegexUpdateSchema:
-    return sms_regex_schemas.SmsRegexUpdateSchema(
+def regex_update_data() -> regex_schemas.RegexUpdateSchema:
+    return regex_schemas.RegexUpdateSchema(
         regex=faker.word(),
     )

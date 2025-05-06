@@ -129,10 +129,10 @@ class PermissionEnum(StrEnum):
     DELETE_NOTIFICATION = "удалить уведомление"
 
     # MARK: SMS-Regex
-    CREATE_SMS_REGEX = "создать sms-regex"
-    GET_SMS_REGEX = "получить sms-regex"
-    UPDATE_SMS_REGEX = "обновить sms-regex"
-    DELETE_SMS_REGEX = "удалить sms-regex"
+    CREATE_REGEX = "создать regex"
+    GET_REGEX = "получить regex"
+    UPDATE_REGEX = "обновить regex"
+    DELETE_REGEX = "удалить regex"
 
 
 # MARK: Redis

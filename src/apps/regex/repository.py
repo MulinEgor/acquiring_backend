@@ -2,25 +2,25 @@ from typing import Tuple
 
 from sqlalchemy import Select, select
 
-from src.apps.sms_regex import schemas
-from src.apps.sms_regex.model import SmsRegexModel
+from src.apps.regex import schemas
+from src.apps.regex.model import RegexModel
 from src.lib.base.repository import BaseRepository
 
 
-class SmsRegexRepository(
+class RegexRepository(
     BaseRepository[
-        SmsRegexModel,
-        schemas.SmsRegexCreateSchema,
-        schemas.SmsRegexCreateSchema,
+        RegexModel,
+        schemas.RegexCreateSchema,
+        schemas.RegexUpdateSchema,
     ],
 ):
-    model = SmsRegexModel
+    model = RegexModel
 
     @classmethod
     async def get_stmt_by_query(
         cls,
-        query_params: schemas.SmsRegexPaginationSchema,
-    ) -> Select[Tuple[SmsRegexModel]]:
+        query_params: schemas.RegexPaginationSchema,
+    ) -> Select[Tuple[RegexModel]]:
         """
         Создать подготовленное выражение для запроса в БД,
         применив основные query параметры без учета пагинации,
@@ -33,6 +33,7 @@ class SmsRegexRepository(
         text_filters = {
             cls.model.sender: query_params.sender,
             cls.model.regex: query_params.regex,
+            cls.model.type: query_params.type,
         }
         for field, value in text_filters.items():
             if value:

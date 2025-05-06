@@ -2,138 +2,141 @@ import httpx
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.admin.routers.sms_regex_router import router as sms_regex_router
+from src.api.admin.routers.regex_router import router as regex_router
 from src.apps.auth import schemas as auth_schemas
-from src.apps.sms_regex import schemas
-from src.apps.sms_regex.model import SmsRegexModel
-from src.apps.sms_regex.repository import SmsRegexRepository
+from src.apps.regex import schemas
+from src.apps.regex.model import RegexModel
+from src.apps.regex.repository import RegexRepository
 from src.core import constants
 from tests.integration.conftest import BaseTestRouter
 
 
-class TestSmsRegexRouter(BaseTestRouter):
-    router = sms_regex_router
+class TestRegexRouter(BaseTestRouter):
+    router = regex_router
 
     # MARK: Post
-    async def test_create_sms_regex(
+    async def test_create_regex(
         self,
         router_client: httpx.AsyncClient,
-        sms_regex_create_data: schemas.SmsRegexCreateSchema,
+        regex_create_data: schemas.RegexCreateSchema,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
         session: AsyncSession,
     ):
         response = await router_client.post(
-            "/sms-regex",
-            json=sms_regex_create_data.model_dump(),
+            "/regex",
+            json={
+                **regex_create_data.model_dump(exclude={"type"}),
+                "type": regex_create_data.type.value,
+            },
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
         )
 
         assert response.status_code == status.HTTP_201_CREATED
 
-        schema = schemas.SmsRegexGetSchema(**response.json())
-        assert schema.sender == sms_regex_create_data.sender
+        schema = schemas.RegexGetSchema(**response.json())
+        assert schema.sender == regex_create_data.sender
 
-        sms_regex_db = await SmsRegexRepository.get_one_or_none(
+        regex_db = await RegexRepository.get_one_or_none(
             session=session,
-            sender=sms_regex_create_data.sender,
+            sender=regex_create_data.sender,
         )
-        assert sms_regex_db is not None
-        assert sms_regex_db.sender == sms_regex_create_data.sender
+        assert regex_db is not None
+        assert regex_db.sender == regex_create_data.sender
 
     # MARK: Get
-    async def test_get_sms_regex_by_id(
+    async def test_get_regex_by_id(
         self,
         router_client: httpx.AsyncClient,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
-        sms_regex_db: SmsRegexModel,
+        regex_db: RegexModel,
     ):
         response = await router_client.get(
-            f"/sms-regex/{sms_regex_db.id}",
+            f"/regex/{regex_db.id}",
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
         )
 
         assert response.status_code == status.HTTP_200_OK
 
-        schema = schemas.SmsRegexGetSchema(**response.json())
-        assert schema.id == sms_regex_db.id
-        assert schema.sender == sms_regex_db.sender
+        schema = schemas.RegexGetSchema(**response.json())
+        assert schema.id == regex_db.id
+        assert schema.sender == regex_db.sender
 
-    async def test_get_all_sms_regex_no_query(
+    async def test_get_all_regex_no_query(
         self,
         router_client: httpx.AsyncClient,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
-        sms_regex_db: SmsRegexModel,
+        regex_db: RegexModel,
     ):
         response = await router_client.get(
-            "/sms-regex",
+            "/regex",
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
         )
 
         assert response.status_code == status.HTTP_200_OK
 
-        schema = schemas.SmsRegexListGetSchema(**response.json())
+        schema = schemas.RegexListGetSchema(**response.json())
 
         assert schema.count >= 1
 
-    async def test_get_all_sms_regex_query(
+    async def test_get_all_regex_query(
         self,
         router_client: httpx.AsyncClient,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
-        sms_regex_db: SmsRegexModel,
+        regex_db: RegexModel,
     ):
-        query_params = schemas.SmsRegexPaginationSchema(sender=sms_regex_db.sender[:2])
+        query_params = schemas.RegexPaginationSchema(sender=regex_db.sender[:2])
 
         response = await router_client.get(
-            "/sms-regex",
+            "/regex",
             params=query_params.model_dump(exclude_unset=True),
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
         )
 
         assert response.status_code == status.HTTP_200_OK
 
-        schema = schemas.SmsRegexListGetSchema(**response.json())
+        schema = schemas.RegexListGetSchema(**response.json())
 
         assert schema.count == 1
-        assert schema.data[0].id == sms_regex_db.id
-        assert schema.data[0].sender == sms_regex_db.sender
+        assert schema.data[0].id == regex_db.id
+        assert schema.data[0].sender == regex_db.sender
 
     # MARK: Put
-    async def test_update_sms_regex(
+    async def test_update_regex(
         self,
         router_client: httpx.AsyncClient,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
-        sms_regex_db: SmsRegexModel,
-        sms_regex_update_data: schemas.SmsRegexUpdateSchema,
+        regex_db: RegexModel,
+        regex_update_data: schemas.RegexUpdateSchema,
     ):
         response = await router_client.put(
-            f"/sms-regex/{sms_regex_db.id}",
-            json=sms_regex_update_data.model_dump(),
+            f"/regex/{regex_db.id}",
+            json=regex_update_data.model_dump(),
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
         )
 
         assert response.status_code == status.HTTP_202_ACCEPTED
 
-        schema = schemas.SmsRegexGetSchema(**response.json())
-        assert schema.id == sms_regex_db.id
-        assert schema.regex == sms_regex_update_data.regex
+        schema = schemas.RegexGetSchema(**response.json())
+        assert schema.id == regex_db.id
+        assert schema.regex == regex_update_data.regex
 
     # MARK: Delete
-    async def test_delete_sms_regex(
+    async def test_delete_regex(
         self,
         router_client: httpx.AsyncClient,
         admin_jwt_tokens: auth_schemas.JWTGetSchema,
-        sms_regex_db: SmsRegexModel,
+        regex_db: RegexModel,
         session: AsyncSession,
     ):
         response = await router_client.delete(
-            f"/sms-regex/{sms_regex_db.id}",
+            f"/regex/{regex_db.id}",
             headers={constants.AUTH_HEADER_NAME: admin_jwt_tokens.access_token},
         )
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
-        deleted_sms_regex_db = await SmsRegexRepository.get_one_or_none(
+        deleted_regex_db = await RegexRepository.get_one_or_none(
             session=session,
-            sender=sms_regex_db.sender,
+            sender=regex_db.sender,
         )
-        assert deleted_sms_regex_db is None
+        assert deleted_regex_db is None

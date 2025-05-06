@@ -2,20 +2,23 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
+from src.apps.regex.model import RegexType
 from src.lib.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
 
 
-class SmsRegexCreateSchema(BaseModel):
+class RegexCreateSchema(BaseModel):
     sender: str
     regex: str
     is_card: bool
+    type: RegexType
 
 
-class SmsRegexGetSchema(BaseModel):
+class RegexGetSchema(BaseModel):
     id: int
     sender: str
     regex: str
     is_card: bool
+    type: RegexType
     created_at: datetime
     updated_at: datetime
 
@@ -23,17 +26,19 @@ class SmsRegexGetSchema(BaseModel):
         from_attributes = True
 
 
-class SmsRegexUpdateSchema(BaseModel):
+class RegexUpdateSchema(BaseModel):
     sender: str | None = None
     regex: str | None = None
     is_card: bool | None = None
+    type: RegexType | None = None
 
 
-class SmsRegexPaginationSchema(PaginationBaseSchema):
+class RegexPaginationSchema(PaginationBaseSchema):
     sender: str | None = None
     regex: str | None = None
     is_card: bool | None = None
+    type: RegexType | None = None
 
 
-class SmsRegexListGetSchema(DataListGetBaseSchema):
-    data: list[SmsRegexGetSchema]
+class RegexListGetSchema(DataListGetBaseSchema):
+    data: list[RegexGetSchema]
