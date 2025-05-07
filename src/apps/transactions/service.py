@@ -11,7 +11,7 @@ from src.apps.transactions.repository import TransactionRepository
 from src.apps.users.model import UserModel
 from src.apps.users.repository import UserRepository
 from src.core import constants, exceptions
-from src.lib.base.service import BaseService
+from src.libs.base.service import BaseService
 
 
 class TransactionService(

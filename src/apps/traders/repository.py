@@ -9,7 +9,7 @@ from src.apps.transactions.model import (
 )
 from src.apps.users.model import UserModel
 from src.apps.users.schemas import user_schemas
-from src.lib.base.repository import BaseRepository
+from src.libs.base.repository import BaseRepository
 
 
 class TraderRepository(

@@ -7,7 +7,7 @@ from pydantic import (
 from src.apps.permissions.schemas import PermissionGetSchema
 from src.apps.requisites.schemas import RequisiteGetSchema
 from src.core.database import Base
-from src.lib.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
+from src.libs.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
 
 
 class UserGetSchema(BaseModel):

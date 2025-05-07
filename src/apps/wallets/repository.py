@@ -4,7 +4,7 @@ from sqlalchemy import Select, select
 
 from src.apps.wallets import schemas
 from src.apps.wallets.model import WalletModel
-from src.lib.base.repository import BaseRepository
+from src.libs.base.repository import BaseRepository
 
 
 class WalletRepository(BaseRepository[WalletModel, schemas.WalletCreateSchema, any]):

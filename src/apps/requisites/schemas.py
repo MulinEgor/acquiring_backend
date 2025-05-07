@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, model_validator
 
-from src.lib.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
+from src.libs.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
 
 
 # MARK: Trader

@@ -15,9 +15,9 @@ from src.apps.users.schemas import pay_schemas, user_schemas
 from src.apps.users_permissions.service import UsersPermissionsService
 from src.apps.wallets.service import WalletService
 from src.core import constants, exceptions
-from src.lib.base.service import BaseService
-from src.lib.services.hash_service import HashService
-from src.lib.services.random_service import RandomService
+from src.libs.base.service import BaseService
+from src.libs.services.hash_service import HashService
+from src.libs.services.random_service import RandomService
 
 
 class UserService(

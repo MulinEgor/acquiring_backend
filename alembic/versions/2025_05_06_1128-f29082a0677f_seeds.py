@@ -16,7 +16,7 @@ from src.apps.permissions.model import PermissionModel
 from src.apps.users.model import UserModel
 from src.apps.users_permissions.model import UsersPermissionsModel
 from src.core import constants
-from src.lib.services.hash_service import HashService
+from src.libs.services.hash_service import HashService
 
 # revision identifiers, used by Alembic.
 revision: str = "f29082a0677f"

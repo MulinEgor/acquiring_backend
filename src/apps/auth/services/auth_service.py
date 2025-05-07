@@ -9,10 +9,10 @@ from src.apps.users.model import UserModel
 from src.apps.users.repository import UserRepository
 from src.apps.users.schemas import user_schemas
 from src.core import constants, exceptions
-from src.lib.services.email_service import EmailService
-from src.lib.services.hash_service import HashService
-from src.lib.services.random_service import RandomService
-from src.lib.services.redis_service import RedisService
+from src.libs.services.email_service import EmailService
+from src.libs.services.hash_service import HashService
+from src.libs.services.random_service import RandomService
+from src.libs.services.redis_service import RedisService
 
 
 class AuthService:

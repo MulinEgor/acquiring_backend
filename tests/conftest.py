@@ -47,7 +47,7 @@ from src.apps.wallets import schemas as wallet_schemas
 from src.apps.wallets.model import WalletModel
 from src.core import constants
 from src.core.settings import settings
-from src.lib.services.hash_service import HashService
+from src.libs.services.hash_service import HashService
 
 faker = Faker()
 
@@ -158,10 +158,10 @@ def output_to_stdout():
 async def mock_redis(mocker):
     """Мокирование Redis."""
 
-    mocker.patch("src.lib.services.redis_service.RedisService.get", return_value=None)
-    mocker.patch("src.lib.services.redis_service.RedisService.set", return_value=None)
+    mocker.patch("src.libs.services.redis_service.RedisService.get", return_value=None)
+    mocker.patch("src.libs.services.redis_service.RedisService.set", return_value=None)
     mocker.patch(
-        "src.lib.services.redis_service.RedisService.delete", return_value=None
+        "src.libs.services.redis_service.RedisService.delete", return_value=None
     )
 
 

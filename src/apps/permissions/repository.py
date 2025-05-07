@@ -4,7 +4,7 @@ from sqlalchemy import Select, select
 
 from src.apps.permissions import schemas
 from src.apps.permissions.model import PermissionModel
-from src.lib.base.repository import BaseRepository
+from src.libs.base.repository import BaseRepository
 
 
 class PermissionRepository(

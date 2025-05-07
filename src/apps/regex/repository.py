@@ -4,7 +4,7 @@ from sqlalchemy import Select, select
 
 from src.apps.regex import schemas
 from src.apps.regex.model import RegexModel
-from src.lib.base.repository import BaseRepository
+from src.libs.base.repository import BaseRepository
 
 
 class RegexRepository(

@@ -1,7 +1,7 @@
 from src.apps.regex import schemas
 from src.apps.regex.model import RegexModel
 from src.apps.regex.repository import RegexRepository
-from src.lib.base.service import BaseService
+from src.libs.base.service import BaseService
 
 
 class RegexService(

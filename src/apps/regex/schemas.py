@@ -3,7 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel
 
 from src.apps.regex.model import RegexType
-from src.lib.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
+from src.libs.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
 
 
 class RegexCreateSchema(BaseModel):

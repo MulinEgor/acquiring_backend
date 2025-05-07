@@ -4,7 +4,7 @@ from sqlalchemy import Select, select
 
 from src.apps.blockchain import schemas
 from src.apps.blockchain.model import BlockchainTransactionModel
-from src.lib.base.repository import BaseRepository
+from src.libs.base.repository import BaseRepository
 
 
 class BlockchainTransactionRepository(

@@ -9,7 +9,7 @@ from src.apps.wallets import schemas
 from src.apps.wallets.model import WalletModel
 from src.apps.wallets.repository import WalletRepository
 from src.core import exceptions
-from src.lib.base.service import BaseService
+from src.libs.base.service import BaseService
 
 
 class WalletService(

@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from src.lib.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
+from src.libs.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
 
 
 class NotificationCreateSchema(BaseModel):

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, File, UploadFile, status
 
 from src.core import constants, dependencies
-from src.lib.services.s3_service import S3Service
+from src.libs.services.s3_service import S3Service
 
 router = APIRouter(prefix="/s3", tags=["S3"])
 

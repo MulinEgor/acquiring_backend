@@ -5,7 +5,7 @@ from sqlalchemy import Select, or_, select
 from src.apps.disputes import schemas
 from src.apps.disputes.model import DisputeModel
 from src.apps.transactions.model import TransactionModel
-from src.lib.base.repository import BaseRepository
+from src.libs.base.repository import BaseRepository
 
 
 class DisputeRepository(

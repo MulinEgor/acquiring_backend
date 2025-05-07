@@ -5,7 +5,7 @@ from src.apps.requisites.model import RequisiteModel
 from src.apps.requisites.repository import RequisiteRepository
 from src.apps.users.model import UserModel
 from src.core import exceptions
-from src.lib.base.service import BaseService
+from src.libs.base.service import BaseService
 
 
 class RequisiteService(

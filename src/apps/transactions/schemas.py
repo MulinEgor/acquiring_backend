@@ -7,7 +7,7 @@ from src.apps.transactions.model import (
     TransactionStatusEnum,
     TransactionTypeEnum,
 )
-from src.lib.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
+from src.libs.base.schemas import DataListGetBaseSchema, PaginationBaseSchema
 
 
 class TransactionCreateSchema(BaseModel):

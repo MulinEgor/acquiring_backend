@@ -8,7 +8,7 @@ from src.apps.transactions.model import (
     TransactionModel,
     TransactionStatusEnum,
 )
-from src.lib.base.repository import BaseRepository
+from src.libs.base.repository import BaseRepository
 
 
 class TransactionRepository(

@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.apps.permissions import schemas
 from src.apps.permissions.model import PermissionModel
 from src.apps.permissions.repository import PermissionRepository
-from src.lib.base.service import BaseService
+from src.libs.base.service import BaseService
 
 
 class PermissionService(

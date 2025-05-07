@@ -4,7 +4,7 @@ from sqlalchemy import Select, select
 
 from src.apps.requisites import schemas
 from src.apps.requisites.model import RequisiteModel
-from src.lib.base.repository import BaseRepository
+from src.libs.base.repository import BaseRepository
 
 
 class RequisiteRepository(

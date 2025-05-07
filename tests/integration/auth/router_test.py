@@ -7,7 +7,7 @@ from src.apps.auth import schemas as auth_schemas
 from src.apps.users.model import UserModel
 from src.apps.users.repository import UserRepository
 from src.apps.users.schemas import user_schemas
-from src.lib.services.hash_service import HashService
+from src.libs.services.hash_service import HashService
 from tests.conftest import faker
 from tests.integration.conftest import BaseTestRouter
 
