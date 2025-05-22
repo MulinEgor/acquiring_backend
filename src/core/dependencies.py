@@ -103,7 +103,7 @@ def check_user_permissions(
         session: AsyncSession = Depends(get_session),
     ) -> None:
         if not user:
-            raise exceptions.NotAuthorizedException()
+            raise auth_exceptions.NotAuthorizedException()
 
         user_permissions = await UsersPermissionsService.get_user_permissions(
             session,
