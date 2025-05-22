@@ -28,8 +28,14 @@ class BaseService(
     """
 
     repository: BaseRepository
-    not_found_exception_message = "Данные не найдены."
-    conflict_exception_message = "Возник конфликт при создании данных."
+    conflict_exception_message, conflict_exception_code = (
+        "Возник конфликт при создании данных.",
+        1001,
+    )
+    not_found_exception_message, not_found_exception_code = (
+        "Данные не найдены.",
+        1002,
+    )
 
     # MARK: Utils
     @classmethod
@@ -92,7 +98,9 @@ class BaseService(
 
         except IntegrityError as ex:
             raise exceptions.ConflictException(
-                message=cls.conflict_exception_message, exc=ex
+                message=cls.conflict_exception_message,
+                code=cls.conflict_exception_code,
+                exc=ex,
             )
 
     # MARK: Get
@@ -230,7 +238,9 @@ class BaseService(
 
         except IntegrityError as ex:
             raise exceptions.ConflictException(
-                message=cls.conflict_exception_message, exc=ex
+                message=cls.conflict_exception_message,
+                code=cls.conflict_exception_code,
+                exc=ex,
             )
 
         schema_class = await cls._get_schema_class_by_type(types.GetSchemaType)

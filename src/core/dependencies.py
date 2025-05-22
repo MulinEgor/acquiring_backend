@@ -5,11 +5,11 @@ from fastapi import Depends
 from fastapi.security import APIKeyHeader
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import src.core.exceptions as exceptions
+import src.apps.auth.exceptions as auth_exceptions
 from src.apps.users.model import UserModel
 from src.apps.users.repository import UserRepository
 from src.apps.users_permissions.service import UsersPermissionsService
-from src.core import constants
+from src.core import constants, exceptions
 from src.core.database import SessionLocal
 from src.core.settings import settings
 
@@ -66,12 +66,12 @@ async def get_current_user(
         )
         user_id = payload.get("id")
         if not user_id:
-            raise exceptions.InvalidTokenException()
+            raise auth_exceptions.InvalidTokenException()
     except Exception as e:
         if isinstance(e, jwt.ExpiredSignatureError):
-            raise exceptions.TokenExpiredException()
+            raise auth_exceptions.TokenExpiredException()
         else:
-            raise exceptions.InvalidTokenException()
+            raise auth_exceptions.InvalidTokenException()
 
     user_db = await UserRepository.get_one_or_none(
         session=session,

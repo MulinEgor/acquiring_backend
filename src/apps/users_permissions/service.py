@@ -4,7 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.permissions.model import PermissionModel
-from src.apps.users_permissions import schemas
+from src.apps.users_permissions import constants, schemas
 from src.apps.users_permissions.model import UsersPermissionsModel
 from src.apps.users_permissions.repository import UsersPermissionsRepository
 from src.core import exceptions
@@ -14,8 +14,14 @@ class UsersPermissionsService:
     """Сервис для работы с разрешениями пользователей."""
 
     repository = UsersPermissionsRepository
-    not_found_exception_message = "Разрешения не найдены."
-    conflict_exception_message = "Возник конфликт при создании разрешения."
+    not_found_exception_message, not_found_exception_code = (
+        constants.NOT_FOUND_EXCEPTION_MESSAGE,
+        constants.NOT_FOUND_EXCEPTION_CODE,
+    )
+    conflict_exception_message, conflict_exception_code = (
+        constants.CONFLICT_EXCEPTION_MESSAGE,
+        constants.CONFLICT_EXCEPTION_CODE,
+    )
 
     # MARK: Create
     @classmethod
@@ -62,7 +68,9 @@ class UsersPermissionsService:
 
         except IntegrityError as e:
             raise exceptions.ConflictException(
-                message=cls.conflict_exception_message, exc=e
+                message=cls.conflict_exception_message,
+                code=cls.conflict_exception_code,
+                exc=e,
             )
 
     # MARK: Get

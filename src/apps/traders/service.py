@@ -52,7 +52,8 @@ class TraderService:
         )
         if not transaction_db:
             raise exceptions.NotFoundException(
-                "Транзакция для пополнения средств не найдена"
+                message=TransactionService.not_found_exception_message,
+                code=TransactionService.not_found_exception_code,
             )
 
         transaction_db.status = TransactionStatusEnum.SUCCESS
@@ -115,7 +116,8 @@ class TraderService:
         )
         if not transaction_db:
             raise exceptions.NotFoundException(
-                "Транзакция для перевода на счет не найдена"
+                message=TransactionService.not_found_exception_message,
+                code=TransactionService.not_found_exception_code,
             )
 
         transaction_db.status = TransactionStatusEnum.SUCCESS

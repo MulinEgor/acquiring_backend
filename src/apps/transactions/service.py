@@ -1,6 +1,7 @@
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.apps.transactions import constants as transaction_constants
 from src.apps.transactions import schemas
 from src.apps.transactions.model import (
     TransactionModel,
@@ -27,8 +28,14 @@ class TransactionService(
     """Сервис для работы с транзакциями."""
 
     repository = TransactionRepository
-    not_found_exception_message = "Транзакции не найдены."
-    conflict_exception_message = "Возник конфликт при создании транзакции."
+    not_found_exception_message, not_found_exception_code = (
+        transaction_constants.NOT_FOUND_EXCEPTION_MESSAGE,
+        transaction_constants.NOT_FOUND_EXCEPTION_CODE,
+    )
+    conflict_exception_message, conflict_exception_code = (
+        transaction_constants.CONFLICT_EXCEPTION_MESSAGE,
+        transaction_constants.CONFLICT_EXCEPTION_CODE,
+    )
 
     # MARK: Get
     @classmethod
@@ -65,7 +72,10 @@ class TransactionService(
         if user_id and (
             transaction.merchant_id != user_id and transaction.trader_id != user_id
         ):
-            raise exceptions.NotFoundException(message=cls.not_found_exception_message)
+            raise exceptions.NotFoundException(
+                message=cls.not_found_exception_message,
+                code=cls.not_found_exception_code,
+            )
 
         return transaction
 
@@ -93,7 +103,10 @@ class TransactionService(
                 id=transaction_db.trader_id,
             )
             if not trader_db:
-                raise exceptions.NotFoundException("Трейдер не найден")
+                raise exceptions.NotFoundException(
+                    message=cls.not_found_exception_message,
+                    code=cls.not_found_exception_code,
+                )
 
         if not merchant_db:
             merchant_db = await UserRepository.get_one_or_none(
@@ -101,7 +114,10 @@ class TransactionService(
                 id=transaction_db.merchant_id,
             )
             if not merchant_db:
-                raise exceptions.NotFoundException("Мерчант не найден")
+                raise exceptions.NotFoundException(
+                    message=cls.not_found_exception_message,
+                    code=cls.not_found_exception_code,
+                )
 
         if transaction_db.type == TransactionTypeEnum.PAY_IN:
             if transaction_db.status == TransactionStatusEnum.SUCCESS:

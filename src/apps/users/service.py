@@ -9,6 +9,7 @@ from src.apps.blockchain.services.transaction_service import (
 from src.apps.blockchain.services.tron_service import TronService
 from src.apps.permissions.service import PermissionService
 from src.apps.transactions.model import TransactionStatusEnum, TransactionTypeEnum
+from src.apps.users import constants as user_constants
 from src.apps.users.model import UserModel
 from src.apps.users.repository import UserRepository
 from src.apps.users.schemas import pay_schemas, user_schemas
@@ -33,8 +34,28 @@ class UserService(
     """Сервис для работы с пользователями."""
 
     repository = UserRepository
-    not_found_exception_message = "Пользователи не найдены."
-    conflict_exception_message = "Возник конфликт при создании пользователя."
+    not_found_exception_message, not_found_exception_code = (
+        user_constants.NOT_FOUND_EXCEPTION_MESSAGE,
+        user_constants.NOT_FOUND_EXCEPTION_CODE,
+    )
+    conflict_exception_message, conflict_exception_code = (
+        user_constants.CONFLICT_EXCEPTION_MESSAGE,
+        user_constants.CONFLICT_EXCEPTION_CODE,
+    )
+    (
+        trader_already_in_that_state_exception_message,
+        trader_already_in_that_state_exception_code,
+    ) = (
+        user_constants.TRADER_ALREADY_IN_THAT_STATE_EXCEPTION_MESSAGE,
+        user_constants.TRADER_ALREADY_IN_THAT_STATE_EXCEPTION_CODE,
+    )
+    (
+        not_enough_funds_exception_message,
+        not_enough_funds_exception_code,
+    ) = (
+        user_constants.NOT_ENOUGH_FUNDS_EXCEPTION_MESSAGE,
+        user_constants.NOT_ENOUGH_FUNDS_EXCEPTION_CODE,
+    )
 
     # MARK: Create
     @classmethod
@@ -66,7 +87,8 @@ class UserService(
             ids=data.permissions_ids,
         ):
             raise exceptions.NotFoundException(
-                message=PermissionService.not_found_exception_message
+                message=PermissionService.not_found_exception_message,
+                code=PermissionService.not_found_exception_code,
             )
 
         # Генерация и хэширование пароля
@@ -99,7 +121,9 @@ class UserService(
 
         except IntegrityError as ex:
             raise exceptions.ConflictException(
-                message=cls.conflict_exception_message, exc=ex
+                message=cls.conflict_exception_message,
+                code=cls.conflict_exception_code,
+                exc=ex,
             )
 
         return user_schemas.UserCreatedGetSchema(
@@ -142,7 +166,8 @@ class UserService(
             ids=data.permissions_ids,
         ):
             raise exceptions.NotFoundException(
-                message=PermissionService.not_found_exception_message
+                message=PermissionService.not_found_exception_message,
+                code=PermissionService.not_found_exception_code,
             )
 
         hashed_password = None
@@ -174,7 +199,11 @@ class UserService(
             await session.refresh(updated_user)
 
         except IntegrityError as ex:
-            raise exceptions.ConflictException(exc=ex)
+            raise exceptions.ConflictException(
+                message=cls.conflict_exception_message,
+                code=cls.conflict_exception_code,
+                exc=ex,
+            )
 
         return user_schemas.UserGetSchema.model_validate(updated_user)
 
@@ -205,7 +234,8 @@ class UserService(
 
         if user.is_active == is_active:
             raise exceptions.ConflictException(
-                f"Трейдер уже в {'не' if is_active else ''} активном режиме."
+                message=cls.trader_already_in_that_state_exception_message,
+                code=cls.trader_already_in_that_state_exception_code,
             )
 
         user.is_active = is_active
@@ -250,7 +280,8 @@ class UserService(
             )
 
             raise exceptions.ConflictException(
-                "У вас уже есть транзакция в процессе обработки."
+                message=BlockchainTransactionService.already_exists_exception_message,
+                code=BlockchainTransactionService.already_exists_exception_code,
             )
 
         except exceptions.NotFoundException:
@@ -331,7 +362,10 @@ class UserService(
                 id=transaction_db.id,
                 status=TransactionStatusEnum.FAILED,
             )
-            raise exceptions.ConflictException("Транзакция не соответствует ожидаемой.")
+            raise exceptions.NotFoundException(
+                message=BlockchainTransactionService.not_found_exception_message,
+                code=BlockchainTransactionService.not_found_exception_code,
+            )
 
         # Обновление статуса транзакции в БД на успешный
         await BlockchainTransactionService.update(
@@ -389,7 +423,10 @@ class UserService(
 
         # Проверка баланса
         if user.balance - user.amount_frozen < data.amount:
-            raise exceptions.BadRequestException("Недостаточно средств для вывода.")
+            raise exceptions.BadRequestException(
+                message=cls.not_enough_funds_exception_message,
+                code=cls.not_enough_funds_exception_code,
+            )
 
         # Проверка на наличие транзакции в процессе обработки в БД
         try:
@@ -400,7 +437,8 @@ class UserService(
             )
 
             raise exceptions.ConflictException(
-                "У вас уже есть транзакция в процессе обработки."
+                message=BlockchainTransactionService.already_exists_exception_message,
+                code=BlockchainTransactionService.already_exists_exception_code,
             )
 
         except exceptions.NotFoundException:

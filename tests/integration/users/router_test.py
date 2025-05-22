@@ -178,7 +178,7 @@ class TestUserRouter(BaseTestRouter):
             json=pay_schemas.ConfirmPayInSchema(transaction_hash="123").model_dump(),
         )
 
-        assert response.status_code == status.HTTP_409_CONFLICT
+        assert response.status_code == status.HTTP_404_NOT_FOUND
 
         transaction_db = await BlockchainTransactionRepository.get_one_or_none(
             session=session,

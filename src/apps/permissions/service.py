@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.apps.permissions import schemas
+from src.apps.permissions import constants, schemas
 from src.apps.permissions.model import PermissionModel
 from src.apps.permissions.repository import PermissionRepository
 from src.libs.base.service import BaseService
@@ -17,11 +17,15 @@ class PermissionService(
         schemas.PermissionCreateSchema,
     ],
 ):
-    """Сервис для работы с разрешениями."""
-
     repository = PermissionRepository
-    not_found_exception_message = "Разрешения не найдены."
-    conflict_exception_message = "Возник конфликт при создании разрешения."
+    not_found_exception_message, not_found_exception_code = (
+        constants.NOT_FOUND_EXCEPTION_MESSAGE,
+        constants.NOT_FOUND_EXCEPTION_CODE,
+    )
+    conflict_exception_message, conflict_exception_code = (
+        constants.CONFLICT_EXCEPTION_MESSAGE,
+        constants.CONFLICT_EXCEPTION_CODE,
+    )
 
     @classmethod
     async def check_all_exist(

@@ -1,4 +1,4 @@
-from src.apps.regex import schemas
+from src.apps.regex import constants, schemas
 from src.apps.regex.model import RegexModel
 from src.apps.regex.repository import RegexRepository
 from src.libs.base.service import BaseService
@@ -15,5 +15,11 @@ class RegexService(
     ],
 ):
     repository: RegexRepository = RegexRepository()
-    not_found_exception_message = "Регулярные выражения не найдены."
-    conflict_exception_message = "Возник конфликт при создании регулярного выражения."
+    not_found_exception_message, not_found_exception_code = (
+        constants.NOT_FOUND_EXCEPTION_MESSAGE,
+        constants.NOT_FOUND_EXCEPTION_CODE,
+    )
+    conflict_exception_message, conflict_exception_code = (
+        constants.CONFLICT_EXCEPTION_MESSAGE,
+        constants.CONFLICT_EXCEPTION_CODE,
+    )

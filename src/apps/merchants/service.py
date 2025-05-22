@@ -1,8 +1,10 @@
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.apps.merchants import constants as merchant_constants
 from src.apps.merchants import schemas
 from src.apps.requisites.repository import RequisiteRepository
+from src.apps.requisites.service import RequisiteService
 from src.apps.traders.repository import TraderRepository
 from src.apps.transactions import schemas as transaction_schemas
 from src.apps.transactions.model import (
@@ -17,6 +19,19 @@ from src.core import constants, exceptions
 
 class MerchantService:
     """Сервис для работы с мерчантами."""
+
+    not_found_exception_message, not_found_exception_code = (
+        merchant_constants.NOT_FOUND_EXCEPTION_MESSAGE,
+        merchant_constants.NOT_FOUND_EXCEPTION_CODE,
+    )
+    conflict_exception_message, conflict_exception_code = (
+        merchant_constants.CONFLICT_EXCEPTION_MESSAGE,
+        merchant_constants.CONFLICT_EXCEPTION_CODE,
+    )
+    not_enough_balance_exception_message, not_enough_balance_exception_code = (
+        merchant_constants.NOT_ENOUGH_BALANCE_EXCEPTION_MESSAGE,
+        merchant_constants.NOT_ENOUGH_BALANCE_EXCEPTION_CODE,
+    )
 
     # MARK: Pay in
     @classmethod
@@ -61,7 +76,8 @@ class MerchantService:
             merchant_id=user.id,
         ):
             raise exceptions.ConflictException(
-                "Уже есть транзакция в процессе обработки."
+                message=cls.conflict_exception_message,
+                code=cls.conflict_exception_code,
             )
 
         # Получение трейдера и его реквизитов
@@ -73,7 +89,8 @@ class MerchantService:
         ) or (None, None)
         if not trader_db or not requisite_db:
             raise exceptions.NotFoundException(
-                "Трейдер с таким методом оплаты не найден"
+                message=RequisiteService.not_found_exception_message,
+                code=RequisiteService.not_found_exception_code,
             )
 
         # Заморозка средств трейдера
@@ -149,7 +166,10 @@ class MerchantService:
             merchant_db.balance - merchant_db.amount_frozen
             < schema.amount + schema.amount * constants.MERCHANT_TRANSACTION_COMMISSION
         ):
-            raise exceptions.ConflictException("На балансе недостаточно средств.")
+            raise exceptions.ConflictException(
+                message=cls.not_enough_balance_exception_message,
+                code=cls.not_enough_balance_exception_code,
+            )
 
         # Проверка на наличие транзакции в процессе обработки
         if await TransactionRepository.get_pending_by_user_and_requisite_id(
@@ -158,7 +178,8 @@ class MerchantService:
             requisite_id=schema.requisite_id,
         ):
             raise exceptions.ConflictException(
-                "Уже есть транзакция в процессе обработки."
+                message=cls.conflict_exception_message,
+                code=cls.conflict_exception_code,
             )
 
         # Получение реквезитов мерчанта
@@ -166,10 +187,11 @@ class MerchantService:
             session=session,
             id=schema.requisite_id,
         )
-        if not requisite_merchant_db:
-            raise exceptions.NotFoundException("Ваши реквизиты не найдены")
-        elif requisite_merchant_db.user_id != merchant_db.id:
-            raise exceptions.ConflictException("Реквизиты не принадлежат вам")
+        if not requisite_merchant_db or requisite_merchant_db.user_id != merchant_db.id:
+            raise exceptions.NotFoundException(
+                message=RequisiteService.not_found_exception_message,
+                code=RequisiteService.not_found_exception_code,
+            )
 
         # Получение трейдера
         trader_db, requisite_trader_db = await TraderRepository.get_by_filters(
@@ -180,7 +202,8 @@ class MerchantService:
         ) or (None, None)
         if not trader_db or not requisite_trader_db:
             raise exceptions.NotFoundException(
-                "Трейдер с таким методом оплаты не найден"
+                message=RequisiteService.not_found_exception_message,
+                code=RequisiteService.not_found_exception_code,
             )
 
         # Заморозка средств трейдера

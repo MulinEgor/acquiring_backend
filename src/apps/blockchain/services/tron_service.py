@@ -7,13 +7,12 @@ import aiohttp
 import orjson
 from tronpy.keys import PrivateKey
 
-from src.core import constants, exceptions
+from src.apps.blockchain import exceptions
+from src.core import constants
 from src.core.settings import settings
 
 
 class TronService:
-    """Сервис для работы с Tron."""
-
     # MARK: Utils
     @classmethod
     async def _get_block_timestamp(cls, hash: str) -> int:
@@ -25,6 +24,9 @@ class TronService:
 
         Returns:
             Timestamp блока.
+
+        Raises:
+            GetTronBlockException: Ошибка при попытке получения блока с TronScan.
         """
 
         async with aiohttp.ClientSession() as session:
@@ -41,15 +43,18 @@ class TronService:
                 },
             ) as response:
                 if response.status != 200:
-                    raise exceptions.InternalServerErrorException(
-                        f"Ошибка при попытке получения блока с TronScan: \
-                        status: {response.status}, text: {await response.text()}."
+                    raise exceptions.GetTronBlockException(
+                        error_status_code=response.status,
+                        error_text=await response.text(),
                     )
 
                 block_data: dict = orjson.loads(await response.text())
 
         if block_data.get("result") is None:
-            raise exceptions.NotFoundException("Блок не найден.")
+            raise exceptions.GetTronBlockException(
+                error_status_code=response.status,
+                error_text=await response.text(),
+            )
 
         return int(block_data["result"]["timestamp"], 16)
 
@@ -64,6 +69,9 @@ class TronService:
 
         Returns:
             True, если кошелек существует, False - в противном случае.
+
+        Raises:
+            GetTronWalletException: Ошибка при попытке получения кошелька с Tron.
         """
 
         async with aiohttp.ClientSession() as session:
@@ -80,9 +88,9 @@ class TronService:
                 },
             ) as response:
                 if response.status != 200:
-                    raise exceptions.InternalServerErrorException(
-                        f"Ошибка при попытке получения кошелька с Tron API: \
-                        status: {response.status}, text: {await response.text()}."
+                    raise exceptions.GetTronWalletException(
+                        error_status_code=response.status,
+                        error_text=await response.text(),
                     )
 
                 data_json: dict = orjson.loads(await response.text())
@@ -147,9 +155,8 @@ class TronService:
                 (hash, from_address, to_address, amount, created_at)
 
         Raises:
-            InternalServerErrorException:
+            GetTronTransactionException:
                 Ошибка при попытке получения транзакции с TronScan.
-            NotFoundException: Транзакция не найдена.
         """
 
         async with aiohttp.ClientSession() as session:
@@ -166,15 +173,18 @@ class TronService:
                 },
             ) as response:
                 if response.status != 200:
-                    raise exceptions.InternalServerErrorException(
-                        f"Ошибка при попытке получения транзакции с TronScan: \
-                        status: {response.status}, text: {await response.text()}."
+                    raise exceptions.GetTronTransactionException(
+                        error_status_code=response.status,
+                        error_text=await response.text(),
                     )
 
                 data_json: dict = orjson.loads(await response.text())
 
         if data_json.get("result") is None:
-            raise exceptions.NotFoundException("Транзакция не найдена.")
+            raise exceptions.GetTronTransactionException(
+                error_status_code=response.status,
+                error_text=await response.text(),
+            )
 
         return {
             "hash": data_json["result"]["hash"],
@@ -203,6 +213,10 @@ class TronService:
 
         Returns:
             Словарь с данными транзакции.
+
+        Raises:
+            CreateTronTransactionException:
+                Ошибка при попытке создать транзакцию с Tron API.
         """
 
         async with aiohttp.ClientSession() as session:
@@ -219,19 +233,18 @@ class TronService:
                 },
             ) as response:
                 if response.status != 200:
-                    raise exceptions.InternalServerErrorException(
-                        f"Ошибка при попытке создать транзакцию с Tron API: \
-                        статус: {response.status}, текст: {await response.text()}."
+                    raise exceptions.CreateTronTransactionException(
+                        error_status_code=response.status,
+                        error_text=await response.text(),
                     )
                 data = orjson.loads(await response.text())
 
-                if data.get("Error"):
-                    raise exceptions.InternalServerErrorException(
-                        f"Ошибка при попытке создать транзакцию с Tron API: \
-                        текст: {data.get('Error')}."
-                    )
+            if data.get("Error"):
+                raise exceptions.CreateTronTransactionException(
+                    error_text=data.get("Error"),
+                )
 
-                return data
+            return data
 
     @staticmethod
     async def _sign_transaction(transaction: dict, private_key: str) -> dict:
@@ -261,6 +274,10 @@ class TronService:
 
         Args:
             signed_transaction: Подписанная транзакция.
+
+        Raises:
+            BroadcastTronTransactionException:
+                Ошибка при попытке отправить транзакцию.
         """
 
         async with aiohttp.ClientSession() as session:
@@ -272,9 +289,9 @@ class TronService:
                 },
             ) as response:
                 if response.status != 200:
-                    raise exceptions.InternalServerErrorException(
-                        f"Ошибка при попытке отправить транзакцию: \
-                        status: {response.status}, text: {await response.text()}."
+                    raise exceptions.BroadcastTronTransactionException(
+                        error_status_code=response.status,
+                        error_text=await response.text(),
                     )
 
     @classmethod
@@ -298,7 +315,10 @@ class TronService:
             Хэш транзакции.
 
         Raises:
-            InternalServerErrorException: Ошибка при попытке отправить транзакцию.
+            CreateTronTransactionException:
+                Ошибка при попытке создать транзакцию.
+            BroadcastTronTransactionException:
+                Ошибка при попытке отправить транзакцию.
         """
 
         transaction = await cls._create_transaction(

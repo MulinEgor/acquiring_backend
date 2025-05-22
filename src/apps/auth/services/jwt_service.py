@@ -4,7 +4,8 @@ from typing import Literal
 import jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import src.apps.auth.schemas as schemas
+from src.apps.auth import exceptions as auth_exceptions
+from src.apps.auth import schemas
 from src.apps.users.repository import UserRepository
 from src.core import constants, exceptions
 from src.core.settings import settings
@@ -40,15 +41,15 @@ class JWTService:
             user_id = payload.get("id")
 
             if not user_id:
-                raise exceptions.InvalidTokenException()
+                raise auth_exceptions.InvalidTokenException()
 
             return user_id
 
         except Exception as e:
             if isinstance(e, jwt.ExpiredSignatureError):
-                raise exceptions.TokenExpiredException()
+                raise auth_exceptions.TokenExpiredException()
             else:
-                raise exceptions.InvalidTokenException()
+                raise auth_exceptions.InvalidTokenException()
 
     # MARK: Create
     @classmethod

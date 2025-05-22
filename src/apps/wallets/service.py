@@ -5,7 +5,7 @@ from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.blockchain.services.tron_service import TronService
-from src.apps.wallets import schemas
+from src.apps.wallets import constants, schemas
 from src.apps.wallets.model import WalletModel
 from src.apps.wallets.repository import WalletRepository
 from src.core import exceptions
@@ -25,8 +25,14 @@ class WalletService(
     """Сервис для работы с кошельками."""
 
     repository = WalletRepository
-    not_found_exception_message = "Кошелки не найдены."
-    conflict_exception_message = "Возник конфликт при создании кошелька."
+    not_found_exception_message, not_found_exception_code = (
+        constants.NOT_FOUND_EXCEPTION_MESSAGE,
+        constants.NOT_FOUND_EXCEPTION_CODE,
+    )
+    conflict_exception_message, conflict_exception_code = (
+        constants.CONFLICT_EXCEPTION_MESSAGE,
+        constants.CONFLICT_EXCEPTION_CODE,
+    )
 
     # MARK: Create
     @classmethod
@@ -42,12 +48,18 @@ class WalletService(
             data: Данные для создания кошелька.
 
         Returns: Кошелек.
+
+        Raises:
+            NotFoundException: Кошелек не существует на блокчейне.
         """
 
         logger.info("Создание кошелька: {}", data.model_dump())
 
         if not await TronService.does_wallet_exist(data.address):
-            raise exceptions.BadRequestException("Кошелек не существует на блокчейне.")
+            raise exceptions.NotFoundException(
+                message=cls.not_found_exception_message,
+                code=cls.not_found_exception_code,
+            )
 
         return await super().create(session, data)
 
@@ -64,6 +76,9 @@ class WalletService(
             address: Адрес кошелька.
 
         Returns: Кошелек.
+
+        Raises:
+            NotFoundException: Кошелек не найден.
         """
 
         logger.info("Получение кошелька по адресу: {}", address)
@@ -73,7 +88,10 @@ class WalletService(
         )
 
         if not wallet:
-            raise exceptions.NotFoundException("Кошелек не найден.")
+            raise exceptions.NotFoundException(
+                message=cls.not_found_exception_message,
+                code=cls.not_found_exception_code,
+            )
 
         return schemas.WalletGetSchema.model_validate(wallet)
 
@@ -106,7 +124,8 @@ class WalletService(
         ]
         if not wallets_addresses:
             raise exceptions.NotFoundException(
-                "Не найдены кошельки для перевода средств."
+                message=cls.not_found_exception_message,
+                code=cls.not_found_exception_code,
             )
 
         wallets_balances = await TronService.get_wallets_balances(wallets_addresses)
@@ -116,7 +135,8 @@ class WalletService(
 
         if not wallets_balances:
             raise exceptions.NotFoundException(
-                "Не найдены кошельки с достаточным балансом."
+                message=cls.not_found_exception_message,
+                code=cls.not_found_exception_code,
             )
 
         if min_or_max == "min":

@@ -3,6 +3,7 @@ from datetime import datetime
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.apps.blockchain import constants as blockchain_constants
 from src.apps.blockchain import schemas
 from src.apps.blockchain.model import BlockchainTransactionModel
 from src.apps.blockchain.repository import BlockchainTransactionRepository
@@ -30,8 +31,18 @@ class BlockchainTransactionService(
     """Сервис для работы с транзакциями на блокчейне."""
 
     repository = BlockchainTransactionRepository
-    not_found_exception_message = "Блокчейн транзакции не найдены."
-    conflict_exception_message = "Возник конфликт при создании блокчейн транзакции."
+    conflict_exception_message, conflict_exception_code = (
+        blockchain_constants.CONFLICT_EXCEPTION_MESSAGE,
+        blockchain_constants.CONFLICT_EXCEPTION_CODE,
+    )
+    not_found_exception_message, not_found_exception_code = (
+        blockchain_constants.NOT_FOUND_EXCEPTION_MESSAGE,
+        blockchain_constants.NOT_FOUND_EXCEPTION_CODE,
+    )
+    already_exists_exception_message, already_exists_exception_code = (
+        blockchain_constants.ALREADY_EXISTS_EXCEPTION_MESSAGE,
+        blockchain_constants.ALREADY_EXISTS_EXCEPTION_CODE,
+    )
 
     @classmethod
     async def get_pending_by_user_id(
@@ -69,7 +80,10 @@ class BlockchainTransactionService(
             type=type,
         )
         if not transaction_db:
-            raise exceptions.NotFoundException(message=cls.not_found_exception_message)
+            raise exceptions.NotFoundException(
+                message=cls.not_found_exception_message,
+                code=cls.not_found_exception_code,
+            )
 
         if transaction_db.expires_at < datetime.now():
             await cls.update_status_by_id(
@@ -78,7 +92,10 @@ class BlockchainTransactionService(
                 status=TransactionStatusEnum.FAILED,
             )
 
-            raise exceptions.NotFoundException(message=cls.not_found_exception_message)
+            raise exceptions.NotFoundException(
+                message=cls.not_found_exception_message,
+                code=cls.not_found_exception_code,
+            )
 
         return transaction_db
 
@@ -110,7 +127,10 @@ class BlockchainTransactionService(
         )
 
         if not transaction_db:
-            raise exceptions.NotFoundException(message=cls.not_found_exception_message)
+            raise exceptions.NotFoundException(
+                message=cls.not_found_exception_message,
+                code=cls.not_found_exception_code,
+            )
 
         transaction_db.status = status
         await session.commit()
@@ -149,7 +169,10 @@ class BlockchainTransactionService(
         )
 
         if not transaction_db:
-            raise exceptions.NotFoundException(cls.not_found_exception_message)
+            raise exceptions.NotFoundException(
+                message=cls.not_found_exception_message,
+                code=cls.not_found_exception_code,
+            )
 
         err_msgs = []
         if transaction_db.status != TransactionStatusEnum.PENDING:
@@ -167,7 +190,8 @@ class BlockchainTransactionService(
         )
         if not wallet_db:
             raise exceptions.NotFoundException(
-                message=WalletService.not_found_exception_message
+                message=WalletService.not_found_exception_message,
+                code=WalletService.not_found_exception_code,
             )
 
         # Создание и подписание транзакции на блокчейне

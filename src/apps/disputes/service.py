@@ -1,6 +1,7 @@
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.apps.disputes import constants as dispute_constants
 from src.apps.disputes import schemas
 from src.apps.disputes.model import DisputeModel, DisputeStatusEnum
 from src.apps.disputes.repository import DisputeRepository
@@ -28,8 +29,14 @@ class DisputeService(
     """Сервис для работы с диспутами."""
 
     repository = DisputeRepository
-    not_found_exception_message = "Диспуты не найдены."
-    conflict_exception_message = "Возник конфликт при создании диспута."
+    not_found_exception_message, not_found_exception_code = (
+        dispute_constants.NOT_FOUND_EXCEPTION_MESSAGE,
+        dispute_constants.NOT_FOUND_EXCEPTION_CODE,
+    )
+    conflict_exception_message, conflict_exception_code = (
+        dispute_constants.CONFLICT_EXCEPTION_MESSAGE,
+        dispute_constants.CONFLICT_EXCEPTION_CODE,
+    )
 
     # MARK: Get
     @classmethod
@@ -61,7 +68,10 @@ class DisputeService(
             id=id,
         )
         if not dispute_db:
-            raise exceptions.NotFoundException(message=cls.not_found_exception_message)
+            raise exceptions.NotFoundException(
+                message=cls.not_found_exception_message,
+                code=cls.not_found_exception_code,
+            )
 
         if user_id:
             transaction_db = await TransactionRepository.get_one_or_none(
@@ -70,7 +80,8 @@ class DisputeService(
             )
             if not transaction_db:
                 raise exceptions.NotFoundException(
-                    message=TransactionService.not_found_exception_message
+                    message=TransactionService.not_found_exception_message,
+                    code=TransactionService.not_found_exception_code,
                 )
 
             if (
@@ -78,7 +89,8 @@ class DisputeService(
                 and transaction_db.trader_id != user_id
             ):
                 raise exceptions.NotFoundException(
-                    message=cls.not_found_exception_message
+                    message=cls.not_found_exception_message,
+                    code=cls.not_found_exception_code,
                 )
 
         return dispute_db
@@ -119,13 +131,13 @@ class DisputeService(
         transaction = await TransactionService.get_by_id(
             session=session, id=data.transaction_id
         )
-        if transaction.status != TransactionStatusEnum.SUCCESS:
+        if (
+            transaction.status != TransactionStatusEnum.SUCCESS
+            and transaction.merchant_id != merchant_db.id
+        ):
             raise exceptions.ConflictException(
-                "Транзакция должна быть завершена, чтобы создать диспут"
-            )
-        elif transaction.merchant_id != merchant_db.id:
-            raise exceptions.ConflictException(
-                message=TransactionService.not_found_exception_message
+                message=TransactionService.not_found_exception_message,
+                code=TransactionService.not_found_exception_code,
             )
 
         # Изменение статуса транзакции
@@ -278,7 +290,10 @@ class DisputeService(
                 and data.winner_id != dispute_db.transaction.merchant_id
             )
         ):
-            raise exceptions.NotFoundException(message=cls.not_found_exception_message)
+            raise exceptions.NotFoundException(
+                message=cls.not_found_exception_message,
+                code=cls.not_found_exception_code,
+            )
 
         transaction_db = await TransactionRepository.get_one_or_none(
             session=session, id=dispute_db.transaction_id

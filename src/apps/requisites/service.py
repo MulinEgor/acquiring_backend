@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.apps.requisites import schemas
+from src.apps.requisites import constants, schemas
 from src.apps.requisites.model import RequisiteModel
 from src.apps.requisites.repository import RequisiteRepository
 from src.apps.users.model import UserModel
@@ -21,8 +21,14 @@ class RequisiteService(
     """Сервис для работы с реквизитами."""
 
     repository = RequisiteRepository
-    not_found_exception_message = "Реквизиты не найдены."
-    conflict_exception_message = "Возник конфликт при создании реквизитов."
+    not_found_exception_message, not_found_exception_code = (
+        constants.NOT_FOUND_EXCEPTION_MESSAGE,
+        constants.NOT_FOUND_EXCEPTION_CODE,
+    )
+    conflict_exception_message, conflict_exception_code = (
+        constants.CONFLICT_EXCEPTION_MESSAGE,
+        constants.CONFLICT_EXCEPTION_CODE,
+    )
 
     # MARK: Get
     @classmethod
@@ -51,7 +57,10 @@ class RequisiteService(
         requisite = await super().get_by_id(session, id)
 
         if user and user.id != requisite.user_id:
-            raise exceptions.NotFoundException(message=cls.not_found_exception_message)
+            raise exceptions.NotFoundException(
+                message=cls.not_found_exception_message,
+                code=cls.not_found_exception_code,
+            )
 
         return requisite
 
@@ -85,7 +94,10 @@ class RequisiteService(
         requisite = await super().get_by_id(session, id)
 
         if user and user.id != requisite.user_id:
-            raise exceptions.NotFoundException(message=cls.not_found_exception_message)
+            raise exceptions.NotFoundException(
+                message=cls.not_found_exception_message,
+                code=cls.not_found_exception_code,
+            )
 
         return await super().update(session, id, data)
 
@@ -113,6 +125,9 @@ class RequisiteService(
         requisite = await super().get_by_id(session, id)
 
         if user and user.id != requisite.user_id:
-            raise exceptions.NotFoundException(message=cls.not_found_exception_message)
+            raise exceptions.NotFoundException(
+                message=cls.not_found_exception_message,
+                code=cls.not_found_exception_code,
+            )
 
         await super().delete(session, id)
